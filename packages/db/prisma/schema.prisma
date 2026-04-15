@@ -1,0 +1,606 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum UserType {
+  SUPERADMIN
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum InventoryStatus {
+  NOT_LISTED
+  LISTED
+  SOLD
+}
+
+enum PaymentMode {
+  CASH
+  UPI
+  CREDIT_CARD
+  DEBIT_CARD
+  SPLIT_PAYMENT
+  RAZORPAY
+}
+
+enum BuyingCondition {
+  UNBOXED
+  SUPERB
+  GOOD
+  FAIR
+  PARTIALLY_FAIR
+}
+
+enum BuyingAvailability {
+  IN_STOCK
+  OUT_OF_STOCK
+}
+
+enum BuyingOS {
+  WINDOWS
+  MACOS
+}
+
+enum WarrantyType {
+  HELLOFI_WARRANTY
+  BRAND_WARRANTY
+  NO_WARRANTY
+}
+
+model User {
+  id       String     @id @default(cuid())
+  fName    String
+  lName    String
+  contact  String     @unique
+  password String?
+  email    String?    @unique
+  userType UserType   @default(USER)
+  status   UserStatus @default(ACTIVE)
+
+  emailVerified   Boolean @default(false)
+  contactVerified Boolean @default(false)
+
+  // Rate limiting fields for OTP generation (login/signup)
+  dailyOtpAttempts Int       @default(0)
+  lastOtpDate      DateTime? // YYYY-MM-DD format
+  isOtpBlocked     Boolean   @default(false)
+  pincode          String
+
+  // Rate limiting fields for OTP resend
+  dailyResendOtpAttempts Int       @default(0)
+  lastResendDate         DateTime? // YYYY-MM-DD format
+  isResendBlocked        Boolean   @default(false)
+
+  // Rate limiting fields for OTP verification
+  dailyVerificationOtpAttempts Int       @default(0)
+  lastVerificationDate         DateTime? // YYYY-MM-DD format
+  isVerificationBlocked        Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sessions Session[]
+
+  @@index([email])
+  @@index([contact])
+  @@map("users")
+}
+
+model Session {
+  id                  String   @id @default(cuid())
+  sessionToken        String   @unique
+  refreshToken        String?  @unique
+  userId              String
+  expires             DateTime
+  sessionTokenExpires DateTime
+
+  deviceId   String?
+  deviceInfo String?
+  ipAddress  String?
+
+  lastActivityAt DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([sessionToken])
+  @@index([refreshToken])
+  @@map("sessions")
+}
+
+model Banner {
+  id          String    @id @default(uuid())
+  alt         String
+  lg          String // 1300x371 — desktop
+  sm          String // 390x180 — mobile
+  redirectUrl String? // clicking banner goes here
+  priority    Int       @default(0) // order of display
+  isActive    Boolean   @default(true)
+  startDate   DateTime? // schedule banner from
+  endDate     DateTime? // schedule banner until
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Category {
+  id           String   @id @default(uuid())
+  name         String
+  seoName      String   @unique
+  categoryType String
+  image        String
+  priority     Int
+  status       Status   @default(ACTIVE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  buyingProducts    BuyingProduct[]
+  brandCategories   BrandCategory[]
+  inventoryProducts InventoryProduct[]
+  series            Series[]
+  sellingProducts   SellingProduct[]
+}
+
+model Brand {
+  id        String   @id @default(uuid())
+  name      String
+  seoName   String   @unique
+  image     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  buyingProducts    BuyingProduct[]
+  brandCategories   BrandCategory[]
+  inventoryProducts InventoryProduct[]
+  series            Series[]
+  sellingProducts   SellingProduct[]
+}
+
+model BrandCategory {
+  id         String   @id @default(uuid())
+  brandId    String
+  categoryId String
+  status     Status   @default(ACTIVE)
+  priority   Int      @default(0) // priority per category
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  brand    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([brandId, categoryId]) // Samsung can only appear once per category
+}
+
+model BuyingProduct {
+  id              String   @id @default(uuid())
+  productName     String
+  productSubtitle String
+  slug            String   @unique
+  brandId         String
+  categoryId      String
+  isTrending      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  brand          Brand                 @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  category       Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  variants       BuyingVariant[]
+  images         BuyingProductImage[]
+  specifications BuyingSpecification[]
+}
+
+model BuyingVariant {
+  id                  String             @id @default(uuid())
+  productId           String
+  sku                 String
+  shortId             String             @unique
+  liveLink            String?
+  variantSubtitle     String?
+  color               String?
+  colorCode           String?
+  storage             String
+  ram                 String?
+  price               Decimal
+  mrp                 Decimal
+  emiBasePrice        Decimal?
+  quantity            Int
+  reservedQuantity    Int                @default(0)
+  productSpec         String?
+  condition           BuyingCondition
+  availability        BuyingAvailability @default(IN_STOCK)
+  screenSize          String?
+  os                  BuyingOS?
+  processor           String?
+  batteryCapacity     String?
+  warrantyType        WarrantyType
+  warrantyDescription String?
+  whatsInTheBox       String[]
+  whatsExtra          String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  product BuyingProduct        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images  BuyingProductImage[]
+
+  @@index([shortId])
+}
+
+model BuyingProductImage {
+  id        String   @id @default(uuid())
+  variantId String?
+  productId String?
+  xs        String?
+  sm        String?
+  md        String?
+  lg        String?
+  alt       String?
+  priority  Int      @default(0)
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  variant BuyingVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  product BuyingProduct? @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model BuyingSpecification {
+  id        String   @id @default(uuid())
+  productId String
+  key       String
+  value     String
+  group     String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product BuyingProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model InventoryProduct {
+  id           String @id @default(uuid())
+  imeiOrSerial String
+  orderId      String
+
+  // ── Purchase Details ──
+  purchaseDate        DateTime
+  productName         String
+  ram                 String?
+  storage             String?
+  costPrice           Decimal
+  otherCharges        Decimal  @default(0)
+  sellingOtherCharges Decimal  @default(0)
+
+  // ── Category + Brand ──
+  brandId    String
+  categoryId String
+
+  // ── Purchase Customer (who sold TO us) ──
+  customerName    String
+  customerEmail   String?
+  customerPhone   String
+  customerAddress String
+
+  // ── Inventory Status ──
+  status InventoryStatus @default(NOT_LISTED)
+
+  // ── Selling Details (when we SELL it) ──
+  sellingDate  DateTime?
+  sellingPrice Decimal?
+  invoice      String?
+
+  // ── Selling Customer (who bought FROM us) ──
+  sellingCustomerName    String?
+  sellingCustomerEmail   String?
+  sellingCustomerPhone   String?
+  sellingCustomerAddress String?
+
+  // ── Payment ──
+  paymentMode         PaymentMode?
+  receivedInBank      Decimal?
+  splitPaymentDetails String?
+
+  // ── Business Metrics ──
+  tat         Int? // days
+  grossProfit Decimal?
+
+  // ── Device Condition ──
+  screenCondition String  @default("NO") // MINOR, MAJOR, NO
+  bodyCondition   String  @default("NO") // MINOR, MAJOR, NO
+  deviceIssues    String? // free text
+
+  // ── Accessories ──
+  hasBox          Boolean @default(false)
+  hasCharger      Boolean @default(false)
+  hasOriginalBill Boolean @default(false)
+
+  // ── Warranty ──
+  warrantyType         String    @default("ABOVE_1_YEAR") // ABOVE_1_YEAR, BELOW_1_YEAR
+  warrantyPurchaseDate DateTime? // only if BELOW_1_YEAR
+
+  // ── Metadata ──
+  isActive  Boolean  @default(true)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  brand    Brand    @relation(fields: [brandId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([imeiOrSerial])
+  @@index([customerEmail])
+  @@index([customerPhone])
+  @@index([sellingCustomerEmail])
+  @@index([sellingCustomerPhone])
+  @@index([purchaseDate])
+  @@index([sellingDate])
+  @@index([status])
+  @@map("inventory_products")
+}
+
+// ── COMPANY SETTINGS — multiple allowed ──
+model InvoiceCompanySettings {
+  id        String  @id @default(cuid())
+  label     String // e.g. "HelloFi Bangalore", "HelloFi Odisha"
+  isDefault Boolean @default(false)
+
+  // Company Details
+  name     String
+  address  String
+  contact  String
+  email    String
+  gstin    String
+  logoUrl  String?
+  stampUrl String?
+
+  // Default Terms
+  defaultInvoiceTermsBrand   String @db.Text
+  defaultInvoiceTermsHellofi String @db.Text
+  defaultInvoiceTermsNone    String @db.Text
+  defaultBankDetails         String @db.Text
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoices Invoice[]
+
+  @@map("invoice_company_settings")
+}
+
+// ── INVOICE COUNTER ──
+model InvoiceCounter {
+  id            String   @id @default(cuid())
+  financialYear String // e.g. "25-26"
+  lastNumber    Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([financialYear])
+  @@map("invoice_counters")
+}
+
+// ── INVOICE ──
+model Invoice {
+  id            String   @id @default(cuid())
+  invoiceNumber String   @unique
+  invoiceDate   DateTime
+
+  // ── Settings reference — all company details come from here ──
+  companySettingsId String
+  companySettings   InvoiceCompanySettings @relation(fields: [companySettingsId], references: [id])
+
+  // ── Billing Address ──
+  clientName        String
+  clientAddress     String
+  clientEmail       String
+  clientContact     String
+  clientGstin       String?
+  isInsideBangalore Boolean @default(true)
+  paidBy            String?
+
+  // ── Sale Type ──
+  saleType SaleType @default(DIRECT)
+
+  // ── Warranty ──
+  warrantyType   InvoiceWarrantyType @default(BRAND)
+  warrantyMonths Int? // only for HELLOFI — store months only
+
+  // ── Financials ──
+  grossValue    Float
+  taxAmount     Float
+  totalAmount   Float
+  exchangeValue Float @default(0)
+  amountPaid    Float
+
+  // ── GST ──
+  cgst Float @default(0)
+  sgst Float @default(0)
+  igst Float @default(0)
+
+  // ── Custom Terms — only stored if admin added extra points ──
+  // null means use settings default
+  customInvoiceTerms String? @db.Text
+  customBankDetails  String? @db.Text
+
+  // ── PDF ──
+  pdfUrl String?
+
+  // ── Status ──
+  status InvoiceStatus @default(DRAFT)
+
+  // ── Relations ──
+  items         InvoiceItem[]
+  exchangeItems InvoiceExchangeItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceNumber])
+  @@index([clientEmail])
+  @@index([clientContact])
+  @@index([invoiceDate])
+  @@index([status])
+  @@map("invoices")
+}
+
+// ── INVOICE ITEMS ──
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  product      String
+  serialNumber String?
+  hsnSac       String?
+
+  qty      Int
+  uom      String
+  rate     Float
+  total    Float
+  discount Float  @default(0)
+  gross    Float
+
+  // GST per item
+  gstAmount   Float @default(0)
+  cgstPercent Float @default(0)
+  cgstAmount  Float @default(0)
+  sgstPercent Float @default(0)
+  sgstAmount  Float @default(0)
+  igstPercent Float @default(0)
+  igstAmount  Float @default(0)
+
+  sortOrder Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+}
+
+// ── EXCHANGE ITEMS ──
+model InvoiceExchangeItem {
+  id        String  @id @default(cuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  productName  String
+  serialNumber String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@map("invoice_exchange_items")
+}
+
+enum SaleType {
+  DIRECT
+  EXCHANGE
+}
+
+enum InvoiceWarrantyType {
+  BRAND
+  HELLOFI
+  NONE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  FINALIZED
+  CANCELLED
+}
+
+// ── SERIES ──
+model Series {
+  id              String   @id @default(cuid())
+  brandName       String?
+  brandId         String?
+  brandSeoName    String?
+  categoryName    String?
+  categoryId      String?
+  categorySeoName String?
+  seriesName      String?
+  status          Status   @default(ACTIVE)
+  priority        Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  brand           Brand?           @relation(fields: [brandId], references: [id])
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  sellingProducts SellingProduct[]
+
+  @@map("series")
+}
+
+// ── SELLING PRODUCT ──
+model SellingProduct {
+  id              String    @id @default(cuid())
+  productName     String?
+  releasedYear    Int?
+  launchedDate    DateTime?
+  seriesName      String?
+  seriesId        String?
+  productType     String?
+  image           String?
+  productBrand    String?
+  brandId         String?
+  productSeoName  String?
+  brandSeoName    String?
+  categorySeoName String?
+  categoryName    String?
+  categoryId      String?
+  productPrice    Float?
+  status          Status    @default(ACTIVE)
+  hasVariants     Boolean   @default(false)
+  isConstantRam   Boolean   @default(false)
+  ram             String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  series   Series?          @relation(fields: [seriesId], references: [id])
+  brand    Brand?           @relation(fields: [brandId], references: [id])
+  category Category?        @relation(fields: [categoryId], references: [id])
+  variants SellingVariant[]
+
+  @@map("selling_products")
+}
+
+// ── SELLING VARIANT ──
+model SellingVariant {
+  id               String   @id @default(cuid())
+  ram              String?
+  storage          String?
+  productPrice     Float?
+  sellingProductId String?
+  status           Status   @default(ACTIVE)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  sellingProduct SellingProduct? @relation(fields: [sellingProductId], references: [id], onDelete: Cascade)
+
+  @@map("selling_variants")
+}

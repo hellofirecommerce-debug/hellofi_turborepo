@@ -1,0 +1,45 @@
+{
+  "name": "@repo/db",
+  "version": "1.0.0",
+  "description": "Shared database client for HelloFi",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "npx prisma generate && tsc",
+    "dev": "tsc --watch",
+    "db:generate": "npx prisma generate",
+    "db:push": "npx prisma db push",
+    "db:migrate": "npx prisma migrate dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:studio": "npx prisma studio",
+    "db:seed": "tsx prisma/seed.ts",
+    "clean": "rm -rf dist node_modules/.prisma"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "keywords": [
+    "database",
+    "prisma",
+    "hellof"
+  ],
+  "author": "HelloFi Team",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.2",
+    "dotenv": "^16.0.3"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*",
+    "@types/bcrypt": "^6.0.0",
+    "prisma": "^6.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.0"
+  }
+}

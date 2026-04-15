@@ -1,0 +1,69 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "apps/backend/**"
+      - "packages/db/**"
+      - "packages/validations/**"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build validations package
+        run: npm run build --workspace=packages/validations
+
+      - name: Build db package
+        run: npm run build --workspace=packages/db
+
+      - name: Build backend
+        run: npm run build --workspace=apps/backend
+
+      - name: Deploy to DigitalOcean
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USERNAME }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            cd /var/www/HelloFi_New_Turborepo
+
+            # Pull latest code
+            git pull origin main
+
+            # Install dependencies
+            npm ci
+
+            # Build packages
+            npm run build --workspace=packages/validations
+            npm run build --workspace=packages/db
+
+            # Run prisma migrations
+            cd packages/db
+            npx prisma migrate deploy
+            cd ../..
+
+            # Build backend
+            npm run build --workspace=apps/backend
+
+            # Restart with PM2
+            pm2 restart backend --update-env || pm2 start apps/backend/dist/index.js --name backend
+
+            pm2 save

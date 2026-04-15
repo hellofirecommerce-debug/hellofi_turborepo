@@ -1,0 +1,13 @@
+@import "tailwindcss";
+@source "../../../packages/ui/src/**/*.tsx";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  font-family: var(--font-poppins), sans-serif;
+}
+
+a {
+  color: inherit;
+}

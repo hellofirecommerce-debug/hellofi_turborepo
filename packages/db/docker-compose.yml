@@ -1,0 +1,24 @@
+version: "3.5"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hellofi-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hellofi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Akash8050}
+      POSTGRES_DB: ${POSTGRES_DB:-hellofi}
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - hellofi:/data/postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hellofi}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hellofi:
