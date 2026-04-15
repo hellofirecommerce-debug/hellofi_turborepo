@@ -32,9 +32,13 @@ jobs:
 
       - name: Build db package
         run: npm run build --workspace=packages/db
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Build backend
         run: npm run build --workspace=apps/backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Deploy to DigitalOcean
         uses: appleboy/ssh-action@v1.0.3
@@ -43,27 +47,23 @@ jobs:
           username: ${{ secrets.DO_USERNAME }}
           key: ${{ secrets.DO_SSH_KEY }}
           script: |
-            cd /var/www/HelloFi_New_Turborepo
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
-            # Pull latest code
+            cd ~/hellofi_turborepo
+
             git pull origin main
 
-            # Install dependencies
             npm ci
 
-            # Build packages
             npm run build --workspace=packages/validations
+
             npm run build --workspace=packages/db
 
-            # Run prisma migrations
-            cd packages/db
-            npx prisma migrate deploy
-            cd ../..
+            cd packages/db && npx prisma migrate deploy && cd ../..
 
-            # Build backend
             npm run build --workspace=apps/backend
 
-            # Restart with PM2
-            pm2 restart backend --update-env || pm2 start apps/backend/dist/index.js --name backend
+            pm2 restart hellofi-new-backend --update-env || pm2 start apps/backend/dist/index.js --name hellofi-new-backend
 
             pm2 save
