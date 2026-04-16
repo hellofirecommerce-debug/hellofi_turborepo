@@ -30,29 +30,24 @@ jobs:
       - name: Build validations package
         run: npm run build --workspace=packages/validations
 
-      - name: Create modified package.json for Vercel
+      - name: Create clean package.json for Vercel
         working-directory: apps/admin_frontend
         run: |
-          # Create a clean package.json without problematic packages
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             
-            // Remove problematic dev dependencies
+            // Remove ONLY the local dev dependencies that don't exist on npm
             if (pkg.devDependencies) {
               delete pkg.devDependencies['@repo/eslint-config'];
               delete pkg.devDependencies['@repo/typescript-config'];
             }
             
-            // Ensure build script is correct
+            // Keep all other dev dependencies (TypeScript, @types, etc.)
+            // Keep build script
             pkg.scripts.build = 'next build --webpack';
             
-            // Write to a new file
-            fs.writeFileSync('package-vercel.json', JSON.stringify(pkg, null, 2));
-            
-            // Backup original and replace
-            fs.copyFileSync('package.json', 'package-original.json');
-            fs.copyFileSync('package-vercel.json', 'package.json');
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
           "
 
       - name: Deploy to Vercel
@@ -65,11 +60,3 @@ jobs:
           npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
           npx vercel build --prod --token=$VERCEL_TOKEN
           npx vercel deploy --prod --token=$VERCEL_TOKEN
-
-      - name: Restore original package.json
-        if: always()
-        working-directory: apps/admin_frontend
-        run: |
-          if [ -f package-original.json ]; then
-            mv package-original.json package.json
-          fi

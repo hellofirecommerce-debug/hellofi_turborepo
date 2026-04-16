@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install --no-package-lock --omit=dev",
+  "installCommand": "npm install --no-package-lock",
   "buildCommand": "next build --webpack",
   "framework": "nextjs"
 }
