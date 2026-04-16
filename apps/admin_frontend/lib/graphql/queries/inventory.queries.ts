@@ -131,3 +131,22 @@ export const GET_INVENTORY_PRODUCT_BY_ID = gql`
     }
   }
 `;
+
+export const SEARCH_PRODUCT_NAMES = gql`
+  query SearchProductNames(
+    $query: String!
+    $categoryId: String
+    $brandId: String
+    $page: Int
+  ) {
+    searchProductNames(
+      query: $query
+      categoryId: $categoryId
+      brandId: $brandId
+      page: $page
+    ) {
+      names
+      hasMore
+    }
+  }
+`;

@@ -1,9 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { useLazyQuery } from "@apollo/client/react";
+import { SEARCH_PRODUCT_NAMES } from "../../../../lib/graphql/queries/inventory.queries";
+import { SearchableInput } from "@repo/ui";
 import { useQuery } from "@apollo/client/react";
 import { Input, Label, Button, AutoComplete } from "@repo/ui";
 import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../lib/graphql/queries/brand.queries";
-import { GET_BRANDS } from "../../../../lib/graphql/queries/brand.queries";
+
 import { GET_CATEGORIES } from "../../../../lib/graphql/queries/category.queries";
 import { InventoryProduct } from "../types";
 
@@ -114,6 +117,23 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
     variables: { categoryId: form.categoryId },
     skip: !form.categoryId, // ← don't fetch until category is selected
   });
+
+  const [searchProductNames] = useLazyQuery<{
+    searchProductNames: { names: string[]; hasMore: boolean };
+  }>(SEARCH_PRODUCT_NAMES);
+
+  const handleProductSearch = async (query: string): Promise<string[]> => {
+    const { data } = await searchProductNames({
+      variables: {
+        query,
+        categoryId: form.categoryId || undefined,
+        brandId: form.brandId || undefined,
+        page: 1,
+      },
+    });
+    return data?.searchProductNames?.names ?? [];
+  };
+
   const { data: categoriesData } = useQuery<{ getCategories: Category[] }>(
     GET_CATEGORIES,
   );
@@ -243,10 +263,12 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
             <Label>
               Product Name <span className="text-red-500">*</span>
             </Label>
-            <Input
-              placeholder="e.g. iPhone 14 Pro Max"
+            <SearchableInput
               value={form.productName}
-              onChange={(e) => handleChange("productName", e.target.value)}
+              onChange={(val) => handleChange("productName", val)}
+              onSearch={handleProductSearch}
+              placeholder="e.g. iPhone 14 Pro Max"
+              title="Search product name"
             />
           </div>
 

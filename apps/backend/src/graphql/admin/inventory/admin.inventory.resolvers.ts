@@ -39,6 +39,24 @@ export const resolvers = {
       AdminAuthService.requireAdmin(context.req);
       return AdminInventoryService.getInventoryProductByImei(args.imeiOrSerial);
     },
+    searchProductNames: async (
+      _: any,
+      args: {
+        query: string;
+        categoryId?: string;
+        brandId?: string;
+        page?: number;
+      },
+      context: GraphQLContext,
+    ) => {
+      AdminAuthService.requireAdmin(context.req);
+      return AdminInventoryService.searchProductNames(
+        args.query,
+        args.categoryId,
+        args.brandId,
+        args.page,
+      );
+    },
   },
 
   Mutation: {

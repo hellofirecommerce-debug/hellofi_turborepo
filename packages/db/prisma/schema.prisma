@@ -536,21 +536,17 @@ enum InvoiceStatus {
 
 // ── SERIES ──
 model Series {
-  id              String   @id @default(cuid())
-  brandName       String?
-  brandId         String?
-  brandSeoName    String?
-  categoryName    String?
-  categoryId      String?
-  categorySeoName String?
-  seriesName      String?
-  status          Status   @default(ACTIVE)
-  priority        Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id         String   @id @default(cuid())
+  brandId    String
+  categoryId String
+  seriesName String
+  status     Status   @default(ACTIVE)
+  priority   Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  brand           Brand?           @relation(fields: [brandId], references: [id])
-  category        Category?        @relation(fields: [categoryId], references: [id])
+  brand           Brand            @relation(fields: [brandId], references: [id])
+  category        Category         @relation(fields: [categoryId], references: [id])
   sellingProducts SellingProduct[]
 
   @@map("series")
@@ -558,49 +554,42 @@ model Series {
 
 // ── SELLING PRODUCT ──
 model SellingProduct {
-  id              String    @id @default(cuid())
-  productName     String?
-  releasedYear    Int?
-  launchedDate    DateTime?
-  seriesName      String?
-  seriesId        String?
-  productType     String?
-  image           String?
-  productBrand    String?
-  brandId         String?
-  productSeoName  String?
-  brandSeoName    String?
-  categorySeoName String?
-  categoryName    String?
-  categoryId      String?
-  productPrice    Float?
-  status          Status    @default(ACTIVE)
-  hasVariants     Boolean   @default(false)
-  isConstantRam   Boolean   @default(false)
-  ram             String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  productName    String
+  productSeoName String    @unique
+  brandId        String
+  categoryId     String
+  seriesId       String // ← required now
+  image          String
+  releasedYear   Int?
+  launchedDate   DateTime?
+  productPrice   Float? // ← for non-variant products
+  status         Status    @default(ACTIVE)
+  hasVariants    Boolean   @default(false)
+  isConstantRam  Boolean   @default(false)
+  ram            String? // ← only if isConstantRam = true
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  series   Series?          @relation(fields: [seriesId], references: [id])
-  brand    Brand?           @relation(fields: [brandId], references: [id])
-  category Category?        @relation(fields: [categoryId], references: [id])
+  brand    Brand            @relation(fields: [brandId], references: [id])
+  category Category         @relation(fields: [categoryId], references: [id])
+  series   Series           @relation(fields: [seriesId], references: [id])
   variants SellingVariant[]
 
   @@map("selling_products")
 }
 
-// ── SELLING VARIANT ──
 model SellingVariant {
   id               String   @id @default(cuid())
-  ram              String?
-  storage          String?
-  productPrice     Float?
-  sellingProductId String?
+  sellingProductId String
+  ram              String? // ← only if isConstantRam = false
+  storage          String
+  productPrice     Float // ← required
   status           Status   @default(ACTIVE)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  sellingProduct SellingProduct? @relation(fields: [sellingProductId], references: [id], onDelete: Cascade)
+  sellingProduct SellingProduct @relation(fields: [sellingProductId], references: [id], onDelete: Cascade)
 
   @@map("selling_variants")
 }

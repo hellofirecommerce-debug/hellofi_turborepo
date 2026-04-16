@@ -13,3 +13,4 @@ export { ImageUpload } from "./components/image-upload";
 export { Badge } from "./components/badge";
 export { AutoComplete } from "./components/AutoComplete";
 export { Accordion } from "./components/Accordion";
+export { SearchableInput } from "./components/SearchableInput";

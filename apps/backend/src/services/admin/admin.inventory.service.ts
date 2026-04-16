@@ -195,6 +195,39 @@ class AdminInventoryService {
     }
   }
 
+  async searchProductNames(
+    query: string,
+    categoryId?: string,
+    brandId?: string,
+    page = 1,
+  ) {
+    const pageSize = 10;
+    const skip = (page - 1) * pageSize;
+
+    const where: any = {
+      productName: { contains: query, mode: "insensitive" },
+      status: "ACTIVE",
+    };
+    if (categoryId) where.categoryId = categoryId;
+    if (brandId) where.brandId = brandId;
+
+    const [results, total] = await Promise.all([
+      prisma.sellingProduct.findMany({
+        where,
+        select: { productName: true },
+        distinct: ["productName"],
+        take: pageSize,
+        skip,
+      }),
+      prisma.sellingProduct.count({ where }),
+    ]);
+
+    return {
+      names: results.map((r) => r.productName),
+      hasMore: skip + pageSize < total,
+    };
+  }
+
   async createInventoryProduct(input: CreateInventoryProductInput) {
     try {
       const validated = validateOrThrow(createInventoryProductSchema, input);

@@ -3,4 +3,5 @@ export const queries = `#graphql
   getInventoryProductById(id: ID!): InventoryProduct!
   getInventoryProductByOrderId(orderId: String!): InventoryProduct
   getInventoryProductByImei(imeiOrSerial: String!): [InventoryProduct!]!
+  searchProductNames(query: String!, categoryId: String, brandId: String, page: Int): ProductNameSearchResult!
 `;

@@ -149,4 +149,9 @@ input MarkAsSoldInput {
   sellingOtherCharges: Float    # ← new
   splitPaymentDetails: String
 }
+
+type ProductNameSearchResult {
+  names: [String!]!
+  hasMore: Boolean!
+}
 `;
