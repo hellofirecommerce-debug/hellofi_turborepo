@@ -1,5 +1,6 @@
 import { config } from "dotenv";
-config();
+import path from "path";
+config({ path: path.resolve(__dirname, "../.env") });
 import express, { Request, Response } from "express";
 import { expressMiddleware } from "@as-integrations/express5";
 import { graphqlUploadExpress } from "graphql-upload-ts";
