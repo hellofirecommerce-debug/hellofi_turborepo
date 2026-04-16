@@ -8,7 +8,6 @@ const nextConfig = {
       },
     ],
   },
-  turbopack: false,
   transpilePackages: ["@repo/ui"],
 };
 
