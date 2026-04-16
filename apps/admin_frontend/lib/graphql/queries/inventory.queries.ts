@@ -145,8 +145,8 @@ export const SEARCH_PRODUCT_NAMES = gql`
       brandId: $brandId
       page: $page
     ) {
-      names
       hasMore
+      names
     }
   }
 `;
