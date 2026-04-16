@@ -9,10 +9,6 @@ const nextConfig = {
     ],
   },
   transpilePackages: ["@repo/ui", "@repo/validations"],
-  // Remove the invalid turbo experimental key
-  turbopack: {
-    root: process.cwd(),
-  },
 };
 
 export default nextConfig;
