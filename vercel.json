@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "projects": {
+    "admin-frontend": {
+      "root": "apps/admin_frontend",
+      "framework": "nextjs"
+    }
+  }
+}

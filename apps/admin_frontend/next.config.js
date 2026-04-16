@@ -9,6 +9,10 @@ const nextConfig = {
     ],
   },
   transpilePackages: ["@repo/ui"],
+  // Disable Turbopack for now
+  experimental: {
+    turbo: false,
+  },
 };
 
 export default nextConfig;
