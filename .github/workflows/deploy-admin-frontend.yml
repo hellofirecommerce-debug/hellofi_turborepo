@@ -27,15 +27,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build validations package
-        run: npm run build --workspace=packages/validations
+      - name: Build required packages only
+        run: |
+          npm run build --workspace=packages/validations
+          npm run build --workspace=packages/ui
 
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        working-directory: apps/admin_frontend
         run: |
+          # Override the build script to prevent turbo from running
+          npm pkg set scripts.build="next build"
+
+          # Deploy to Vercel
           npx vercel pull --yes --environment=production --token=$VERCEL_TOKEN
           npx vercel build --prod --token=$VERCEL_TOKEN
           npx vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
