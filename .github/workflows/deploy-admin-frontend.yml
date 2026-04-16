@@ -27,43 +27,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build validations and ui packages
-        run: |
-          npm run build --workspace=packages/validations
-          npm run build --workspace=packages/ui
-
-      - name: Prepare for Vercel deployment
-        working-directory: apps/admin_frontend
-        run: |
-          # Create a modified package.json
-          node -e "
-            const fs = require('fs');
-            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-            
-            // Remove all local packages from dependencies
-            if (pkg.dependencies) {
-              delete pkg.dependencies['@repo/ui'];
-              delete pkg.dependencies['@repo/validations'];
-              delete pkg.dependencies['@repo/db'];
-            }
-            
-            // Remove problematic dev dependencies
-            if (pkg.devDependencies) {
-              delete pkg.devDependencies['@repo/eslint-config'];
-              delete pkg.devDependencies['@repo/typescript-config'];
-            }
-            
-            // Keep build script
-            pkg.scripts.build = 'next build --webpack';
-            
-            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
-          "
-
-          # Copy the built packages to node_modules
-          mkdir -p node_modules/@repo
-          cp -r ../../packages/validations node_modules/@repo/validations
-          cp -r ../../packages/ui node_modules/@repo/ui
-
       - name: Deploy to Vercel
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
