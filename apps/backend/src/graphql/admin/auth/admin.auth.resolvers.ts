@@ -17,13 +17,13 @@ export const resolvers = {
     ) => {
       return AdminAuthService.adminLogin(args.payload, context.res);
     },
-    createAdmin: async (
-      _parent: any,
-      args: { payload: any },
-      context: GraphQLContext,
-    ) => {
-      return AdminAuthService.createAdmin(args.payload);
-    },
+    // createAdmin: async (
+    //   _parent: any,
+    //   args: { payload: any },
+    //   context: GraphQLContext,
+    // ) => {
+    //   return AdminAuthService.createAdmin(args.payload);
+    // },
     adminLogout: async (_parent: any, _args: any, context: GraphQLContext) => {
       return AdminAuthService.logout(context.req, context.res);
     },

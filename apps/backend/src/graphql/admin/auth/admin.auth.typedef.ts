@@ -11,15 +11,15 @@ export const typeDefs = `#graphql
      deviceInfo: DeviceInfoInput
   }
   
-  input CreateAdminInput {
-    fName: String!
-    lName: String!
-    email: String!
-    password: String!
-    contact: String!
-    pincode: String!
-    userType: UserType!
-  }
+  # input CreateAdminInput {
+  #   fName: String!
+  #   lName: String!
+  #   email: String!
+  #   password: String!
+  #   contact: String!
+  #   pincode: String!
+  #   userType: UserType!
+  # }
 
     input DeviceInfoInput {
      deviceId: String
