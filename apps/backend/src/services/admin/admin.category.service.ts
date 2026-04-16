@@ -65,7 +65,8 @@ class AdminCategoryService {
 
       // Step 3 — generate key using category.id
       const key = generateImageKey("category-images", category.id);
-      const imageUrl = await S3Service.uploadImage(compressed, key);
+      const updateKey = `images/catalogue/${key}`;
+      const imageUrl = await S3Service.uploadImage(compressed, updateKey);
 
       // Step 4 — update with real image url
       return await prisma.category.update({

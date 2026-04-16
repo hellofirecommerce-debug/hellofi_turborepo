@@ -83,7 +83,8 @@ class AdminBrandService {
 
       // Step 3 — generate key using brand.id and upload
       const key = generateImageKey("brand-images", brand.id);
-      const imageUrl = await S3Service.uploadImage(compressed, key);
+      const updatedKey = `images/catalogue/${key}`;
+      const imageUrl = await S3Service.uploadImage(compressed, updatedKey);
 
       // Step 4 — update brand with real image url
       await prisma.brand.update({
