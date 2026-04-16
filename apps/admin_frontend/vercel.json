@@ -1,5 +1,0 @@
-{
-  "installCommand": "npm install --no-package-lock --no-workspaces",
-  "buildCommand": "next build --webpack",
-  "framework": "nextjs"
-}
