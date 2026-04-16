@@ -9,6 +9,8 @@ import { CommonCategory } from "./common/category";
 import { CommonBrand } from "./common/brand";
 import { GraphQLUpload } from "graphql-upload-ts";
 import { AdminInvoice } from "./admin/invoice";
+import { ApolloServerPluginLandingPageDisabled } from "@apollo/server/plugin/disabled";
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 
 async function createApolloGraphqlServer() {
   const allTypeDefs = `
@@ -80,8 +82,14 @@ async function createApolloGraphqlServer() {
   const graphqlServer = new ApolloServer({
     typeDefs: allTypeDefs,
     resolvers: allResolvers,
+    // ── Disable sandbox in production ──
+    introspection: process.env.NODE_ENV !== "production",
+    plugins: [
+      process.env.NODE_ENV === "production"
+        ? ApolloServerPluginLandingPageDisabled()
+        : ApolloServerPluginLandingPageLocalDefault({ embed: true }),
+    ],
   });
-
   await graphqlServer.start();
 
   return graphqlServer;

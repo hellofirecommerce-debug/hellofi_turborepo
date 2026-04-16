@@ -5,7 +5,6 @@ export const userTypeDefs = `#graphql
     lName: String!
     pinCode: String!
     contact: String!
-    password: String
     email: String
     userType: UserType
     status: UserStatus

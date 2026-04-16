@@ -23,6 +23,7 @@ async function init() {
         "https://studio.apollographql.com", // ← for playground
         "http://localhost:3001",
         "http://localhost:3000",
+        "https://admin.hellofi.in",
       ],
       credentials: true,
       allowedHeaders: [
