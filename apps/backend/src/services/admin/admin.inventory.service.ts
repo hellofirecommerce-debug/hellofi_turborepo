@@ -202,7 +202,8 @@ class AdminInventoryService {
     page = 1,
   ) {
     const pageSize = 10;
-    const skip = (page - 1) * pageSize;
+    const safePage = Math.max(1, page ?? 1);
+    const skip = (safePage - 1) * pageSize;
 
     const where: any = {
       productName: { contains: query, mode: "insensitive" },
