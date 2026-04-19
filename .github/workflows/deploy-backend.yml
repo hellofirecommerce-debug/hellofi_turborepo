@@ -53,7 +53,8 @@ jobs:
 
             cd ~/hellofi_turborepo
 
-            git pull origin main
+            git fetch origin main
+            git reset --hard origin/main
 
             npm ci
 
@@ -61,7 +62,7 @@ jobs:
 
             npm run build --workspace=packages/db
 
-            npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma
+            DATABASE_URL="${{ secrets.DATABASE_URL }}" npx prisma migrate deploy --schema=packages/db/prisma/schema.prisma
 
             npm run build --workspace=apps/backend
 
