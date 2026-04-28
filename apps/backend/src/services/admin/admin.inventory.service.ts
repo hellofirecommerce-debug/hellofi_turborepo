@@ -556,7 +556,7 @@ class AdminInventoryService {
 
       const where = {
         isActive: true,
-        status: "NOT_LISTED" as const,
+        status: { in: ["NOT_LISTED", "LISTED"] as const },
         invoiceItem: null,
         ...searchCondition,
         ...(filter?.brandId && { brandId: filter.brandId }),
