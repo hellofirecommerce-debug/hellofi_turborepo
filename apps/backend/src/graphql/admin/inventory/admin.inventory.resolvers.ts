@@ -57,6 +57,22 @@ export const resolvers = {
         args.page,
       );
     },
+
+    getAvailableForInvoice: async (_: any, args: any, context: any) => {
+      return AdminInventoryService.getAvailableForInvoice({
+        search: args.search,
+        brandId: args.brandId,
+        categoryId: args.categoryId,
+        page: args.page,
+        pageSize: args.pageSize,
+      });
+    },
+
+    getInventoryProductForInvoice: async (_: any, args: any, context: any) => {
+      return AdminInventoryService.getInventoryProductForInvoice(
+        args.imeiOrSerial,
+      );
+    },
   },
 
   Mutation: {

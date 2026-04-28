@@ -29,6 +29,7 @@ export type InvoiceData = {
     gstNumber: string;
     isInsideBangalore: boolean;
     paidBy: string;
+    splitPaymentDetails: string;
   };
   invoiceDetails: {
     invoiceNumber: string;
@@ -37,8 +38,10 @@ export type InvoiceData = {
   warrantyType: "brand" | "hellofi" | "none";
   warrantyMonths: number | null;
   saleType: "direct" | "exchange";
+  // In InvoiceData type — replace items with this:
   items: {
     id: string;
+    inventoryProductId?: string;
     product: string;
     serialNumber: string;
     hsnSac: string;
@@ -49,11 +52,23 @@ export type InvoiceData = {
     discount: number;
     gstAmount: number;
     gross: number;
+    cgstPercent: number;
+    cgstAmount: number;
+    sgstPercent: number;
+    sgstAmount: number;
+    igstPercent: number;
+    igstAmount: number;
+    sortOrder: number;
   }[];
   exchangeItems: {
     id: string;
     productName: string;
     serialNumber: string;
+    brandId: string;
+    categoryId: string;
+    ram: string;
+    storage: string;
+    exchangeValue: number;
   }[];
   exchangeValue: number;
   gstCalculation: {
@@ -84,6 +99,7 @@ const getInitialData = (): InvoiceData => ({
     gstNumber: "",
     isInsideBangalore: true,
     paidBy: "",
+    splitPaymentDetails: "",
   },
   invoiceDetails: {
     invoiceNumber: "",
@@ -95,6 +111,7 @@ const getInitialData = (): InvoiceData => ({
   items: [
     {
       id: Date.now().toString(),
+      inventoryProductId: undefined,
       product: "",
       serialNumber: "",
       hsnSac: "",
@@ -105,6 +122,13 @@ const getInitialData = (): InvoiceData => ({
       discount: 0,
       gstAmount: 0,
       gross: 0,
+      cgstPercent: 0,
+      cgstAmount: 0,
+      sgstPercent: 0,
+      sgstAmount: 0,
+      igstPercent: 0,
+      igstAmount: 0,
+      sortOrder: 0,
     },
   ],
   exchangeItems: [],

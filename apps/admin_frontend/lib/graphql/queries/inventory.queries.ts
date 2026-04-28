@@ -150,3 +150,39 @@ export const SEARCH_PRODUCT_NAMES = gql`
     }
   }
 `;
+
+export const GET_INVENTORY_PRODUCT_FOR_INVOICE = gql`
+  query GetInventoryProductForInvoice($imeiOrSerial: String!) {
+    getInventoryProductForInvoice(imeiOrSerial: $imeiOrSerial) {
+      id
+      productName
+      imeiOrSerial
+      orderId
+      ram
+      storage
+      costPrice
+      otherCharges
+      brandId
+      categoryId
+      status
+      isEligible
+      ineligibleReason
+    }
+  }
+`;
+
+export const GET_AVAILABLE_FOR_INVOICE = gql`
+  query GetAvailableForInvoice($search: String, $page: Int, $pageSize: Int) {
+    getAvailableForInvoice(search: $search, page: $page, pageSize: $pageSize) {
+      items {
+        id
+        productName
+        imeiOrSerial
+        orderId
+        ram
+        storage
+        status
+      }
+    }
+  }
+`;

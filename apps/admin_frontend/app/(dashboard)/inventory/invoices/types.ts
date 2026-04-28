@@ -1,5 +1,6 @@
 export type InvoiceItemType = {
   id: string;
+  inventoryProductId?: string;
   invoiceId?: string;
   product: string;
   serialNumber?: string | null;
@@ -21,14 +22,15 @@ export type InvoiceItemType = {
   createdAt?: string;
   updatedAt?: string;
 };
-
 export type InvoiceExchangeItemType = {
   id: string;
-  invoiceId?: string;
   productName: string;
-  serialNumber?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
+  serialNumber?: string;
+  brandId?: string;
+  categoryId?: string;
+  ram?: string;
+  storage?: string;
+  exchangeValue?: number;
 };
 
 export type InvoiceCompanySettingsSnapshot = {
@@ -59,6 +61,7 @@ export type InvoiceType = {
   clientGstin?: string | null;
   isInsideBangalore: boolean;
   paidBy?: string | null;
+  splitPaymentDetails?: string | null;
   saleType: "DIRECT" | "EXCHANGE";
   warrantyType: "BRAND" | "HELLOFI" | "NONE";
   warrantyMonths?: number | null;

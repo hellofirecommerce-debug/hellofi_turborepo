@@ -101,7 +101,11 @@ export function InvoiceTopBar({
       clientContact: invoiceData.billingAddress.contactNumber,
       clientGstin: invoiceData.billingAddress.gstNumber || undefined,
       isInsideBangalore: inBLR,
-      paidBy: invoiceData.billingAddress.paidBy,
+      paidBy: invoiceData.billingAddress.paidBy || undefined,
+      splitPaymentDetails:
+        invoiceData.billingAddress.paidBy === "SPLIT_PAYMENT"
+          ? invoiceData.billingAddress.splitPaymentDetails || undefined
+          : undefined, // ← only send if SPLIT_PAYMENT
       saleType: invoiceData.saleType.toUpperCase(),
       warrantyType: invoiceData.warrantyType.toUpperCase(),
       warrantyMonths: invoiceData.warrantyMonths ?? undefined,
@@ -116,6 +120,7 @@ export function InvoiceTopBar({
       invoiceTerms: invoiceData.additionalInfo?.invoiceTerms ?? "",
       bankDetails: invoiceData.additionalInfo?.bankDetails ?? "",
       items: invoiceData.items.map((item, index) => ({
+        inventoryProductId: item.inventoryProductId || undefined, // ← add this
         product: item.product,
         serialNumber: item.serialNumber || undefined,
         hsnSac: item.hsnSac || undefined,
@@ -137,6 +142,11 @@ export function InvoiceTopBar({
       exchangeItems: invoiceData.exchangeItems.map((ex) => ({
         productName: ex.productName,
         serialNumber: ex.serialNumber || undefined,
+        brandId: ex.brandId,
+        categoryId: ex.categoryId,
+        ram: ex.ram || undefined,
+        storage: ex.storage || undefined,
+        exchangeValue: (ex as any).exchangeValue ?? 0,
       })),
     };
 

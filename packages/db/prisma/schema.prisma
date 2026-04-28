@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -69,6 +66,23 @@ enum WarrantyType {
   NO_WARRANTY
 }
 
+enum SaleType {
+  DIRECT
+  EXCHANGE
+}
+
+enum InvoiceWarrantyType {
+  BRAND
+  HELLOFI
+  NONE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  FINALIZED
+  CANCELLED
+}
+
 model User {
   id       String     @id @default(cuid())
   fName    String
@@ -82,20 +96,17 @@ model User {
   emailVerified   Boolean @default(false)
   contactVerified Boolean @default(false)
 
-  // Rate limiting fields for OTP generation (login/signup)
   dailyOtpAttempts Int       @default(0)
-  lastOtpDate      DateTime? // YYYY-MM-DD format
+  lastOtpDate      DateTime?
   isOtpBlocked     Boolean   @default(false)
   pincode          String
 
-  // Rate limiting fields for OTP resend
   dailyResendOtpAttempts Int       @default(0)
-  lastResendDate         DateTime? // YYYY-MM-DD format
+  lastResendDate         DateTime?
   isResendBlocked        Boolean   @default(false)
 
-  // Rate limiting fields for OTP verification
   dailyVerificationOtpAttempts Int       @default(0)
-  lastVerificationDate         DateTime? // YYYY-MM-DD format
+  lastVerificationDate         DateTime?
   isVerificationBlocked        Boolean   @default(false)
 
   createdAt DateTime @default(now())
@@ -135,13 +146,13 @@ model Session {
 model Banner {
   id          String    @id @default(uuid())
   alt         String
-  lg          String // 1300x371 — desktop
-  sm          String // 390x180 — mobile
-  redirectUrl String? // clicking banner goes here
-  priority    Int       @default(0) // order of display
+  lg          String
+  sm          String
+  redirectUrl String?
+  priority    Int       @default(0)
   isActive    Boolean   @default(true)
-  startDate   DateTime? // schedule banner from
-  endDate     DateTime? // schedule banner until
+  startDate   DateTime?
+  endDate     DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -184,14 +195,14 @@ model BrandCategory {
   brandId    String
   categoryId String
   status     Status   @default(ACTIVE)
-  priority   Int      @default(0) // priority per category
+  priority   Int      @default(0)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
   brand    Brand    @relation(fields: [brandId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@unique([brandId, categoryId]) // Samsung can only appear once per category
+  @@unique([brandId, categoryId])
 }
 
 model BuyingProduct {
@@ -284,7 +295,6 @@ model InventoryProduct {
   imeiOrSerial String
   orderId      String
 
-  // ── Purchase Details ──
   purchaseDate        DateTime
   productName         String
   ram                 String?
@@ -293,61 +303,71 @@ model InventoryProduct {
   otherCharges        Decimal  @default(0)
   sellingOtherCharges Decimal  @default(0)
 
-  // ── Category + Brand ──
   brandId    String
   categoryId String
 
-  // ── Purchase Customer (who sold TO us) ──
   customerName    String
   customerEmail   String?
   customerPhone   String
   customerAddress String
 
-  // ── Inventory Status ──
   status InventoryStatus @default(NOT_LISTED)
 
-  // ── Selling Details (when we SELL it) ──
   sellingDate  DateTime?
   sellingPrice Decimal?
   invoice      String?
 
-  // ── Selling Customer (who bought FROM us) ──
   sellingCustomerName    String?
   sellingCustomerEmail   String?
   sellingCustomerPhone   String?
   sellingCustomerAddress String?
 
-  // ── Payment ──
   paymentMode         PaymentMode?
   receivedInBank      Decimal?
   splitPaymentDetails String?
 
-  // ── Business Metrics ──
-  tat         Int? // days
+  tat         Int?
   grossProfit Decimal?
 
-  // ── Device Condition ──
-  screenCondition String  @default("NO") // MINOR, MAJOR, NO
-  bodyCondition   String  @default("NO") // MINOR, MAJOR, NO
-  deviceIssues    String? // free text
+  screenCondition String  @default("NO")
+  bodyCondition   String  @default("NO")
+  deviceIssues    String?
 
-  // ── Accessories ──
   hasBox          Boolean @default(false)
   hasCharger      Boolean @default(false)
   hasOriginalBill Boolean @default(false)
 
-  // ── Warranty ──
-  warrantyType         String    @default("ABOVE_1_YEAR") // ABOVE_1_YEAR, BELOW_1_YEAR
-  warrantyPurchaseDate DateTime? // only if BELOW_1_YEAR
+  warrantyType         String    @default("ABOVE_1_YEAR")
+  warrantyPurchaseDate DateTime?
 
-  // ── Metadata ──
-  isActive  Boolean  @default(true)
-  notes     String?
+  isActive Boolean @default(true)
+  notes    String?
+
+  // ── Exchange chain fields ──
+  isExchangeItem Boolean  @default(false)
+  exchangeValue  Decimal? // ← value credited to customer for this device
+
+  // ── Direct parent — the sold device this was exchanged against ──
+  parentInventoryId String?
+  parentInventory   InventoryProduct?  @relation("ExchangeChain", fields: [parentInventoryId], references: [id])
+  exchangedItems    InventoryProduct[] @relation("ExchangeChain")
+
+  // ── Root of the chain — same for ALL nodes, enables flat fetch of entire chain ──
+  rootInventoryId String?
+  rootInventory   InventoryProduct?  @relation("ExchangeRoot", fields: [rootInventoryId], references: [id])
+  chainMembers    InventoryProduct[] @relation("ExchangeRoot")
+
+  // ── Which invoice brought this device in via exchange ──
+  sourceInvoiceId String?
+  sourceInvoice   Invoice? @relation("ExchangeInventory", fields: [sourceInvoiceId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   brand    Brand    @relation(fields: [brandId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
+
+  invoiceItem InvoiceItem?
 
   @@index([imeiOrSerial])
   @@index([customerEmail])
@@ -357,16 +377,17 @@ model InventoryProduct {
   @@index([purchaseDate])
   @@index([sellingDate])
   @@index([status])
+  @@index([parentInventoryId])
+  @@index([rootInventoryId])
+  @@index([sourceInvoiceId])
   @@map("inventory_products")
 }
 
-// ── COMPANY SETTINGS — multiple allowed ──
 model InvoiceCompanySettings {
   id        String  @id @default(cuid())
-  label     String // e.g. "HelloFi Bangalore", "HelloFi Odisha"
+  label     String
   isDefault Boolean @default(false)
 
-  // Company Details
   name     String
   address  String
   contact  String
@@ -375,7 +396,6 @@ model InvoiceCompanySettings {
   logoUrl  String?
   stampUrl String?
 
-  // Default Terms
   defaultInvoiceTermsBrand   String @db.Text
   defaultInvoiceTermsHellofi String @db.Text
   defaultInvoiceTermsNone    String @db.Text
@@ -390,10 +410,9 @@ model InvoiceCompanySettings {
   @@map("invoice_company_settings")
 }
 
-// ── INVOICE COUNTER ──
 model InvoiceCounter {
   id            String   @id @default(cuid())
-  financialYear String // e.g. "25-26"
+  financialYear String
   lastNumber    Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -402,58 +421,48 @@ model InvoiceCounter {
   @@map("invoice_counters")
 }
 
-// ── INVOICE ──
 model Invoice {
   id            String   @id @default(cuid())
   invoiceNumber String   @unique
   invoiceDate   DateTime
 
-  // ── Settings reference — all company details come from here ──
   companySettingsId String
   companySettings   InvoiceCompanySettings @relation(fields: [companySettingsId], references: [id])
 
-  // ── Billing Address ──
-  clientName        String
-  clientAddress     String
-  clientEmail       String
-  clientContact     String
-  clientGstin       String?
-  isInsideBangalore Boolean @default(true)
-  paidBy            String?
+  clientName          String
+  clientAddress       String
+  clientEmail         String
+  clientContact       String
+  clientGstin         String?
+  isInsideBangalore   Boolean      @default(true)
+  paidBy              PaymentMode?
+  splitPaymentDetails String?
 
-  // ── Sale Type ──
   saleType SaleType @default(DIRECT)
 
-  // ── Warranty ──
   warrantyType   InvoiceWarrantyType @default(BRAND)
-  warrantyMonths Int? // only for HELLOFI — store months only
+  warrantyMonths Int?
 
-  // ── Financials ──
   grossValue    Float
   taxAmount     Float
   totalAmount   Float
   exchangeValue Float @default(0)
   amountPaid    Float
 
-  // ── GST ──
   cgst Float @default(0)
   sgst Float @default(0)
   igst Float @default(0)
 
-  // ── Custom Terms — only stored if admin added extra points ──
-  // null means use settings default
   customInvoiceTerms String? @db.Text
   customBankDetails  String? @db.Text
 
-  // ── PDF ──
   pdfUrl String?
 
-  // ── Status ──
   status InvoiceStatus @default(DRAFT)
 
-  // ── Relations ──
-  items         InvoiceItem[]
-  exchangeItems InvoiceExchangeItem[]
+  items              InvoiceItem[]
+  exchangeItems      InvoiceExchangeItem[]
+  exchangedInventory InventoryProduct[]    @relation("ExchangeInventory")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -466,11 +475,13 @@ model Invoice {
   @@map("invoices")
 }
 
-// ── INVOICE ITEMS ──
 model InvoiceItem {
   id        String  @id @default(cuid())
   invoiceId String
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  inventoryProductId String?           @unique
+  inventoryProduct   InventoryProduct? @relation(fields: [inventoryProductId], references: [id])
 
   product      String
   serialNumber String?
@@ -483,7 +494,6 @@ model InvoiceItem {
   discount Float  @default(0)
   gross    Float
 
-  // GST per item
   gstAmount   Float @default(0)
   cgstPercent Float @default(0)
   cgstAmount  Float @default(0)
@@ -498,17 +508,22 @@ model InvoiceItem {
   updatedAt DateTime @updatedAt
 
   @@index([invoiceId])
+  @@index([inventoryProductId])
   @@map("invoice_items")
 }
 
-// ── EXCHANGE ITEMS ──
 model InvoiceExchangeItem {
   id        String  @id @default(cuid())
   invoiceId String
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
-  productName  String
-  serialNumber String?
+  productName   String
+  serialNumber  String?
+  brandId       String?
+  categoryId    String?
+  ram           String?
+  storage       String?
+  exchangeValue Float   @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -517,24 +532,6 @@ model InvoiceExchangeItem {
   @@map("invoice_exchange_items")
 }
 
-enum SaleType {
-  DIRECT
-  EXCHANGE
-}
-
-enum InvoiceWarrantyType {
-  BRAND
-  HELLOFI
-  NONE
-}
-
-enum InvoiceStatus {
-  DRAFT
-  FINALIZED
-  CANCELLED
-}
-
-// ── SERIES ──
 model Series {
   id         String   @id @default(cuid())
   brandId    String
@@ -552,22 +549,21 @@ model Series {
   @@map("series")
 }
 
-// ── SELLING PRODUCT ──
 model SellingProduct {
   id             String    @id @default(cuid())
   productName    String
   productSeoName String    @unique
   brandId        String
   categoryId     String
-  seriesId       String // ← required now
+  seriesId       String
   image          String
   releasedYear   Int?
   launchedDate   DateTime?
-  productPrice   Float? // ← for non-variant products
+  productPrice   Float?
   status         Status    @default(ACTIVE)
   hasVariants    Boolean   @default(false)
   isConstantRam  Boolean   @default(false)
-  ram            String? // ← only if isConstantRam = true
+  ram            String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
@@ -582,9 +578,9 @@ model SellingProduct {
 model SellingVariant {
   id               String   @id @default(cuid())
   sellingProductId String
-  ram              String? // ← only if isConstantRam = false
+  ram              String?
   storage          String
-  productPrice     Float // ← required
+  productPrice     Float
   status           Status   @default(ACTIVE)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

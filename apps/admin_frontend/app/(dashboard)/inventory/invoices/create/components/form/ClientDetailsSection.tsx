@@ -1,8 +1,7 @@
 "use client";
 import { InvoiceData } from "../../page";
-import { Accordion } from "@repo/ui";
+import { Accordion, Label } from "@repo/ui";
 import { FormField } from "./FormField";
-import { Label } from "@repo/ui";
 
 interface Props {
   data: InvoiceData;
@@ -10,6 +9,9 @@ interface Props {
   isExpanded: boolean;
   onToggle: () => void;
 }
+
+const selectClass =
+  "w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-[3px] focus:border-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]/25";
 
 export function ClientDetailsSection({
   data,
@@ -65,12 +67,40 @@ export function ClientDetailsSection({
           placeholder="Full address"
           colSpan
         />
-        <FormField
-          label="Paid By"
-          value={data.billingAddress.paidBy}
-          onChange={(v) => update("paidBy", v)}
-          placeholder="Bank Transfer / Cash / UPI"
-        />
+
+        {/* ── Payment Mode ── */}
+        <div className="flex flex-col gap-1.5">
+          <Label>Payment Mode</Label>
+          <select
+            title="payment mode"
+            value={data.billingAddress.paidBy}
+            onChange={(e) => update("paidBy", e.target.value)}
+            className={selectClass}
+          >
+            <option value="">Select payment mode</option>
+            <option value="CASH">Cash</option>
+            <option value="UPI">UPI</option>
+            <option value="CREDIT_CARD">Credit Card</option>
+            <option value="DEBIT_CARD">Debit Card</option>
+            <option value="SPLIT_PAYMENT">Split Payment</option>
+            <option value="RAZORPAY">Razorpay</option>
+          </select>
+        </div>
+
+        {/* ── Split Payment Details — only if SPLIT_PAYMENT ── */}
+        {data.billingAddress.paidBy === "SPLIT_PAYMENT" && (
+          <div className="flex flex-col gap-1.5 sm:col-span-2">
+            <Label>Split Payment Details</Label>
+            <input
+              placeholder="e.g. 20000 cash + 30000 UPI"
+              value={data.billingAddress.splitPaymentDetails}
+              onChange={(e) => update("splitPaymentDetails", e.target.value)}
+              className={selectClass}
+            />
+          </div>
+        )}
+
+        {/* ── Location ── */}
         <div className="flex flex-col gap-1.5">
           <Label>Location</Label>
           <select
@@ -79,7 +109,7 @@ export function ClientDetailsSection({
             onChange={(e) =>
               update("isInsideBangalore", e.target.value === "inside")
             }
-            className="h-9 w-full rounded-md border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[rgb(33,76,123)]"
+            className={selectClass}
           >
             <option value="inside">Inside Bangalore (CGST + SGST)</option>
             <option value="outside">Outside Bangalore (IGST)</option>

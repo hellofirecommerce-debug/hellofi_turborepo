@@ -1,24 +1,22 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useDebounce } from "use-debounce";
-import { useQuery, useMutation } from "@apollo/client/react";
+import { useQuery, useLazyQuery } from "@apollo/client/react";
 import { useParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
 import { InvoiceTopBar } from "../../create/components/InvoiceTopBar";
 import { InvoiceLayout } from "../../create/components/InvoiceLayout";
 import { InvoiceForm } from "../../create/components/InvoiceForm";
 import { InvoicePreviewWrapper } from "../../create/components/InvoicePreviewWrapper";
 import { GET_ALL_INVOICE_SETTINGS } from "../../../../../../lib/graphql/queries/invoiceSettings.queries";
 import { GET_INVOICE_BY_ID } from "../../../../../../lib/graphql/queries/invoice.queries";
-import { UPDATE_INVOICE } from "../../../../../../lib/graphql/mutations/invoice.mutations";
-import {
-  GetAllInvoiceSettingsResponse,
-  InvoiceCompanySettings,
-} from "../../../settings/types";
+import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../../../lib/graphql/queries/brand.queries";
+import { GetAllInvoiceSettingsResponse } from "../../../settings/types";
 import { InvoiceCreatePageSkeleton } from "../../components/InvoiceCreatePageSkeleton";
 import { GetInvoiceByIdResponse } from "../../types";
 import { PageHeader } from "../../../../../../components/ui/PageHeader";
 import { InvoiceData } from "../../create/page";
+
+type Brand = { id: string; name: string };
 
 export default function EditInvoicePage() {
   const params = useParams();
@@ -29,6 +27,9 @@ export default function EditInvoicePage() {
   const [invoiceData, setInvoiceData] = useState<InvoiceData | null>(null);
   const [debouncedData] = useDebounce(invoiceData, 800);
   const [selectedSettingsId, setSelectedSettingsId] = useState<string>("");
+  const [initialExchangeBrands, setInitialExchangeBrands] = useState<
+    Record<number, Brand[]>
+  >({});
 
   const { data: settingsData, loading: settingsLoading } =
     useQuery<GetAllInvoiceSettingsResponse>(GET_ALL_INVOICE_SETTINGS, {
@@ -41,14 +42,29 @@ export default function EditInvoicePage() {
       fetchPolicy: "cache-and-network",
     });
 
+  const [fetchBrandsByCategory] = useLazyQuery<{
+    getBrandsByCategoryId: Brand[];
+  }>(GET_BRANDS_BY_CATEGORY_ID);
+
   const allSettings = settingsData?.getInvoiceSettings ?? [];
 
-  // ── Pre-fill form from existing invoice ──
   useEffect(() => {
     const invoice = invoiceResult?.getInvoiceById;
     if (!invoice) return;
 
     setSelectedSettingsId(invoice.companySettingsId);
+
+    const settings = invoice.companySettings;
+
+    let defaultTerms = settings.defaultInvoiceTermsBrand;
+    if (invoice.warrantyType === "HELLOFI") {
+      defaultTerms = settings.defaultInvoiceTermsHellofi.replace(
+        "{months}",
+        String(invoice.warrantyMonths ?? 3),
+      );
+    } else if (invoice.warrantyType === "NONE") {
+      defaultTerms = settings.defaultInvoiceTermsNone;
+    }
 
     setInvoiceData({
       invoiceNumber: invoice.invoiceNumber,
@@ -62,6 +78,7 @@ export default function EditInvoicePage() {
         gstNumber: invoice.clientGstin ?? "",
         isInsideBangalore: invoice.isInsideBangalore,
         paidBy: invoice.paidBy ?? "",
+        splitPaymentDetails: (invoice as any).splitPaymentDetails ?? "",
       },
       invoiceDetails: {
         invoiceNumber: invoice.invoiceNumber,
@@ -75,6 +92,7 @@ export default function EditInvoicePage() {
       saleType: invoice.saleType.toLowerCase() as "direct" | "exchange",
       items: invoice.items.map((item) => ({
         id: item.id,
+        inventoryProductId: item.inventoryProductId ?? undefined,
         product: item.product,
         serialNumber: item.serialNumber ?? "",
         hsnSac: item.hsnSac ?? "",
@@ -85,11 +103,23 @@ export default function EditInvoicePage() {
         discount: item.discount,
         gstAmount: item.gstAmount,
         gross: item.gross,
+        cgstPercent: item.cgstPercent ?? 0,
+        cgstAmount: item.cgstAmount ?? 0,
+        sgstPercent: item.sgstPercent ?? 0,
+        sgstAmount: item.sgstAmount ?? 0,
+        igstPercent: item.igstPercent ?? 0,
+        igstAmount: item.igstAmount ?? 0,
+        sortOrder: item.sortOrder ?? 0,
       })),
       exchangeItems: invoice.exchangeItems.map((ex) => ({
         id: ex.id,
         productName: ex.productName,
         serialNumber: ex.serialNumber ?? "",
+        brandId: ex.brandId ?? "",
+        categoryId: ex.categoryId ?? "",
+        ram: ex.ram ?? "",
+        storage: ex.storage ?? "",
+        exchangeValue: (ex as any).exchangeValue ?? 0,
       })),
       exchangeValue: invoice.exchangeValue,
       gstCalculation: {
@@ -103,24 +133,57 @@ export default function EditInvoicePage() {
       totalAmount: invoice.totalAmount,
       amountPaid: invoice.amountPaid,
       additionalInfo: {
-        invoiceTerms: invoice.customInvoiceTerms ?? "",
-        bankDetails: invoice.customBankDetails ?? "",
+        invoiceTerms: invoice.customInvoiceTerms ?? defaultTerms,
+        bankDetails: invoice.customBankDetails ?? settings.defaultBankDetails,
       },
     });
+
+    // ── Load brands for exchange items right here when data is ready ──
+    if (invoice.saleType === "EXCHANGE" && invoice.exchangeItems.length > 0) {
+      const loadBrands = async () => {
+        const results: Record<number, Brand[]> = {};
+        for (let i = 0; i < invoice.exchangeItems.length; i++) {
+          const categoryId = (invoice.exchangeItems[i] as any)?.categoryId as
+            | string
+            | undefined;
+          if (!categoryId) continue;
+          try {
+            const { data: result } = await fetchBrandsByCategory({
+              variables: { categoryId },
+            });
+            results[i] = result?.getBrandsByCategoryId ?? [];
+            console.log(
+              "✅ Brands loaded for exchange item",
+              i,
+              ":",
+              results[i]?.length ?? 0,
+            );
+          } catch (e) {
+            console.log("❌ Failed to load brands for index", i, e);
+            results[i] = [];
+          }
+        }
+        setInitialExchangeBrands(results);
+      };
+      loadBrands();
+    }
   }, [invoiceResult]);
 
-  const handleSettingsChange = (id: string) => {
-    setSelectedSettingsId(id);
-    const selected = allSettings.find((s) => s.id === id);
+  const handleSettingsChange = (settingsId: string) => {
+    setSelectedSettingsId(settingsId);
+    const selected = allSettings.find((s) => s.id === settingsId);
     if (!selected || !invoiceData) return;
-    setInvoiceData((prev) => ({
-      ...prev!,
-      companySettingsId: selected.id,
-      additionalInfo: {
-        invoiceTerms: selected.defaultInvoiceTermsBrand,
-        bankDetails: selected.defaultBankDetails,
-      },
-    }));
+    setInvoiceData((prev: InvoiceData | null) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        companySettingsId: selected.id,
+        additionalInfo: {
+          invoiceTerms: selected.defaultInvoiceTermsBrand,
+          bankDetails: selected.defaultBankDetails,
+        },
+      };
+    });
   };
 
   if (invoiceLoading || !invoiceData) {
@@ -138,7 +201,6 @@ export default function EditInvoicePage() {
         ]}
       />
 
-      {/* ── Settings Selector ── */}
       <div className="bg-white border border-gray-200 rounded-xl px-5 py-3 flex items-center gap-3">
         <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
           Company Settings
@@ -183,6 +245,7 @@ export default function EditInvoicePage() {
           selectedSettings={allSettings.find(
             (s) => s.id === selectedSettingsId,
           )}
+          initialExchangeBrands={initialExchangeBrands}
         />
         <InvoicePreviewWrapper
           data={debouncedData!}

@@ -107,16 +107,6 @@ export default function InvoiceSettingsPage() {
                     Set as Default
                   </Button>
                 )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    router.push(`/inventory/settings/${setting.id}/edit`)
-                  }
-                >
-                  <Pencil className="w-4 h-4" />
-                  Edit
-                </Button>
                 {!setting.isDefault && (
                   <Button
                     variant="ghost"

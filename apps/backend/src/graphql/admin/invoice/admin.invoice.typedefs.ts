@@ -20,6 +20,7 @@ export const typeDefs = `#graphql
   type InvoiceItem {
     id: ID!
     invoiceId: String!
+    inventoryProductId: String  
     product: String!
     serialNumber: String
     hsnSac: String
@@ -42,13 +43,18 @@ export const typeDefs = `#graphql
   }
 
   type InvoiceExchangeItem {
-    id: ID!
-    invoiceId: String!
-    productName: String!
-    serialNumber: String
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
+  id: ID!
+  invoiceId: String!
+  productName: String!
+  serialNumber: String
+  brandId: String
+  categoryId: String
+  ram: String
+  storage: String
+  exchangeValue: Float!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
 
   type Invoice {
   id: ID!
@@ -65,7 +71,8 @@ export const typeDefs = `#graphql
   clientContact: String!
   clientGstin: String
   isInsideBangalore: Boolean!
-  paidBy: String
+  paidBy: PaymentMode
+  splitPaymentDetails: String 
 
   saleType: SaleType!
   warrantyType: InvoiceWarrantyType!
@@ -115,6 +122,7 @@ export const typeDefs = `#graphql
   }
 
   input CreateInvoiceItemInput {
+    inventoryProductId: ID     
     product: String!
     serialNumber: String
     hsnSac: String
@@ -135,9 +143,14 @@ export const typeDefs = `#graphql
   }
 
   input CreateExchangeItemInput {
-    productName: String!
-    serialNumber: String
-  }
+  productName: String!
+  serialNumber: String!
+  brandId: String!
+  categoryId: String!
+  ram: String
+  storage: String
+  exchangeValue: Float!
+}
 
   input CreateInvoiceInput {
   invoiceNumber: String!
@@ -152,7 +165,8 @@ export const typeDefs = `#graphql
   clientContact: String!
   clientGstin: String
   isInsideBangalore: Boolean!
-  paidBy: String
+  paidBy: PaymentMode
+  splitPaymentDetails: String    
 
   saleType: SaleType
   warrantyType: InvoiceWarrantyType
@@ -175,18 +189,30 @@ export const typeDefs = `#graphql
   items: [CreateInvoiceItemInput!]!
   exchangeItems: [CreateExchangeItemInput!]
 }
+
+
+input UpdateExchangeItemInput {
+  productName: String!
+  serialNumber: String!
+  brandId: String!
+  categoryId: String!
+  ram: String
+  storage: String
+  exchangeValue: Float!
+}
 input UpdateInvoiceInput {
   id: ID!
-  invoiceNumber: String    # ← add this
+  invoiceNumber: String
   invoiceDate: String
-  companySettingsId: String  # ← add this
+  companySettingsId: String
   clientName: String
   clientAddress: String
   clientEmail: String
   clientContact: String
   clientGstin: String
   isInsideBangalore: Boolean
-  paidBy: String
+  paidBy: PaymentMode
+  splitPaymentDetails: String
   saleType: SaleType
   warrantyType: InvoiceWarrantyType
   warrantyMonths: Int
@@ -201,6 +227,6 @@ input UpdateInvoiceInput {
   invoiceTerms: String
   bankDetails: String
   items: [CreateInvoiceItemInput!]
-  exchangeItems: [CreateExchangeItemInput!]
+  exchangeItems: [UpdateExchangeItemInput!]
 }
 `;

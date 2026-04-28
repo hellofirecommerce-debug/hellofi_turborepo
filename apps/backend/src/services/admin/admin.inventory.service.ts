@@ -1,8 +1,8 @@
 import prisma from "@repo/db";
 import {
   handleServiceError,
-  throwInputError,
   throwNotFoundError,
+  throwInputError,
 } from "../../lib/utils/error";
 import { validateOrThrow } from "../../lib/utils/validateOrThrow";
 import {
@@ -14,18 +14,109 @@ import {
   MarkAsSoldInput,
 } from "@repo/validations";
 
+const inventoryInclude = {
+  brand: true,
+  category: true,
+  invoiceItem: {
+    select: {
+      id: true,
+      invoice: {
+        select: {
+          id: true,
+          invoiceNumber: true,
+          status: true,
+          invoiceDate: true,
+        },
+      },
+    },
+  },
+  // ── Exchange chain ──
+  parentInventory: {
+    select: {
+      id: true,
+      productName: true,
+      imeiOrSerial: true,
+      orderId: true,
+      status: true,
+    },
+  },
+  exchangedItems: {
+    select: {
+      id: true,
+      productName: true,
+      imeiOrSerial: true,
+      orderId: true,
+      status: true,
+      exchangeValue: true,
+      sourceInvoiceId: true,
+    },
+  },
+  sourceInvoice: {
+    select: {
+      id: true,
+      invoiceNumber: true,
+      invoiceDate: true,
+      status: true,
+    },
+  },
+};
+
 class AdminInventoryService {
   private generateOrderId(imeiOrSerial: string): string {
     const timestamp = Date.now().toString().slice(-6);
     const random = Math.random().toString(36).substring(2, 4).toUpperCase();
     const imeiSuffix = imeiOrSerial.slice(-5);
     return `HF-${timestamp}-${random}-${imeiSuffix}`;
-    // e.g. HF-174996-X4-AB123 = 19 chars
+  }
+
+  // ── Public helper for invoice service ──
+  generateExchangeOrderId(imeiOrSerial: string): string {
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.random().toString(36).substring(2, 4).toUpperCase();
+    const suffix = imeiOrSerial.slice(-5);
+    return `HF-EX-${timestamp}-${random}-${suffix}`;
   }
 
   private calculateTat(purchaseDate: Date, sellingDate: Date): number {
     const diff = sellingDate.getTime() - purchaseDate.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  // ── Fetch full exchange chain by rootInventoryId ──
+  async getExchangeChain(rootInventoryId: string) {
+    try {
+      const allMembers = await prisma.inventoryProduct.findMany({
+        where: {
+          OR: [{ id: rootInventoryId }, { rootInventoryId }],
+          isActive: true,
+        },
+        include: {
+          brand: true,
+          category: true,
+          sourceInvoice: {
+            select: { id: true, invoiceNumber: true, invoiceDate: true },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+
+      // ── Build tree in memory ──
+      const buildTree = (
+        items: typeof allMembers,
+        parentId: string | null = null,
+      ): any[] => {
+        return items
+          .filter((item) => item.parentInventoryId === parentId)
+          .map((item) => ({
+            ...item,
+            children: buildTree(items, item.id),
+          }));
+      };
+
+      return buildTree(allMembers, null);
+    } catch (error) {
+      handleServiceError(error);
+    }
   }
 
   async getInventoryProducts(filter?: {
@@ -50,14 +141,11 @@ class AdminInventoryService {
 
       const buildDateCondition = () => {
         if (!filter?.dateFrom && !filter?.dateTo) return {};
-
         const dateRange = {
           ...(filter.dateFrom && { gte: new Date(filter.dateFrom) }),
           ...(filter.dateTo && { lte: new Date(filter.dateTo) }),
         };
-
         const dateType = filter.dateType ?? "purchase";
-
         if (dateType === "selling") return { sellingDate: dateRange };
         if (dateType === "all") {
           return {
@@ -140,7 +228,7 @@ class AdminInventoryService {
       const [items, total] = await Promise.all([
         prisma.inventoryProduct.findMany({
           where,
-          include: { brand: true, category: true },
+          include: inventoryInclude,
           orderBy: { [sortBy]: sortOrder },
           skip,
           take: pageSize,
@@ -160,11 +248,145 @@ class AdminInventoryService {
     }
   }
 
+  async markAsSoldFromInvoice(
+    tx: any,
+    inventoryProductId: string,
+    saleData: {
+      sellingDate: Date;
+      sellingPrice: number;
+      sellingCustomerName: string;
+      sellingCustomerPhone: string;
+      sellingCustomerEmail: string;
+      sellingCustomerAddress: string;
+      paymentMode?: string | null;
+      splitPaymentDetails?: string | null;
+      invoiceNumber: string;
+      costPrice: number;
+      otherCharges: number;
+    },
+  ) {
+    const product = await tx.inventoryProduct.findUnique({
+      where: { id: inventoryProductId },
+    });
+    if (!product) return;
+
+    const tat = this.calculateTat(product.purchaseDate, saleData.sellingDate);
+    const grossProfit =
+      saleData.sellingPrice - saleData.costPrice - saleData.otherCharges;
+
+    return tx.inventoryProduct.update({
+      where: { id: inventoryProductId },
+      data: {
+        status: "SOLD",
+        sellingDate: saleData.sellingDate,
+        sellingPrice: saleData.sellingPrice,
+        sellingCustomerName: saleData.sellingCustomerName,
+        sellingCustomerPhone: saleData.sellingCustomerPhone,
+        sellingCustomerEmail: saleData.sellingCustomerEmail,
+        sellingCustomerAddress: saleData.sellingCustomerAddress,
+        paymentMode: saleData.paymentMode as any,
+        splitPaymentDetails: saleData.splitPaymentDetails ?? null,
+        invoice: saleData.invoiceNumber,
+        tat,
+        grossProfit,
+      },
+    });
+  }
+
+  async updateInventoryFromInvoice(
+    tx: any,
+    inventoryProductId: string,
+    data: {
+      sellingDate: Date;
+      sellingPrice: number;
+      sellingCustomerName: string;
+      sellingCustomerPhone: string;
+      sellingCustomerEmail: string;
+      sellingCustomerAddress: string;
+      paymentMode?: string | null;
+      splitPaymentDetails?: string | null;
+      invoiceNumber: string;
+      costPrice: number;
+      otherCharges: number;
+      imeiOrSerial?: string;
+      purchaseDate: Date;
+    },
+  ) {
+    const product = await tx.inventoryProduct.findUnique({
+      where: { id: inventoryProductId },
+    });
+    if (!product) return;
+
+    const tat = this.calculateTat(data.purchaseDate, data.sellingDate);
+    const grossProfit = data.sellingPrice - data.costPrice - data.otherCharges;
+
+    return tx.inventoryProduct.update({
+      where: { id: inventoryProductId },
+      data: {
+        status: "SOLD",
+        sellingDate: data.sellingDate,
+        sellingPrice: data.sellingPrice,
+        sellingCustomerName: data.sellingCustomerName,
+        sellingCustomerPhone: data.sellingCustomerPhone,
+        sellingCustomerEmail: data.sellingCustomerEmail,
+        sellingCustomerAddress: data.sellingCustomerAddress,
+        paymentMode: data.paymentMode as any,
+        splitPaymentDetails: data.splitPaymentDetails ?? null,
+        invoice: data.invoiceNumber,
+        imeiOrSerial: data.imeiOrSerial || product.imeiOrSerial,
+        tat,
+        grossProfit,
+      },
+    });
+  }
+
+  async updateExchangeInventoryFromInvoice(
+    tx: any,
+    inventoryProductId: string,
+    data: {
+      productName: string;
+      imeiOrSerial?: string;
+      ram?: string | null;
+      storage?: string | null;
+      brandId?: string;
+      categoryId?: string;
+      exchangeValue?: number;
+      customerName: string;
+      customerEmail: string;
+      customerPhone: string;
+      customerAddress: string;
+      purchaseDate: Date;
+    },
+  ) {
+    const product = await tx.inventoryProduct.findUnique({
+      where: { id: inventoryProductId },
+    });
+    if (!product) return;
+
+    return tx.inventoryProduct.update({
+      where: { id: inventoryProductId },
+      data: {
+        productName: data.productName,
+        imeiOrSerial: data.imeiOrSerial || product.imeiOrSerial,
+        ram: data.ram ?? product.ram,
+        storage: data.storage ?? product.storage,
+        brandId: data.brandId || product.brandId,
+        categoryId: data.categoryId || product.categoryId,
+        exchangeValue: data.exchangeValue ?? product.exchangeValue,
+        customerName: data.customerName,
+        customerEmail: data.customerEmail,
+        customerPhone: data.customerPhone,
+        customerAddress: data.customerAddress,
+        purchaseDate: data.purchaseDate,
+      },
+    });
+  }
+
   async getInventoryProductById(id: string) {
     try {
       const product = await prisma.inventoryProduct.findUnique({
         where: { id },
-        include: { brand: true, category: true },
+        include: inventoryInclude,
       });
       if (!product) return throwNotFoundError("Inventory product not found");
       return product;
@@ -177,7 +399,7 @@ class AdminInventoryService {
     try {
       return await prisma.inventoryProduct.findFirst({
         where: { orderId },
-        include: { brand: true, category: true },
+        include: inventoryInclude,
       });
     } catch (error) {
       handleServiceError(error);
@@ -188,8 +410,74 @@ class AdminInventoryService {
     try {
       return await prisma.inventoryProduct.findMany({
         where: { imeiOrSerial, isActive: true },
-        include: { brand: true, category: true },
+        include: inventoryInclude,
       });
+    } catch (error) {
+      handleServiceError(error);
+    }
+  }
+
+  async getInventoryProductForInvoice(imeiOrSerial: string) {
+    try {
+      const product = await prisma.inventoryProduct.findFirst({
+        where: { imeiOrSerial, isActive: true },
+        include: {
+          brand: true,
+          category: true,
+          invoiceItem: {
+            select: {
+              invoice: { select: { invoiceNumber: true, status: true } },
+            },
+          },
+        },
+      });
+
+      if (!product) {
+        return {
+          id: "",
+          productName: "",
+          imeiOrSerial,
+          orderId: "",
+          ram: null,
+          storage: null,
+          costPrice: 0,
+          otherCharges: 0,
+          brandId: "",
+          categoryId: "",
+          brand: null,
+          category: null,
+          status: "NOT_FOUND",
+          isEligible: false,
+          ineligibleReason: `No product found with IMEI/Serial "${imeiOrSerial}"`,
+        };
+      }
+
+      if (!product.isActive) {
+        return {
+          ...product,
+          isEligible: false,
+          ineligibleReason: "This product is inactive",
+        };
+      }
+
+      if (product.status === "SOLD") {
+        return {
+          ...product,
+          isEligible: false,
+          ineligibleReason: `"${product.productName}" is already sold`,
+        };
+      }
+
+      if (product.invoiceItem) {
+        const inv = product.invoiceItem.invoice;
+        return {
+          ...product,
+          isEligible: false,
+          ineligibleReason: `"${product.productName}" is already linked to invoice ${inv.invoiceNumber}`,
+        };
+      }
+
+      return { ...product, isEligible: true, ineligibleReason: null };
     } catch (error) {
       handleServiceError(error);
     }
@@ -229,18 +517,90 @@ class AdminInventoryService {
     };
   }
 
+  async getAvailableForInvoice(filter?: {
+    search?: string;
+    brandId?: string;
+    categoryId?: string;
+    page?: number;
+    pageSize?: number;
+  }) {
+    try {
+      const page = filter?.page ?? 1;
+      const pageSize = filter?.pageSize ?? 20;
+      const skip = (page - 1) * pageSize;
+
+      const searchCondition = filter?.search
+        ? {
+            OR: [
+              {
+                productName: {
+                  contains: filter.search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                imeiOrSerial: {
+                  contains: filter.search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                orderId: {
+                  contains: filter.search,
+                  mode: "insensitive" as const,
+                },
+              },
+            ],
+          }
+        : {};
+
+      const where = {
+        isActive: true,
+        status: "NOT_LISTED" as const,
+        invoiceItem: null,
+        ...searchCondition,
+        ...(filter?.brandId && { brandId: filter.brandId }),
+        ...(filter?.categoryId && { categoryId: filter.categoryId }),
+      };
+
+      const [items, total] = await Promise.all([
+        prisma.inventoryProduct.findMany({
+          where,
+          include: { brand: true, category: true },
+          orderBy: { createdAt: "desc" },
+          skip,
+          take: pageSize,
+        }),
+        prisma.inventoryProduct.count({ where }),
+      ]);
+
+      return {
+        items,
+        total,
+        page,
+        pageSize,
+        totalPages: Math.ceil(total / pageSize),
+      };
+    } catch (error) {
+      handleServiceError(error);
+    }
+  }
+
   async createInventoryProduct(input: CreateInventoryProductInput) {
     try {
       const validated = validateOrThrow(createInventoryProductSchema, input);
 
-      // Check duplicate IMEI
       const existing = await prisma.inventoryProduct.findFirst({
         where: { imeiOrSerial: validated.imeiOrSerial, isActive: true },
       });
+
       if (existing) {
-        throwInputError(
-          `Product with IMEI/Serial "${validated.imeiOrSerial}" already exists`,
-        );
+        if (existing.status !== "SOLD") {
+          throwInputError(
+            `Product with IMEI/Serial "${validated.imeiOrSerial}" already exists and is ${existing.status === "NOT_LISTED" ? "not sold yet" : "currently listed"}. Cannot add a duplicate.`,
+          );
+          return;
+        }
       }
 
       const orderId = this.generateOrderId(validated.imeiOrSerial);
@@ -256,7 +616,7 @@ class AdminInventoryService {
             ? new Date(validated.warrantyPurchaseDate)
             : null,
         },
-        include: { brand: true, category: true },
+        include: inventoryInclude,
       });
     } catch (error) {
       handleServiceError(error);
@@ -273,7 +633,6 @@ class AdminInventoryService {
       });
       if (!product) return throwNotFoundError("Inventory product not found");
 
-      // ← only recalculate if costPrice or otherCharges actually changed
       const costPriceChanged =
         updateData.costPrice !== undefined &&
         Number(updateData.costPrice) !== Number(product.costPrice);
@@ -308,12 +667,13 @@ class AdminInventoryService {
             : null,
           ...extraUpdate,
         },
-        include: { brand: true, category: true },
+        include: inventoryInclude,
       });
     } catch (error) {
       handleServiceError(error);
     }
   }
+
   async markAsSold(input: MarkAsSoldInput) {
     try {
       const validated = validateOrThrow(markAsSoldSchema, input);
@@ -321,8 +681,20 @@ class AdminInventoryService {
 
       const product = await prisma.inventoryProduct.findUnique({
         where: { id },
+        include: {
+          invoiceItem: {
+            include: { invoice: { select: { invoiceNumber: true } } },
+          },
+        },
       });
       if (!product) return throwNotFoundError("Inventory product not found");
+
+      if (product.invoiceItem) {
+        throwInputError(
+          `This product is linked to invoice ${product.invoiceItem.invoice.invoiceNumber}. Use the invoice flow instead.`,
+        );
+        return;
+      }
 
       const sellingDate = new Date(saleData.sellingDate);
       const tat = this.calculateTat(product.purchaseDate, sellingDate);
@@ -340,9 +712,9 @@ class AdminInventoryService {
           status: "SOLD",
           tat,
           grossProfit,
-          sellingOtherCharges: saleData.sellingOtherCharges ?? 0, // ← add
+          sellingOtherCharges: saleData.sellingOtherCharges ?? 0,
         },
-        include: { brand: true, category: true },
+        include: inventoryInclude,
       });
     } catch (error) {
       handleServiceError(error);
@@ -353,10 +725,26 @@ class AdminInventoryService {
     try {
       const product = await prisma.inventoryProduct.findUnique({
         where: { id },
+        include: {
+          invoiceItem: {
+            include: {
+              invoice: { select: { invoiceNumber: true, status: true } },
+            },
+          },
+        },
       });
       if (!product) return throwNotFoundError("Inventory product not found");
 
-      // Soft delete
+      if (product.invoiceItem) {
+        const inv = product.invoiceItem.invoice;
+        if (inv.status !== "CANCELLED") {
+          throwInputError(
+            `Cannot delete — linked to invoice ${inv.invoiceNumber}. Cancel the invoice first.`,
+          );
+          return;
+        }
+      }
+
       await prisma.inventoryProduct.update({
         where: { id },
         data: { isActive: false },

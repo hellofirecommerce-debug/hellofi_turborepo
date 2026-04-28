@@ -68,6 +68,11 @@ export const GET_INVOICES = gql`
           id
           productName
           serialNumber
+          brandId
+          categoryId
+          ram
+          storage
+          exchangeValue
         }
         createdAt
         updatedAt
@@ -108,6 +113,7 @@ export const GET_INVOICE_BY_ID = gql`
       clientGstin
       isInsideBangalore
       paidBy
+      splitPaymentDetails
       saleType
       warrantyType
       warrantyMonths
@@ -124,6 +130,7 @@ export const GET_INVOICE_BY_ID = gql`
       status
       items {
         id
+        inventoryProductId
         product
         serialNumber
         hsnSac
@@ -146,6 +153,11 @@ export const GET_INVOICE_BY_ID = gql`
         id
         productName
         serialNumber
+        brandId
+        categoryId
+        ram
+        storage
+        exchangeValue
       }
       createdAt
       updatedAt

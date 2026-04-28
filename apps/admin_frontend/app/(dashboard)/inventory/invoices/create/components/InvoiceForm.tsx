@@ -4,7 +4,7 @@ import { useState } from "react";
 import { InvoiceDetailsSection } from "./form/InvoiceDetailsSection";
 import { CompanyDetailsSection } from "./form/CompanyDetailsSection";
 import { ClientDetailsSection } from "./form/ClientDetailsSection";
-import { InvoiceItemsSection } from "./form/InvoiceItemsSection";
+import { InvoiceItemsSection } from "./form/invoiceItems/InvoiceItemsSection";
 import { AdditionalInfoSection } from "./form/AdditionalInfoSection";
 import { InvoiceCompanySettings } from "../../../settings/types";
 
@@ -12,12 +12,14 @@ interface InvoiceFormProps {
   data: InvoiceData;
   onChange: (data: InvoiceData) => void;
   selectedSettings?: InvoiceCompanySettings;
+  initialExchangeBrands?: Record<number, { id: string; name: string }[]>;
 }
 
 export function InvoiceForm({
   data,
   onChange,
   selectedSettings,
+  initialExchangeBrands,
 }: InvoiceFormProps) {
   const [expanded, setExpanded] = useState({
     companyDetails: true,
@@ -56,6 +58,7 @@ export function InvoiceForm({
         onChange={onChange}
         isExpanded={expanded.invoiceItems}
         onToggle={() => toggle("invoiceItems")}
+        initialExchangeBrands={initialExchangeBrands}
       />
 
       <AdditionalInfoSection

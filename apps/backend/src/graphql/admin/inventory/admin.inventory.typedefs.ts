@@ -154,4 +154,32 @@ type ProductNameSearchResult {
   names: [String!]!
   hasMore: Boolean!
 }
+
+
+type AvailableForInvoiceResponse {
+  items: [InventoryProduct!]!
+  total: Int!
+  page: Int!
+  pageSize: Int!
+  totalPages: Int!
+}
+
+# ── Returned when admin scans IMEI to add invoice item ──
+type InventoryProductForInvoice {
+  id: ID!
+  productName: String!
+  imeiOrSerial: String!
+  orderId: String!
+  ram: String
+  storage: String
+  costPrice: Float!
+  otherCharges: Float!
+  brandId: String!
+  categoryId: String!
+  brand: Brand!
+  category: Category!
+  status: String!
+  isEligible: Boolean!
+  ineligibleReason: String
+}
 `;

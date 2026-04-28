@@ -1,10 +1,12 @@
 import * as z from "zod";
+import { paymentModeEnum } from "../inventoryProduct/inventoryProduct.schema";
 
 export const saleTypeEnum = z.enum(["DIRECT", "EXCHANGE"]);
 export const invoiceWarrantyTypeEnum = z.enum(["BRAND", "HELLOFI", "NONE"]);
 export const invoiceStatusEnum = z.enum(["DRAFT", "FINALIZED", "CANCELLED"]);
 
 export const createInvoiceItemSchema = z.object({
+  inventoryProductId: z.string().optional(),
   product: z.string().min(1, "Product name is required"),
   serialNumber: z.string().optional(),
   hsnSac: z.string().optional(),
@@ -26,15 +28,17 @@ export const createInvoiceItemSchema = z.object({
 
 export const createExchangeItemSchema = z.object({
   productName: z.string().min(1, "Product name is required"),
-  serialNumber: z.string().min(1, "Serial Number is required"),
+  serialNumber: z.string().min(1, "Serial number is required"),
+  brandId: z.string().min(1, "Brand is required"),
+  categoryId: z.string().min(1, "Category is required"),
+  ram: z.string().optional(),
+  storage: z.string().optional(),
+  exchangeValue: z.number().min(0).default(0),
 });
-
 export const createInvoiceSchema = z.object({
   invoiceNumber: z.string().min(1),
   invoiceDate: z.string().min(1),
   companySettingsId: z.string().min(1),
-
-  // ── No companyName, companyAddress etc ──
 
   clientName: z.string().min(1, "Client name is required"),
   clientAddress: z.string().min(1, "Client address is required"),
@@ -42,7 +46,8 @@ export const createInvoiceSchema = z.object({
   clientContact: z.string().min(1, "Client contact is required"),
   clientGstin: z.string().optional(),
   isInsideBangalore: z.boolean().default(true),
-  paidBy: z.string().optional(),
+  paidBy: paymentModeEnum.optional(), // ← changed from z.string().optional()
+  splitPaymentDetails: z.string().optional(), // ← add this
 
   saleType: saleTypeEnum.default("DIRECT"),
   warrantyType: invoiceWarrantyTypeEnum.default("BRAND"),
@@ -69,8 +74,8 @@ export const updateInvoiceSchema = createInvoiceSchema.partial().extend({
   id: z.string().min(1),
   invoiceTerms: z.string().optional(),
   bankDetails: z.string().optional(),
+  exchangeItems: z.array(createExchangeItemSchema).optional(),
 });
-
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type UpdateInvoiceInput = z.infer<typeof updateInvoiceSchema>;
 export type CreateInvoiceItemInput = z.infer<typeof createInvoiceItemSchema>;

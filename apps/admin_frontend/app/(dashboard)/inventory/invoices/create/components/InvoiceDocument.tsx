@@ -10,6 +10,7 @@ import {
 } from "@react-pdf/renderer";
 import { InvoiceData } from "../page";
 import { InvoiceCompanySettings } from "../../../settings/types";
+import { formatPaymentMode } from "../../../../../../lib/utils/formatPaymentMode";
 
 Font.register({
   family: "Poppins",
@@ -491,12 +492,12 @@ export function InvoiceDocument({
                           <Text style={{ fontSize: 7 }}>
                             Exchange with{" "}
                             <Text
-                              style={{
-                                fontFamily: "Poppins",
-                                fontWeight: 700,
-                              }}
+                              style={{ fontFamily: "Poppins", fontWeight: 700 }}
                             >
                               {ex.productName}
+                              {(ex as any).ram && (ex as any).storage
+                                ? ` (${(ex as any).ram}/${(ex as any).storage})`
+                                : ""}
                             </Text>
                           </Text>
                           {ex.serialNumber ? (
@@ -651,7 +652,11 @@ export function InvoiceDocument({
                 )}
                 <View style={S.sumRow}>
                   <Text style={{ fontSize: 8 }}>
-                    Paid by {billingAddress.paidBy || "—"}
+                    Paid by {formatPaymentMode(billingAddress.paidBy)}
+                    {billingAddress.paidBy === "SPLIT_PAYMENT" &&
+                    billingAddress.splitPaymentDetails
+                      ? ` (${billingAddress.splitPaymentDetails})`
+                      : ""}
                   </Text>
                 </View>
               </View>
