@@ -5,6 +5,8 @@ import { AdminInvoiceSettings } from "./admin/invoiceSettings";
 import { AdminBrand } from "./admin/brand";
 import { AdminAuth } from "./admin/auth";
 import { AdminCategory } from "./admin/category";
+import { AdminSeries } from "./admin/series";
+import { AdminSellingProduct } from "./admin/sellingProduct";
 import { CommonCategory } from "./common/category";
 import { CommonBrand } from "./common/brand";
 import { GraphQLUpload } from "graphql-upload-ts";
@@ -29,6 +31,8 @@ async function createApolloGraphqlServer() {
     ${AdminInventory.queries}
     ${AdminInvoiceSettings.queries}
     ${AdminInvoice.queries}
+    ${AdminSeries.queries}
+    ${AdminSellingProduct.queries}
  
    } 
 
@@ -40,6 +44,8 @@ async function createApolloGraphqlServer() {
     ${AdminInventory.mutations}
     ${AdminInvoiceSettings.mutations}
     ${AdminInvoice.mutations}
+    ${AdminSeries.mutations}
+    ${AdminSellingProduct.mutations}
    }
 
     # Type Definitions
@@ -49,6 +55,8 @@ async function createApolloGraphqlServer() {
     ${AdminInventory.typeDefs}
     ${AdminInvoiceSettings.typeDefs}
     ${AdminInvoice.typeDefs}
+    ${AdminSeries.typeDefs}
+    ${AdminSellingProduct.typeDefs}
 
 
     # Common Category Typedefs
@@ -64,6 +72,8 @@ async function createApolloGraphqlServer() {
       ...AdminInventory.resolvers.Query,
       ...AdminInvoiceSettings.resolvers.Query,
       ...AdminInvoice.resolvers.Query,
+      ...AdminSeries.resolvers.Query,
+      ...AdminSellingProduct.resolvers.Query,
 
       ...CommonCategory.resolvers.Query,
       ...CommonBrand.resolvers.Query,
@@ -76,6 +86,8 @@ async function createApolloGraphqlServer() {
       ...AdminCategory.resolvers.Mutation,
       ...AdminInvoiceSettings.resolvers.Mutation,
       ...AdminInvoice.resolvers.Mutation,
+      ...AdminSeries.resolvers.Mutation,
+      ...AdminSellingProduct.resolvers.Mutation,
     },
   };
 

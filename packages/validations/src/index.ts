@@ -4,3 +4,5 @@ export * from "./brand/brand.schema";
 export * from "./inventoryProduct/inventoryProduct.schema";
 export * from "./invoiceSettings/inventorySettingsSchema";
 export * from "./invoice/invoiceSchema";
+export * from "./series/series.schema";
+export * from "./sellingProduct/sellingProduct.schema";

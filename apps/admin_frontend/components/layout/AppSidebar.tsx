@@ -11,6 +11,7 @@ import {
   PieChart,
   Layers,
   KeyRound,
+  ShoppingBag,
 } from "lucide-react";
 import { SidebarLogo } from "./SidebarLogo";
 import { SidebarSection } from "./SidebarSection";
@@ -30,6 +31,14 @@ const navItems: NavItem[] = [
       { name: "Brands", path: "/brands" },
       { name: "Categories", path: "/categories" },
       { name: "Series", path: "/series" },
+    ],
+  },
+  {
+    icon: <ShoppingBag size={20} />,
+    name: "Selling",
+    subItems: [
+      { name: "All Products", path: "/selling/products" },
+      { name: "Add Product", path: "/selling/products/create" },
     ],
   },
   {
