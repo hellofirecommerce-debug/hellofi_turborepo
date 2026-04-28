@@ -14,6 +14,8 @@ import {
   MarkAsSoldInput,
 } from "@repo/validations";
 
+interface InventoryStatus {}
+
 const inventoryInclude = {
   brand: true,
   category: true,
@@ -556,7 +558,7 @@ class AdminInventoryService {
 
       const where = {
         isActive: true,
-        status: { in: ["NOT_LISTED", "LISTED"] as const },
+        status: { in: ["NOT_LISTED", "LISTED"] as any },
         invoiceItem: null,
         ...searchCondition,
         ...(filter?.brandId && { brandId: filter.brandId }),
