@@ -42,6 +42,14 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    icon: <ShoppingCart size={20} />,
+    name: "Buying",
+    subItems: [
+      { name: "All Products", path: "/buying/products" },
+      { name: "Add Product", path: "/buying/products/create" },
+    ],
+  },
+  {
     icon: <Package size={20} />,
     name: "Inventory",
     subItems: [

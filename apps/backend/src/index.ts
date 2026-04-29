@@ -4,6 +4,7 @@ config({ path: path.resolve(__dirname, "../.env") });
 import express, { Request, Response } from "express";
 import { expressMiddleware } from "@as-integrations/express5";
 import { graphqlUploadExpress } from "graphql-upload-ts";
+import compression from "compression";
 // import { graphqlUploadExpress } from "graphql-upload";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -17,6 +18,7 @@ async function init() {
   app.use(graphqlUploadExpress({ maxFileSize: 10_000_000, maxFiles: 10 }));
   app.use(express.json());
   app.use(cookieParser()); // ← needed for req.cookies to work
+  app.use(compression());
   app.use(
     cors({
       origin: [
