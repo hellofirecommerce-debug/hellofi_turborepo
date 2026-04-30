@@ -189,6 +189,7 @@ export default function SeriesPage() {
             onPageSizeChange={handlePageSizeChange}
             onEdit={handleEdit}
             onDelete={(id) => setDeleteId(id)}
+            loading={loading} // ← add
           />
         )}
       </div>

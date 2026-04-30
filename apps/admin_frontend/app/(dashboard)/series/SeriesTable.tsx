@@ -20,7 +20,18 @@ interface SeriesTableProps {
   onPageSizeChange: (size: number) => void;
   onEdit: (series: Series) => void;
   onDelete: (id: string) => void;
+  loading?: boolean;
 }
+
+const SkeletonRow = () => (
+  <TableRow>
+    {Array.from({ length: 7 }).map((_, i) => (
+      <TableCell key={i}>
+        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+      </TableCell>
+    ))}
+  </TableRow>
+);
 
 export const SeriesTable: React.FC<SeriesTableProps> = ({
   data,
@@ -32,6 +43,7 @@ export const SeriesTable: React.FC<SeriesTableProps> = ({
   onPageSizeChange,
   onEdit,
   onDelete,
+  loading,
 }) => (
   <div>
     <div className="overflow-x-auto w-full">
@@ -47,7 +59,11 @@ export const SeriesTable: React.FC<SeriesTableProps> = ({
             <TableCell isHeader>Action</TableCell>
           </TableHeader>
           <TableBody>
-            {data.length === 0 ? (
+            {loading ? (
+              Array.from({ length: pageSize }).map((_, i) => (
+                <SkeletonRow key={i} />
+              ))
+            ) : data.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
