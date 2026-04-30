@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Image from "next/image";
-import { Pencil, Trash2, Eye } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Button, Badge } from "@repo/ui";
 import { Table } from "../../../../../components/table/Table";
 import { TableHeader } from "../../../../../components/table/TableHeader";
@@ -11,6 +11,7 @@ import { TableCell } from "../../../../../components/table/TableCell";
 import { Pagination } from "../../../../../components/table/Pagination";
 import { SellingProduct } from "../types";
 import { VariantsModal } from "./VariantsModal";
+import { SkeletonRow } from "../../../../../components/ui/SkeletonRow";
 
 interface Props {
   data: SellingProduct[];
@@ -22,6 +23,7 @@ interface Props {
   onPageSizeChange: (size: number) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
+  loading?: boolean;
 }
 
 export const SellingProductTable: React.FC<Props> = ({
@@ -34,6 +36,7 @@ export const SellingProductTable: React.FC<Props> = ({
   onPageSizeChange,
   onEdit,
   onDelete,
+  loading,
 }) => {
   const [viewVariants, setViewVariants] = useState<SellingProduct | null>(null);
 
@@ -56,7 +59,11 @@ export const SellingProductTable: React.FC<Props> = ({
               <TableCell isHeader>Action</TableCell>
             </TableHeader>
             <TableBody>
-              {data.length === 0 ? (
+              {loading ? (
+                Array.from({ length: pageSize }).map((_, i) => (
+                  <SkeletonRow key={i} colSpan={9} />
+                ))
+              ) : data.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={9}

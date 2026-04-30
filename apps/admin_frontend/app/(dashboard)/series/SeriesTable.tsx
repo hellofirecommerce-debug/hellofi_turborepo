@@ -9,6 +9,7 @@ import { TableRow } from "../../../components/table/TableRow";
 import { TableCell } from "../../../components/table/TableCell";
 import { Pagination } from "../../../components/table/Pagination";
 import { Series } from "./types";
+import { SkeletonRow } from "../../../components/ui/SkeletonRow";
 
 interface SeriesTableProps {
   data: Series[];
@@ -22,16 +23,6 @@ interface SeriesTableProps {
   onDelete: (id: string) => void;
   loading?: boolean;
 }
-
-const SkeletonRow = () => (
-  <TableRow>
-    {Array.from({ length: 7 }).map((_, i) => (
-      <TableCell key={i}>
-        <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
-      </TableCell>
-    ))}
-  </TableRow>
-);
 
 export const SeriesTable: React.FC<SeriesTableProps> = ({
   data,

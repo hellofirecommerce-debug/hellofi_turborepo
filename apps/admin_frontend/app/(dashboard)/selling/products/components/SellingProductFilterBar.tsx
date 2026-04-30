@@ -125,7 +125,7 @@ export const SellingProductFilterBar: React.FC<Props> = ({
       </div>
 
       {showFilters && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
           <div className="flex flex-col gap-1.5">
             <Label>Category</Label>
             <select
