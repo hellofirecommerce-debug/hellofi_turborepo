@@ -90,7 +90,6 @@ class AdminAuthService {
   async getAdminMe(req: Request) {
     try {
       const adminId = req?.admin?.userId;
-      console.log(req?.admin);
       if (!adminId) return throwAuthError("Unauthorized");
 
       const admin = await prisma.user.findFirst({
@@ -110,7 +109,25 @@ class AdminAuthService {
       });
 
       if (!admin) return throwNotFoundError("Admin not found");
-      return admin;
+
+      // ← exact token from cookie → find that exact session
+      const accessToken = CookieService.getAccessToken(
+        req,
+        UserType.SUPERADMIN,
+      );
+      const session = await prisma.session.findFirst({
+        where: {
+          sessionToken: accessToken, // ← exact match, no wrong session
+          userId: adminId,
+          expires: { gt: new Date() },
+        },
+        select: { expires: true },
+      });
+
+      return {
+        ...admin,
+        sessionExpires: session?.expires ?? null,
+      };
     } catch (error) {
       handleServiceError(error);
     }

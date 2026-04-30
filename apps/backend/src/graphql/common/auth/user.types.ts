@@ -22,6 +22,7 @@ export const userTypeDefs = `#graphql
     createdAt: DateTime
     updatedAt: DateTime
     sessions: [Session]
+    sessionExpires: DateTime
   }
 
   input CreateUserInput {

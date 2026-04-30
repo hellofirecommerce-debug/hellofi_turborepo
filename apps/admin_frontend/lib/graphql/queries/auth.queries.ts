@@ -9,6 +9,7 @@ export const ADMIN_ME = gql`
       email
       userType
       status
+      sessionExpires # ← add
     }
   }
 `;
