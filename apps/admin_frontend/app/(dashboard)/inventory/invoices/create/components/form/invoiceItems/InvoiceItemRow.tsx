@@ -2,6 +2,7 @@
 import { Label, Button, Input, SearchableInput } from "@repo/ui";
 import { Trash2, CheckCircle2, XCircle } from "lucide-react";
 import { InvoiceItemType, InventoryProductForInvoice } from "../../../types";
+import { HSN_CODES } from "../../../../../../../../lib/constants/hsncodes";
 
 type ImeiStatus = {
   loading: boolean;
@@ -121,11 +122,21 @@ export function InvoiceItemRow({
 
         <div className="flex flex-col gap-1">
           <Label>HSN/SAC</Label>
-          <Input
-            placeholder="84713000"
+          <select
+            title="hsn"
             value={item.hsnSac ?? ""}
-            onChange={(e) => onUpdate("hsnSac", e.target.value)}
-          />
+            onChange={(e) => {
+              onUpdate("hsnSac", e.target.value);
+            }}
+            className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-[3px] focus:border-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]/25"
+          >
+            <option value="">Select HSN/SAC</option>
+            {Object.values(HSN_CODES).map((hsn) => (
+              <option key={hsn.code} value={hsn.code}>
+                {hsn.code} — {hsn.description} ({hsn.gstRate}%)
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex flex-col gap-1">
           <Label>Qty</Label>
