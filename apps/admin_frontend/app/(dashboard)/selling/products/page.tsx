@@ -122,6 +122,7 @@ export default function SellingProductsPage() {
             }
             onEdit={(id) => router.push(`/selling/products/edit/${id}`)}
             onDelete={(id) => setDeleteId(id)}
+            loading={loading}
           />
         )}
       </div>
