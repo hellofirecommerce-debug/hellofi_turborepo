@@ -130,7 +130,6 @@ class AdminInvoiceService {
       const validated = validateOrThrow(createInvoiceSchema, input);
       const { items, exchangeItems, ...invoiceData } = validated;
 
-      // ── Calculate total exchange value from items ──
       const totalExchangeValue = (exchangeItems ?? []).reduce(
         (s, i) => s + (Number(i.exchangeValue) || 0),
         0,
@@ -143,25 +142,11 @@ class AdminInvoiceService {
 
       const isExchange = invoiceData.saleType === "EXCHANGE";
 
-      console.log("🧾 createInvoice called, saleType:", invoiceData.saleType);
-      console.log(
-        "🧾 Items received:",
-        items.map((i) => ({
-          product: i.product,
-          inventoryProductId: i.inventoryProductId ?? "NONE",
-          serialNumber: i.serialNumber ?? "NONE",
-        })),
-      );
-      console.log("💱 Total exchange value:", totalExchangeValue);
-      console.log("💰 Amount paid:", invoiceData.amountPaid);
-
-      // ── 1. Validate company settings ──
       const settings = await prisma.invoiceCompanySettings.findUnique({
         where: { id: validated.companySettingsId },
       });
       if (!settings) return throwNotFoundError("Company settings not found");
 
-      // ── 2. Check duplicate invoice number ──
       const existingByNumber = await prisma.invoice.findUnique({
         where: { invoiceNumber: invoiceData.invoiceNumber },
       });
@@ -172,7 +157,6 @@ class AdminInvoiceService {
         return;
       }
 
-      // ── 3. Resolve inventory product for each item ──
       const resolvedItems: ((typeof items)[0] & {
         resolvedInventoryId?: string;
       })[] = [];
@@ -195,10 +179,6 @@ class AdminInvoiceService {
           });
 
           if (foundByImei) {
-            console.log(
-              `🔍 Found by IMEI "${item.serialNumber}":`,
-              foundByImei.productName,
-            );
             if (foundByImei.invoiceItem) {
               throwInputError(
                 `"${foundByImei.productName}" is already linked to invoice ${foundByImei.invoiceItem.invoice.invoiceNumber}`,
@@ -206,10 +186,6 @@ class AdminInvoiceService {
               return;
             }
             inventoryId = foundByImei.id;
-          } else {
-            console.log(
-              `⚠️ No active unsold product found for IMEI "${item.serialNumber}" — saving without inventory link`,
-            );
           }
         }
 
@@ -219,12 +195,9 @@ class AdminInvoiceService {
         });
       }
 
-      // ── 4. Validate all resolved inventory products ──
       const inventoryProductIds = resolvedItems
         .map((item) => item.resolvedInventoryId)
         .filter(Boolean) as string[];
-
-      console.log("🔗 Resolved inventory product IDs:", inventoryProductIds);
 
       const inventoryProducts =
         inventoryProductIds.length > 0
@@ -238,20 +211,8 @@ class AdminInvoiceService {
             })
           : [];
 
-      console.log(
-        "📦 Inventory products fetched:",
-        inventoryProducts.map((p) => ({
-          id: p.id,
-          productName: p.productName,
-          status: p.status,
-        })),
-      );
-
       for (const item of resolvedItems) {
-        if (!item.resolvedInventoryId) {
-          console.log("⚠️ Item has no inventory link:", item.product);
-          continue;
-        }
+        if (!item.resolvedInventoryId) continue;
 
         const inv = inventoryProducts.find(
           (p) => p.id === item.resolvedInventoryId,
@@ -277,14 +238,8 @@ class AdminInvoiceService {
           );
           return;
         }
-
-        console.log(
-          `✅ Inventory product valid (${isExchange ? "exchange — no SOLD update" : "direct — will mark SOLD"}):`,
-          inv.productName,
-        );
       }
 
-      // ── 5. Compute custom terms ──
       let defaultTerms = settings.defaultInvoiceTermsBrand;
       if (invoiceData.warrantyType === "HELLOFI") {
         defaultTerms = settings.defaultInvoiceTermsHellofi.replace(
@@ -305,7 +260,6 @@ class AdminInvoiceService {
           ? null
           : invoiceData.bankDetails;
 
-      // ── 6. Financial year for counter ──
       const now = new Date();
       const year = now.getFullYear();
       const month = now.getMonth() + 1;
@@ -316,11 +270,8 @@ class AdminInvoiceService {
 
       const sellingDate = new Date(invoiceData.invoiceDate);
 
-      // ── 7. Transaction ──
       const invoice = await prisma.$transaction(
         async (tx) => {
-          console.log("💾 Creating invoice in transaction...");
-
           const created = await tx.invoice.create({
             data: {
               invoiceNumber: invoiceData.invoiceNumber,
@@ -379,7 +330,7 @@ class AdminInvoiceService {
                     ...rest,
                     ram: ram || null,
                     storage: storage || null,
-                    productName, // ← plain name, no (ram/storage) appended
+                    productName,
                   }),
                 ),
               },
@@ -387,27 +338,18 @@ class AdminInvoiceService {
             include: invoiceInclude,
           });
 
-          console.log("✅ Invoice created:", created.invoiceNumber);
-
-          // ── For DIRECT sales — mark inventory as SOLD ──
+          // ── DIRECT sales — mark inventory as SOLD ──
           if (!isExchange) {
             for (const item of resolvedItems) {
-              if (!item.resolvedInventoryId) {
-                console.log(
-                  "⚠️ Skipping item with no inventory link:",
-                  item.product,
-                );
-                continue;
-              }
+              if (!item.resolvedInventoryId) continue;
 
               const inv = inventoryProducts.find(
                 (p) => p.id === item.resolvedInventoryId,
               )!;
-              console.log("🔄 Marking as SOLD:", inv.productName, inv.id);
 
               await AdminInventoryService.markAsSoldFromInvoice(tx, inv.id, {
                 sellingDate,
-                sellingPrice: item.total,
+                sellingPrice: Number(item.gross) + Number(item.gstAmount), // ← gross + gst from frontend
                 sellingCustomerName: invoiceData.clientName,
                 sellingCustomerPhone: invoiceData.clientContact,
                 sellingCustomerEmail: invoiceData.clientEmail ?? "",
@@ -421,19 +363,11 @@ class AdminInvoiceService {
                 costPrice: Number(inv.costPrice),
                 otherCharges: Number(inv.otherCharges),
               });
-
-              console.log("✅ Successfully marked as SOLD:", inv.productName);
             }
           }
 
-          // ── For EXCHANGE sales — create inventory entries for exchanged devices ──
+          // ── EXCHANGE — create inventory entries for exchanged devices ──
           if (isExchange && exchangeItems && exchangeItems.length > 0) {
-            console.log(
-              "🔄 Creating exchange inventory entries for",
-              exchangeItems.length,
-              "items",
-            );
-
             const parentInventoryId =
               resolvedItems.find((r) => r.resolvedInventoryId)
                 ?.resolvedInventoryId ?? null;
@@ -478,32 +412,21 @@ class AdminInvoiceService {
                   status: "NOT_LISTED",
                   isExchangeItem: true,
                   exchangeValue: exItem.exchangeValue ?? 0,
-                  parentInventoryId: parentInventoryId,
-                  rootInventoryId: rootInventoryId,
+                  parentInventoryId,
+                  rootInventoryId,
                   sourceInvoiceId: created.id,
                   notes: `Exchange item from invoice ${invoiceData.invoiceNumber}`,
                 },
               });
-
-              console.log(
-                "✅ Exchange inventory created for:",
-                exItem.productName,
-              );
             }
           }
 
-          // ── For EXCHANGE sales — mark inventory as SOLD ──
+          // ── EXCHANGE — mark inventory as SOLD ──
           if (isExchange) {
             const totalGross = resolvedItems.reduce(
               (s, i) => s + (Number(i.gross) || 0),
               0,
             );
-
-            console.log("💰 Exchange selling price calculation:");
-            console.log("  totalAmount:", invoiceData.totalAmount);
-            console.log("  exchangeValue:", totalExchangeValue);
-            console.log("  amountPaid:", invoiceData.amountPaid);
-            console.log("  totalGross:", totalGross);
 
             for (const item of resolvedItems) {
               if (!item.resolvedInventoryId) continue;
@@ -517,13 +440,9 @@ class AdminInvoiceService {
                   ? (Number(item.gross) / totalGross) * invoiceData.amountPaid
                   : invoiceData.amountPaid;
 
-              console.log(`  item: ${item.product}`);
-              console.log(`  item.gross: ${item.gross}`);
-              console.log(`  itemShare: ${itemShare}`);
-
               await AdminInventoryService.markAsSoldFromInvoice(tx, inv.id, {
                 sellingDate,
-                sellingPrice: itemShare,
+                sellingPrice: itemShare, // ← amountPaid already includes marginal gst
                 sellingCustomerName: invoiceData.clientName,
                 sellingCustomerPhone: invoiceData.clientContact,
                 sellingCustomerEmail: invoiceData.clientEmail ?? "",
@@ -537,33 +456,20 @@ class AdminInvoiceService {
                 costPrice: Number(inv.costPrice),
                 otherCharges: Number(inv.otherCharges),
               });
-
-              console.log(
-                "✅ Marked as SOLD (exchange):",
-                inv.productName,
-                "sellingPrice:",
-                itemShare,
-              );
             }
           }
 
-          // ── Increment counter ──
           await tx.invoiceCounter.upsert({
             where: { financialYear },
             update: { lastNumber: { increment: 1 } },
             create: { financialYear, lastNumber: 1 },
           });
 
-          console.log("✅ Invoice counter incremented for:", financialYear);
           return created;
         },
-        {
-          timeout: 30000,
-          maxWait: 10000,
-        },
+        { timeout: 30000, maxWait: 10000 },
       );
 
-      console.log("🎉 createInvoice complete:", invoice?.invoiceNumber);
       return invoice;
     } catch (error) {
       console.log("❌ createInvoice error:", error);
@@ -576,7 +482,6 @@ class AdminInvoiceService {
       const validated = validateOrThrow(updateInvoiceSchema, input);
       const { id, items, exchangeItems, ...updateData } = validated;
 
-      // ── Calculate total exchange value from items ──
       const totalExchangeValue = (exchangeItems ?? []).reduce(
         (s, i) => s + (Number(i.exchangeValue) || 0),
         0,
@@ -591,13 +496,9 @@ class AdminInvoiceService {
         }
       }
 
-      console.log("💱 Update — total exchange value:", totalExchangeValue);
-
       const invoice = await prisma.invoice.findUnique({
         where: { id },
-        include: {
-          items: { include: { inventoryProduct: true } },
-        },
+        include: { items: { include: { inventoryProduct: true } } },
       });
       if (!invoice) return throwNotFoundError("Invoice not found");
       if (invoice.status === "FINALIZED")
@@ -616,10 +517,8 @@ class AdminInvoiceService {
         if (settings) {
           if (updateData.invoiceTerms) {
             let defaultTerms = settings.defaultInvoiceTermsBrand;
-            const warrantyType =
-              updateData.warrantyType ?? invoice.warrantyType;
-            const warrantyMonths =
-              updateData.warrantyMonths ?? invoice.warrantyMonths;
+            const warrantyType = updateData.warrantyType ?? invoice.warrantyType;
+            const warrantyMonths = updateData.warrantyMonths ?? invoice.warrantyMonths;
 
             if (warrantyType === "HELLOFI") {
               defaultTerms = settings.defaultInvoiceTermsHellofi.replace(
@@ -638,8 +537,7 @@ class AdminInvoiceService {
 
           if (updateData.bankDetails) {
             customBankDetails =
-              updateData.bankDetails.trim() ===
-              settings.defaultBankDetails.trim()
+              updateData.bankDetails.trim() === settings.defaultBankDetails.trim()
                 ? null
                 : updateData.bankDetails;
           }
@@ -734,7 +632,7 @@ class AdminInvoiceService {
                       ...rest,
                       ram: ram || null,
                       storage: storage || null,
-                      productName, // ← plain name, no (ram/storage) appended
+                      productName,
                     }),
                   ),
                 },
@@ -753,17 +651,20 @@ class AdminInvoiceService {
               );
               if (!inv) continue;
 
-              const itemShare =
-                totalGross > 0
+              // ← DIRECT: gross + gst from frontend
+              // ← EXCHANGE: proportional share of amountPaid
+              const sellingPrice = isExchange
+                ? totalGross > 0
                   ? (Number(item.gross) / totalGross) * finalAmountPaid
-                  : finalAmountPaid;
+                  : finalAmountPaid
+                : Number(item.gross) + Number(item.gstAmount); // ← fixed
 
               await AdminInventoryService.updateInventoryFromInvoice(
                 tx,
                 inv.id,
                 {
                   sellingDate,
-                  sellingPrice: itemShare,
+                  sellingPrice,
                   sellingCustomerName:
                     restUpdateData.clientName ?? invoice.clientName,
                   sellingCustomerPhone:
@@ -774,11 +675,10 @@ class AdminInvoiceService {
                     restUpdateData.clientAddress ?? invoice.clientAddress,
                   paymentMode: restUpdateData.paidBy ?? invoice.paidBy,
                   splitPaymentDetails:
-                    (restUpdateData.paidBy ?? invoice.paidBy) ===
-                    "SPLIT_PAYMENT"
+                    (restUpdateData.paidBy ?? invoice.paidBy) === "SPLIT_PAYMENT"
                       ? (restUpdateData.splitPaymentDetails ??
-                        invoice.splitPaymentDetails ??
-                        null)
+                          invoice.splitPaymentDetails ??
+                          null)
                       : null,
                   invoiceNumber: invoice.invoiceNumber,
                   costPrice: Number(inv.costPrice),
@@ -792,7 +692,7 @@ class AdminInvoiceService {
                 "✅ Updated inventory:",
                 inv.productName,
                 "sellingPrice:",
-                itemShare,
+                sellingPrice,
               );
             }
           }
@@ -826,12 +726,9 @@ class AdminInvoiceService {
                   categoryId: exItem.categoryId,
                   exchangeValue: exItem.exchangeValue,
                   customerName: restUpdateData.clientName ?? invoice.clientName,
-                  customerEmail:
-                    restUpdateData.clientEmail ?? invoice.clientEmail,
-                  customerPhone:
-                    restUpdateData.clientContact ?? invoice.clientContact,
-                  customerAddress:
-                    restUpdateData.clientAddress ?? invoice.clientAddress,
+                  customerEmail: restUpdateData.clientEmail ?? invoice.clientEmail,
+                  customerPhone: restUpdateData.clientContact ?? invoice.clientContact,
+                  customerAddress: restUpdateData.clientAddress ?? invoice.clientAddress,
                   purchaseDate: sellingDate,
                 },
               );
@@ -842,10 +739,7 @@ class AdminInvoiceService {
 
           return updated;
         },
-        {
-          timeout: 30000,
-          maxWait: 10000,
-        },
+        { timeout: 30000, maxWait: 10000 },
       );
     } catch (error) {
       handleServiceError(error);
