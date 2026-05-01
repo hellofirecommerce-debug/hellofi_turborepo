@@ -67,7 +67,7 @@ export const createInvoiceSchema = z.object({
   bankDetails: z.string().min(1),
 
   items: z.array(createInvoiceItemSchema).min(1),
-  exchangeItems: z.array(createExchangeItemSchema).default([]),
+  exchangeItems: z.array(createExchangeItemSchema).optional().default([]),
 });
 
 export const updateInvoiceSchema = createInvoiceSchema.partial().extend({
