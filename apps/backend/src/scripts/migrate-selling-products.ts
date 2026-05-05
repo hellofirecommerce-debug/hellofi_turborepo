@@ -47,9 +47,8 @@ const SellingProductSchema = new mongoose.Schema(
 mongoose.model("variant", VariantSchema);
 const SellingProduct = mongoose.model("sellingProduct", SellingProductSchema);
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 10; // ← small batch size
 
-// ── Step 3: Process each product using in-memory maps (no DB reads) ──
 async function migrateProductFast(
   product: any,
   index: number,
@@ -59,7 +58,6 @@ async function migrateProductFast(
   seriesMap: Map<string, any>,
   existingSet: Set<string>,
 ): Promise<"success" | "skipped" | "exists"> {
-  // ── Validate required fields ──
   if (!product.productSeoName) {
     console.log(`  [${index}] ⚠️ Skipped — no seoName: ${product.productName}`);
     return "skipped";
@@ -69,13 +67,11 @@ async function migrateProductFast(
     return "skipped";
   }
 
-  // ── Check if already exists in memory (no DB call) ──
   if (existingSet.has(product.productSeoName)) {
     console.log(`  [${index}] ⏭️ Already exists: ${product.productName}`);
     return "exists";
   }
 
-  // ── Lookup brand from memory map (no DB call) ──
   const brand = brandMap.get(product.brandSeoName);
   if (!brand) {
     console.log(
@@ -84,7 +80,6 @@ async function migrateProductFast(
     return "skipped";
   }
 
-  // ── Lookup category from memory map — try seoName first, fallback to name ──
   const category =
     categoryMapBySeo.get(product.categorySeoName) ||
     categoryMapByName.get(product.categoryName);
@@ -95,7 +90,6 @@ async function migrateProductFast(
     return "skipped";
   }
 
-  // ── Lookup series from memory map (no DB call) ──
   const series = product.sellingSeries
     ? seriesMap.get(product.sellingSeries.toString())
     : null;
@@ -107,7 +101,7 @@ async function migrateProductFast(
   }
 
   try {
-    // ── Write product to DB (only DB operation for each product) ──
+    // ── Create product ──
     const createdProduct = await prisma.sellingProduct.create({
       data: {
         id: product._id.toString(),
@@ -127,22 +121,20 @@ async function migrateProductFast(
       },
     });
 
-    // ── Write variants in parallel (Promise.all = parallel, not sequential) ──
+    // ── Create variants SEQUENTIALLY — no parallel connections ──
     if (product.hasVariants && product.variants?.length > 0) {
-      await Promise.all(
-        (product.variants as any[]).map((variant) =>
-          prisma.sellingVariant.create({
-            data: {
-              id: variant._id.toString(),
-              sellingProductId: createdProduct.id,
-              ram: product.isConstantRam ? null : (variant.ram ?? null),
-              storage: variant.storage ?? "",
-              productPrice: variant.productPrice ?? 0,
-              status: variant.status === "active" ? "ACTIVE" : "INACTIVE",
-            },
-          }),
-        ),
-      );
+      for (const variant of product.variants as any[]) {
+        await prisma.sellingVariant.create({
+          data: {
+            id: variant._id.toString(),
+            sellingProductId: createdProduct.id,
+            ram: product.isConstantRam ? null : (variant.ram ?? null),
+            storage: variant.storage ?? "",
+            productPrice: variant.productPrice ?? 0,
+            status: variant.status === "active" ? "ACTIVE" : "INACTIVE",
+          },
+        });
+      }
       console.log(
         `  [${index}] ✅ ${product.productName} (${product.variants.length} variants)`,
       );
@@ -160,85 +152,87 @@ async function migrateProductFast(
 }
 
 async function migrate() {
-  // ── Step 1: Connect to MongoDB ──
+  // ── Single MongoDB connection ──
   await mongoose.connect(process.env.MONGODB_URI!);
   console.log("✅ Connected to MongoDB");
 
-  // ── Fetch all products with variants populated ──
-  const products = await SellingProduct.find({}).populate("variants");
-  console.log(`Found ${products.length} products`);
+  // ── Single Prisma connection ──
+  await prisma.$connect();
+  console.log("✅ Connected to PostgreSQL");
 
-  // ── Step 2: Preload ALL lookup data into memory in ONE query each ──
-  // Instead of querying DB for each product (1000 products = 4000 queries)
-  // We load everything once (4 queries total) and use Maps for O(1) lookup
-  console.log("Preloading lookup data into memory...");
+  try {
+    const products = await SellingProduct.find({}).populate("variants");
+    console.log(`Found ${products.length} products`);
 
-  const allBrands = await prisma.brand.findMany();
-  const allCategories = await prisma.category.findMany();
-  const allSeries = await prisma.series.findMany();
-  const allExisting = await prisma.sellingProduct.findMany({
-    select: { productSeoName: true },
-  });
+    console.log("Preloading lookup data into memory...");
 
-  // ── Build Maps for O(1) lookup ──
-  const brandMap = new Map(allBrands.map((b) => [b.seoName, b]));
-  const categoryMapBySeo = new Map(allCategories.map((c) => [c.seoName, c]));
-  const categoryMapByName = new Map(allCategories.map((c) => [c.name, c]));
-  const seriesMap = new Map(allSeries.map((s) => [s.id, s]));
-  const existingSet = new Set(allExisting.map((p) => p.productSeoName));
+    const allBrands = await prisma.brand.findMany();
+    const allCategories = await prisma.category.findMany();
+    const allSeries = await prisma.series.findMany();
+    const allExisting = await prisma.sellingProduct.findMany({
+      select: { productSeoName: true },
+    });
 
-  console.log(
-    `Loaded — ${allBrands.length} brands, ${allCategories.length} categories, ${allSeries.length} series, ${allExisting.length} existing products\n`,
-  );
-
-  let success = 0;
-  let skipped = 0;
-  let exists = 0;
-
-  // ── Step 4: Process in batches of 50 with Promise.all (parallel per batch) ──
-  for (let i = 0; i < products.length; i += BATCH_SIZE) {
-    const batch = products.slice(i, i + BATCH_SIZE);
-    const startIndex = i + 1;
+    const brandMap = new Map(allBrands.map((b) => [b.seoName, b]));
+    const categoryMapBySeo = new Map(allCategories.map((c) => [c.seoName, c]));
+    const categoryMapByName = new Map(allCategories.map((c) => [c.name, c]));
+    const seriesMap = new Map(allSeries.map((s) => [s.id, s]));
+    const existingSet = new Set(allExisting.map((p) => p.productSeoName));
 
     console.log(
-      `\n── Batch ${Math.ceil((i + 1) / BATCH_SIZE)}: products ${startIndex} to ${Math.min(i + BATCH_SIZE, products.length)} ──`,
+      `Loaded — ${allBrands.length} brands, ${allCategories.length} categories, ${allSeries.length} series, ${allExisting.length} existing products\n`,
     );
 
-    // ── All 50 products in batch run in parallel ──
-    const results = await Promise.all(
-      batch.map((product, batchIndex) =>
-        migrateProductFast(
-          product,
-          startIndex + batchIndex,
+    let success = 0;
+    let skipped = 0;
+    let exists = 0;
+
+    // ── Process batches SEQUENTIALLY — one batch at a time ──
+    for (let i = 0; i < products.length; i += BATCH_SIZE) {
+      const batch = products.slice(i, i + BATCH_SIZE);
+      const startIndex = i + 1;
+
+      console.log(
+        `\n── Batch ${Math.ceil((i + 1) / BATCH_SIZE)}: products ${startIndex} to ${Math.min(i + BATCH_SIZE, products.length)} ──`,
+      );
+
+      // ← sequential — one product at a time within each batch
+      for (let j = 0; j < batch.length; j++) {
+        const result = await migrateProductFast(
+          batch[j],
+          startIndex + j,
           brandMap,
           categoryMapBySeo,
           categoryMapByName,
           seriesMap,
           existingSet,
-        ),
-      ),
-    );
+        );
 
-    results.forEach((r) => {
-      if (r === "success") success++;
-      else if (r === "exists") exists++;
-      else skipped++;
-    });
+        if (result === "success") success++;
+        else if (result === "exists") exists++;
+        else skipped++;
+      }
 
-    console.log(
-      `Batch complete — ✅ ${success} success, ⏭️ ${exists} exists, ⚠️ ${skipped} skipped`,
-    );
+      console.log(
+        `Batch complete — ✅ ${success} success, ⏭️ ${exists} exists, ⚠️ ${skipped} skipped`,
+      );
+    }
+
+    console.log(`\n════════════════════════════════`);
+    console.log(`Migration complete`);
+    console.log(`✅ Success : ${success}`);
+    console.log(`⏭️  Exists  : ${exists}`);
+    console.log(`⚠️  Skipped : ${skipped}`);
+    console.log(`Total     : ${success + exists + skipped}`);
+    console.log(`════════════════════════════════`);
+  } finally {
+    // ── Always disconnect both ──
+    await mongoose.disconnect();
+    console.log("✅ MongoDB disconnected");
+
+    await prisma.$disconnect();
+    console.log("✅ PostgreSQL disconnected");
   }
-
-  console.log(`\n════════════════════════════════`);
-  console.log(`Migration complete`);
-  console.log(`✅ Success : ${success}`);
-  console.log(`⏭️  Exists  : ${exists}`);
-  console.log(`⚠️  Skipped : ${skipped}`);
-  console.log(`Total     : ${success + exists + skipped}`);
-  console.log(`════════════════════════════════`);
-
-  await mongoose.disconnect();
 }
 
 migrate().catch(console.error);

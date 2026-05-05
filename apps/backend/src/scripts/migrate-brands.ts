@@ -23,7 +23,7 @@ const mobileBrandSchema = new mongoose.Schema(
 
 const MobileBrand = mongoose.model("mobileBrand", mobileBrandSchema);
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 5; // ← small batch size to avoid connection issues
 
 async function migrateBrand(
   brand: any,
@@ -54,41 +54,39 @@ async function migrateBrand(
 
     console.log(`  [${index}] ✅ Brand created: ${createdBrand.name}`);
 
-    // ── Create brand categories in parallel ──
+    // ── Create brand categories SEQUENTIALLY — no parallel connections ──
     if (brand.categories?.length > 0) {
-      await Promise.all(
-        brand.categories.map(async (cat: any) => {
-          const existingCategory = categoryMapBySeo.get(
-            cat.categorySeoName ?? "",
+      for (const cat of brand.categories) {
+        const existingCategory = categoryMapBySeo.get(
+          cat.categorySeoName ?? "",
+        );
+        if (!existingCategory) {
+          console.log(
+            `  [${index}]   ⚠️ Category not found: ${cat.categorySeoName}`,
           );
-          if (!existingCategory) {
-            console.log(
-              `  [${index}]   ⚠️ Category not found: ${cat.categorySeoName}`,
-            );
-            return;
-          }
+          continue;
+        }
 
-          await prisma.brandCategory.upsert({
-            where: {
-              brandId_categoryId: {
-                brandId: createdBrand.id,
-                categoryId: existingCategory.id,
-              },
-            },
-            update: {},
-            create: {
+        await prisma.brandCategory.upsert({
+          where: {
+            brandId_categoryId: {
               brandId: createdBrand.id,
               categoryId: existingCategory.id,
-              priority: cat.priority ?? 0,
-              status: "ACTIVE",
             },
-          });
+          },
+          update: {},
+          create: {
+            brandId: createdBrand.id,
+            categoryId: existingCategory.id,
+            priority: cat.priority ?? 0,
+            status: "ACTIVE",
+          },
+        });
 
-          console.log(
-            `  [${index}]   ✅ ${createdBrand.name} → ${existingCategory.name}`,
-          );
-        }),
-      );
+        console.log(
+          `  [${index}]   ✅ ${createdBrand.name} → ${existingCategory.name}`,
+        );
+      }
     }
 
     return "success";
@@ -99,71 +97,80 @@ async function migrateBrand(
 }
 
 async function migrate() {
+  // ── Single MongoDB connection ──
   await mongoose.connect(process.env.MONGODB_URI!);
   console.log("✅ Connected to MongoDB");
 
-  const brands = await MobileBrand.find({});
-  console.log(`Found ${brands.length} brands`);
+  // ── Single Prisma connection check ──
+  await prisma.$connect();
+  console.log("✅ Connected to PostgreSQL");
 
-  // ── Preload all categories and existing brands into memory ──
-  console.log("Preloading lookup data...");
+  try {
+    const brands = await MobileBrand.find({});
+    console.log(`Found ${brands.length} brands`);
 
-  const allCategories = await prisma.category.findMany();
-  const allExistingBrands = await prisma.brand.findMany({
-    select: { seoName: true },
-  });
+    // ── Preload all categories and existing brands into memory ──
+    console.log("Preloading lookup data...");
 
-  const categoryMapBySeo = new Map(allCategories.map((c) => [c.seoName, c]));
-  const existingBrandSet = new Set(allExistingBrands.map((b) => b.seoName));
-
-  console.log(
-    `Loaded — ${allCategories.length} categories, ${allExistingBrands.length} existing brands\n`,
-  );
-
-  let success = 0;
-  let skipped = 0;
-  let exists = 0;
-
-  // ── Batch processing ──
-  for (let i = 0; i < brands.length; i += BATCH_SIZE) {
-    const batch = brands.slice(i, i + BATCH_SIZE);
-    const startIndex = i + 1;
-
-    console.log(
-      `\n── Batch ${Math.ceil((i + 1) / BATCH_SIZE)}: brands ${startIndex} to ${Math.min(i + BATCH_SIZE, brands.length)} ──`,
-    );
-
-    const results = await Promise.all(
-      batch.map((brand, batchIndex) =>
-        migrateBrand(
-          brand,
-          startIndex + batchIndex,
-          categoryMapBySeo,
-          existingBrandSet,
-        ),
-      ),
-    );
-
-    results.forEach((r) => {
-      if (r === "success") success++;
-      else if (r === "exists") exists++;
-      else skipped++;
+    const allCategories = await prisma.category.findMany();
+    const allExistingBrands = await prisma.brand.findMany({
+      select: { seoName: true },
     });
 
+    const categoryMapBySeo = new Map(allCategories.map((c) => [c.seoName, c]));
+    const existingBrandSet = new Set(allExistingBrands.map((b) => b.seoName));
+
     console.log(
-      `Batch complete — ✅ ${success} success, ⏭️ ${exists} exists, ⚠️ ${skipped} skipped`,
+      `Loaded — ${allCategories.length} categories, ${allExistingBrands.length} existing brands\n`,
     );
+
+    let success = 0;
+    let skipped = 0;
+    let exists = 0;
+
+    // ── Process brands SEQUENTIALLY batch by batch ──
+    for (let i = 0; i < brands.length; i += BATCH_SIZE) {
+      const batch = brands.slice(i, i + BATCH_SIZE);
+      const startIndex = i + 1;
+
+      console.log(
+        `\n── Batch ${Math.ceil((i + 1) / BATCH_SIZE)}: brands ${startIndex} to ${Math.min(i + BATCH_SIZE, brands.length)} ──`,
+      );
+
+      // ← sequential — one brand at a time, no parallel connections
+      for (let j = 0; j < batch.length; j++) {
+        const result = await migrateBrand(
+          batch[j],
+          startIndex + j,
+          categoryMapBySeo,
+          existingBrandSet,
+        );
+
+        if (result === "success") success++;
+        else if (result === "exists") exists++;
+        else skipped++;
+      }
+
+      console.log(
+        `Batch complete — ✅ ${success} success, ⏭️ ${exists} exists, ⚠️ ${skipped} skipped`,
+      );
+    }
+
+    console.log(`\n════════════════════════════════`);
+    console.log(`Migration complete`);
+    console.log(`✅ Success : ${success}`);
+    console.log(`⏭️  Exists  : ${exists}`);
+    console.log(`⚠️  Skipped : ${skipped}`);
+    console.log(`Total     : ${success + exists + skipped}`);
+    console.log(`════════════════════════════════`);
+  } finally {
+    // ── Always disconnect both — single disconnect ──
+    await mongoose.disconnect();
+    console.log("✅ MongoDB disconnected");
+
+    await prisma.$disconnect();
+    console.log("✅ PostgreSQL disconnected");
   }
-
-  console.log(`\n════════════════════════════════`);
-  console.log(`Migration complete`);
-  console.log(`✅ Success : ${success}`);
-  console.log(`⏭️  Exists  : ${exists}`);
-  console.log(`⚠️  Skipped : ${skipped}`);
-  console.log(`Total     : ${success + exists + skipped}`);
-  console.log(`════════════════════════════════`);
-
-  await mongoose.disconnect();
 }
 
 migrate().catch(console.error);

@@ -443,7 +443,7 @@ export function InvoiceDocument({
                       </Text>
                     </View>
                     <Text style={[S.td, S.cHsn]}>
-                      {item.hsnSac ? item.hsnSac.substring(0, 4) : "—"}
+                      <Text style={[S.td, S.cHsn]}>{item.hsnSac ?? "—"}</Text>
                     </Text>
                     <Text style={[S.td, S.cQty]}>{item.qty}</Text>
                     <Text style={[S.td, S.cUom]}>{item.uom}</Text>
