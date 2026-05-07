@@ -303,7 +303,7 @@ model InventoryProduct {
   otherCharges        Decimal  @default(0)
   sellingOtherCharges Decimal  @default(0)
 
-  brandId    String
+  brandId    String?
   categoryId String
 
   customerName    String
@@ -364,7 +364,7 @@ model InventoryProduct {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  brand    Brand    @relation(fields: [brandId], references: [id])
+  brand    Brand?   @relation(fields: [brandId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
 
   invoiceItem InvoiceItem?

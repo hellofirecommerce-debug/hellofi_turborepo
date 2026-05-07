@@ -598,10 +598,9 @@ class AdminInventoryService {
 
       if (existing) {
         if (existing.status !== "SOLD") {
-          throwInputError(
+          return throwInputError(
             `Product with IMEI/Serial "${validated.imeiOrSerial}" already exists and is ${existing.status === "NOT_LISTED" ? "not sold yet" : "currently listed"}. Cannot add a duplicate.`,
           );
-          return;
         }
       }
 

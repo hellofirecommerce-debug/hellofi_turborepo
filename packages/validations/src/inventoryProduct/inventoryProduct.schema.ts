@@ -16,7 +16,7 @@ export const createInventoryProductSchema = z.object({
   imeiOrSerial: z.string().min(1, "IMEI or serial is required"),
 
   // Category + Brand
-  brandId: z.string().min(1, "Brand is required"),
+  brandId: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
 
   // Purchase Details
