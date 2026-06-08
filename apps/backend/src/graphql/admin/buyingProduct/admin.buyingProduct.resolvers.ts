@@ -30,59 +30,69 @@ export const resolvers = {
     createBuyingProduct: async (_: any, args: any, context: GraphQLContext) => {
       AdminAuthService.requireAdmin(context.req);
 
-      // ── Process product-level images ──
-      const productImageBuffers: Buffer[] = [];
-      const productImageFileNames: string[] = [];
+      const { input, variantImages } = args;
 
-      if (args.productImages) {
-        for (const imageUpload of args.productImages) {
-          const { createReadStream, filename } = await imageUpload;
-          const buffer = await streamToBuffer(createReadStream());
-          productImageBuffers.push(buffer);
-          productImageFileNames.push(filename);
-        }
-      }
-
-      // ── Process variant images ──
-      const variantImages: {
-        variantIndex: number;
-        defaultImageIndex: number;
-        buffers: Buffer[];
-        fileNames: string[];
-      }[] = [];
-
-      for (const vi of args.variantImages ?? []) {
-        const buffers: Buffer[] = [];
-        const fileNames: string[] = [];
-        for (const imageUpload of vi.images) {
-          const { createReadStream, filename } = await imageUpload;
-          const buffer = await streamToBuffer(createReadStream());
-          buffers.push(buffer);
-          fileNames.push(filename);
-        }
-        variantImages.push({
-          variantIndex: vi.variantIndex,
-          defaultImageIndex: vi.defaultImageIndex,
-          buffers,
-          fileNames,
-        });
-      }
+      const resolvedVariantImages = await Promise.all(
+        (variantImages ?? []).map(async (vi: any) => {
+          const resolvedImages = await Promise.all(
+            vi.images.map(async (upload: any) => {
+              const { createReadStream, filename } = await upload;
+              const stream = createReadStream();
+              const buffer = await streamToBuffer(stream);
+              return { buffer, filename };
+            }),
+          );
+          return {
+            variantKey: vi.variantKey,
+            defaultImageIndex: vi.defaultImageIndex,
+            buffers: resolvedImages.map((r: any) => r.buffer),
+            fileNames: resolvedImages.map((r: any) => r.filename),
+          };
+        }),
+      );
 
       return AdminBuyingProductService.createBuyingProduct(
-        args.input,
-        variantImages,
-        productImageBuffers,
-        productImageFileNames,
-        args.productDefaultImageIndex ?? 0,
+        input,
+        resolvedVariantImages,
       );
     },
 
     updateBuyingProduct: async (_: any, args: any, context: GraphQLContext) => {
       AdminAuthService.requireAdmin(context.req);
-      return AdminBuyingProductService.updateBuyingProduct({
-        id: args.id,
-        ...args.input,
-      });
+
+      let resolvedVariantImages;
+
+      if (args.variantImages && args.variantImages.length > 0) {
+        resolvedVariantImages = await Promise.all(
+          args.variantImages.map(async (vi: any) => {
+            let buffers: Buffer[] = [];
+            let fileNames: string[] = [];
+
+            if (vi.images && vi.images.length > 0) {
+              const resolved = await Promise.all(vi.images);
+              buffers = await Promise.all(
+                resolved.map((upload: any) =>
+                  streamToBuffer(upload.createReadStream()),
+                ),
+              );
+              fileNames = resolved.map((upload: any) => upload.filename);
+            }
+
+            return {
+              variantId: vi.variantKey,
+              defaultImageIndex: vi.defaultImageIndex,
+              buffers,
+              fileNames,
+              existingImageKeys: vi.existingImageKeys ?? [],
+            };
+          }),
+        );
+      }
+
+      return AdminBuyingProductService.updateBuyingProduct(
+        { id: args.id, ...args.input },
+        resolvedVariantImages,
+      );
     },
 
     deleteBuyingProduct: async (

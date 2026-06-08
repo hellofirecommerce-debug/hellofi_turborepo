@@ -7,11 +7,7 @@ import { PageHeader } from "../../../../../components/ui/PageHeader";
 import { BuyingProductForm } from "../components/BuyingProductForm";
 import { CREATE_BUYING_PRODUCT } from "../../../../../lib/graphql/mutations/buyingProduct.mutations";
 import { CreateBuyingProductInput } from "@repo/validations";
-
-interface VariantImageState {
-  images: { file: File; preview: string }[];
-  defaultImageIndex: number;
-}
+import { VariantImageState } from "../types";
 
 export default function CreateBuyingProductPage() {
   const router = useRouter();
@@ -23,35 +19,42 @@ export default function CreateBuyingProductPage() {
       );
       router.push("/buying/products");
     },
+    onError(error) {
+      toast.error(error.message);
+    },
   });
 
   const handleSubmit = async (
     data: CreateBuyingProductInput,
-    productImages: File[],
-    productDefaultImageIndex: number,
-    variantImageStates: VariantImageState[],
+    variantImageMap: Map<string, VariantImageState>,
+    variantKeys: string[],
   ) => {
     // ── Validate each variant has at least one image ──
-    const variantCount = data.variants?.length ?? 0;
-    for (let i = 0; i < variantCount; i++) {
-      const state = variantImageStates[i];
+    for (let i = 0; i < variantKeys.length; i++) {
+      const key = variantKeys[i];
+      const state = variantImageMap.get(key ?? "");
       if (!state || state.images.length === 0) {
         toast.error(`Variant ${i + 1} must have at least one image`);
         return;
       }
     }
 
-    const variantImages = variantImageStates.map((state, index) => ({
-      variantIndex: index,
-      defaultImageIndex: state.defaultImageIndex,
-      images: state.images.map((e) => e.file),
-    }));
+    // ── Build variantImages using variantKey ──
+    const variantImages = variantKeys.map((key) => {
+      const state = variantImageMap.get(key) ?? {
+        images: [],
+        defaultImageIndex: 0,
+      };
+      return {
+        variantKey: key,
+        defaultImageIndex: state.defaultImageIndex,
+        images: state.images.map((e) => e.file),
+      };
+    });
 
     await createProduct({
       variables: {
         input: data,
-        productImages: undefined,
-        productDefaultImageIndex: 0,
         variantImages,
       },
     });

@@ -1,7 +1,6 @@
 export interface BuyingProductImage {
   id: string;
-  productId?: string;
-  variantId?: string;
+  variantId: string; // ← required, no productId
   xs?: string;
   sm?: string;
   md?: string;
@@ -25,13 +24,20 @@ export interface BuyingSpecification {
 export interface BuyingVariant {
   id: string;
   productId: string;
-  sku: string;
-  shortId: string;
+  sku: string; // ← keep, auto-generated in backend
+  variantSubtitle: string; // ← required
+  inventoryProductId?: string; // ← add
+  inventoryProduct?: {
+    // ← add
+    id: string;
+    productName: string;
+    imeiOrSerial: string;
+    status: string;
+  };
   liveLink?: string;
-  variantSubtitle?: string;
   color?: string;
   colorCode?: string;
-  storage: string;
+  storage?: string; // ← optional
   ram?: string;
   price: number;
   mrp: number;
@@ -59,14 +65,15 @@ export interface BuyingProduct {
   productName: string;
   productSubtitle: string;
   slug: string;
-  brandId: string;
+  brandId?: string; // ← optional
+  manualBrand?: string; // ← add
   categoryId: string;
   isTrending: boolean;
-  brand: { id: string; name: string };
+  brand?: { id: string; name: string }; // ← optional
   category: { id: string; name: string };
   variants: BuyingVariant[];
-  images: BuyingProductImage[];
   specifications: BuyingSpecification[];
+  // ← no images at product level
   createdAt: string;
   updatedAt: string;
 }
@@ -86,4 +93,16 @@ export interface BuyingProductFilter {
   isTrending?: boolean;
   page?: number;
   pageSize?: number;
+}
+
+export interface VariantImageEntry {
+  file: File | null;
+  preview: string;
+  s3Key?: string;
+  isExisting?: boolean;
+}
+
+export interface VariantImageState {
+  images: VariantImageEntry[];
+  defaultImageIndex: number;
 }

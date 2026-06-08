@@ -3,16 +3,9 @@ import { gql } from "@apollo/client";
 export const CREATE_BUYING_PRODUCT = gql`
   mutation CreateBuyingProduct(
     $input: CreateBuyingProductInput!
-    $productImages: [Upload!]
-    $productDefaultImageIndex: Int!
-    $variantImages: [VariantImageInput!]
+    $variantImages: [VariantImageInput!]!
   ) {
-    createBuyingProduct(
-      input: $input
-      productImages: $productImages
-      productDefaultImageIndex: $productDefaultImageIndex
-      variantImages: $variantImages
-    ) {
+    createBuyingProduct(input: $input, variantImages: $variantImages) {
       id
       productName
       slug
@@ -46,12 +39,19 @@ export const CREATE_BUYING_PRODUCT = gql`
 `;
 
 export const UPDATE_BUYING_PRODUCT = gql`
-  mutation UpdateBuyingProduct($id: ID!, $input: UpdateBuyingProductInput!) {
-    updateBuyingProduct(id: $id, input: $input) {
+  mutation UpdateBuyingProduct(
+    $id: ID!
+    $input: UpdateBuyingProductInput!
+    $variantImages: [VariantImageInput!]
+  ) {
+    updateBuyingProduct(id: $id, input: $input, variantImages: $variantImages) {
       id
       productName
       productSubtitle
       slug
+      brandId
+      manualBrand
+      categoryId
       isTrending
       brand {
         id
@@ -61,6 +61,30 @@ export const UPDATE_BUYING_PRODUCT = gql`
         id
         name
       }
+      variants {
+        id
+        sku
+        variantSubtitle
+        storage
+        ram
+        price
+        mrp
+        quantity
+        condition
+        availability
+        warrantyType
+        color
+        colorCode
+        images {
+          id
+          xs
+          sm
+          md
+          lg
+          isDefault
+          priority
+        }
+      }
       specifications {
         id
         key
@@ -68,7 +92,6 @@ export const UPDATE_BUYING_PRODUCT = gql`
         group
         sortOrder
       }
-      updatedAt
     }
   }
 `;

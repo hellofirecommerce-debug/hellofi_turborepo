@@ -8,21 +8,30 @@ import { validateOrThrow } from "../../lib/utils/validateOrThrow";
 import S3Service from "../common/s3.service";
 import ImageService from "../common/image.service";
 import { generateImageKey } from "../../lib/utils/imageKey";
-import { validateImage } from "../../lib/utils/validateImage";
-import { streamToBuffer } from "../../lib/utils/streamToBuffer";
+import { generateSKU } from "../../lib/utils/generateSKU";
 import {
   createBuyingProductSchema,
   updateBuyingProductSchema,
   CreateBuyingProductInput,
   UpdateBuyingProductInput,
 } from "@repo/validations";
+import { generateRandomString } from "../../lib/utils/generateRandomString";
 
 const buyingProductInclude = {
   brand: true,
   category: true,
-  images: { orderBy: { priority: "asc" as const } },
   variants: {
-    include: { images: true },
+    include: {
+      images: { orderBy: { priority: "asc" as const } },
+      inventoryProduct: {
+        select: {
+          id: true,
+          productName: true,
+          imeiOrSerial: true,
+          status: true,
+        },
+      },
+    },
     orderBy: { createdAt: "asc" as const },
   },
   specifications: { orderBy: { sortOrder: "asc" as const } },
@@ -33,18 +42,20 @@ async function processAndUploadVariantImages(
   variantId: string,
   imageBuffers: Buffer[],
   imageFileNames: string[],
-  defaultImageIndex: number, // ← required, no default — user must pick
+  defaultImageIndex: number,
 ) {
   try {
     for (let i = 0; i < imageBuffers.length; i++) {
       const buffer = imageBuffers[i]!;
-      const isDefault = i === defaultImageIndex;
+      const isDefault = defaultImageIndex >= 0 && i === defaultImageIndex;
 
       const { xs, sm, md, lg } = await ImageService.compressMultiSize(buffer);
 
+      const uniqueId = generateRandomString(8);
+
       const baseKey = generateImageKey(
         `buying-product-images/${productId}/${variantId}`,
-        `${i}`,
+        uniqueId,
       );
 
       const [xsUrl, smUrl, mdUrl, lgUrl] = await Promise.all([
@@ -54,16 +65,19 @@ async function processAndUploadVariantImages(
         S3Service.uploadImage(lg, `${baseKey}-lg`),
       ]);
 
+      const existingCount = await prisma.buyingProductImage.count({
+        where: { variantId },
+      });
+
       await prisma.buyingProductImage.create({
         data: {
-          productId,
           variantId,
           xs: xsUrl,
           sm: smUrl,
           md: mdUrl,
           lg: lgUrl,
           alt: imageFileNames[i] ?? "",
-          priority: i,
+          priority: existingCount,
           isDefault,
         },
       });
@@ -75,6 +89,60 @@ async function processAndUploadVariantImages(
       error,
     );
   }
+}
+// ← helper to build variant data without TypeScript conflict
+function buildVariantData(
+  v: {
+    variantSubtitle: string;
+    inventoryProductId?: string;
+    liveLink?: string;
+    color?: string;
+    colorCode?: string;
+    storage?: string;
+    ram?: string;
+    price: number;
+    mrp: number;
+    emiBasePrice?: number;
+    quantity: number;
+    productSpec?: string;
+    condition: string;
+    availability?: string;
+    screenSize?: string;
+    os?: string;
+    processor?: string;
+    batteryCapacity?: string;
+    warrantyType: string;
+    warrantyDescription?: string;
+    whatsInTheBox?: string[];
+    whatsExtra?: string;
+  },
+  sku: string,
+) {
+  return {
+    sku,
+    variantSubtitle: v.variantSubtitle,
+    inventoryProductId: v.inventoryProductId || null, // ← direct field, no connect
+    liveLink: v.liveLink ?? null,
+    color: v.color ?? null,
+    colorCode: v.colorCode ?? null,
+    storage: v.storage ?? null,
+    ram: v.ram ?? null,
+    price: v.price,
+    mrp: v.mrp,
+    emiBasePrice: v.emiBasePrice ?? null,
+    quantity: v.quantity,
+    productSpec: v.productSpec ?? null,
+    condition: v.condition as any,
+    availability: (v.availability ?? "IN_STOCK") as any,
+    screenSize: v.screenSize ?? null,
+    os: (v.os as any) ?? null,
+    processor: v.processor ?? null,
+    batteryCapacity: v.batteryCapacity ?? null,
+    warrantyType: v.warrantyType as any,
+    warrantyDescription: v.warrantyDescription ?? null,
+    whatsInTheBox: v.whatsInTheBox ?? [],
+    whatsExtra: v.whatsExtra ?? null,
+  };
 }
 
 class AdminBuyingProductService {
@@ -144,14 +212,11 @@ class AdminBuyingProductService {
   async createBuyingProduct(
     input: CreateBuyingProductInput,
     variantImages: {
-      variantIndex: number;
-      defaultImageIndex: number; // ← user-selected default
+      variantKey: string;
+      defaultImageIndex: number;
       buffers: Buffer[];
       fileNames: string[];
     }[],
-    productImageBuffers: Buffer[],
-    productImageFileNames: string[],
-    productDefaultImageIndex: number, // ← user-selected default for product images
   ) {
     try {
       const validated = validateOrThrow(createBuyingProductSchema, input);
@@ -164,33 +229,15 @@ class AdminBuyingProductService {
         return;
       }
 
-      // ── Validate: every variant must have images with a valid defaultImageIndex ──
-      const variantCount = validated.variants?.length ?? 0;
-      for (let i = 0; i < variantCount; i++) {
-        const vi = variantImages.find((v) => v.variantIndex === i);
+      for (const variant of validated.variants ?? []) {
+        if (!variant.variantKey) continue;
+        const vi = variantImages.find(
+          (v) => v.variantKey === variant.variantKey,
+        );
         if (!vi || vi.buffers.length === 0) {
-          throwInputError(`Variant ${i + 1} must have at least one image`);
+          throwInputError(`All variants must have at least one image`);
           return;
         }
-        if (
-          vi.defaultImageIndex < 0 ||
-          vi.defaultImageIndex >= vi.buffers.length
-        ) {
-          throwInputError(
-            `Variant ${i + 1} has an invalid default image selection`,
-          );
-          return;
-        }
-      }
-
-      // ── Validate product default image index ──
-      if (
-        productImageBuffers.length > 0 &&
-        (productDefaultImageIndex < 0 ||
-          productDefaultImageIndex >= productImageBuffers.length)
-      ) {
-        throwInputError("Invalid default product image selection");
-        return;
       }
 
       const product = await prisma.buyingProduct.create({
@@ -198,7 +245,8 @@ class AdminBuyingProductService {
           productName: validated.productName,
           productSubtitle: validated.productSubtitle,
           slug: validated.slug,
-          brandId: validated.brandId,
+          brandId: validated.brandId || null,
+          manualBrand: validated.manualBrand || null,
           categoryId: validated.categoryId,
           isTrending: validated.isTrending,
           specifications: {
@@ -210,31 +258,9 @@ class AdminBuyingProductService {
             })),
           },
           variants: {
-            create: (validated.variants ?? []).map((v) => ({
-              sku: v.sku,
-              shortId: v.shortId,
-              liveLink: v.liveLink ?? null,
-              variantSubtitle: v.variantSubtitle ?? null,
-              color: v.color ?? null,
-              colorCode: v.colorCode ?? null,
-              storage: v.storage,
-              ram: v.ram ?? null,
-              price: v.price,
-              mrp: v.mrp,
-              emiBasePrice: v.emiBasePrice ?? null,
-              quantity: v.quantity,
-              productSpec: v.productSpec ?? null,
-              condition: v.condition as any,
-              availability: v.availability as any,
-              screenSize: v.screenSize ?? null,
-              os: (v.os as any) ?? null,
-              processor: v.processor ?? null,
-              batteryCapacity: v.batteryCapacity ?? null,
-              warrantyType: v.warrantyType as any,
-              warrantyDescription: v.warrantyDescription ?? null,
-              whatsInTheBox: v.whatsInTheBox ?? [],
-              whatsExtra: v.whatsExtra ?? null,
-            })),
+            create: (validated.variants ?? []).map((v, i) =>
+              buildVariantData(v as any, generateSKU(validated.productName, i)),
+            ),
           },
         },
         include: buyingProductInclude,
@@ -242,17 +268,26 @@ class AdminBuyingProductService {
 
       console.log(`✅ Product created: ${product.productName}`);
 
-      // ── Process variant images asynchronously — non-blocking ──
       setImmediate(async () => {
-        for (const variantImg of variantImages) {
-          const variant = product.variants[variantImg.variantIndex];
-          if (!variant) continue;
+        const variantsList = validated.variants ?? [];
+        for (let i = 0; i < variantsList.length; i++) {
+          const variant = variantsList[i]!;
+          if (!variant.variantKey) continue;
+
+          const createdVariant = (product as any).variants[i];
+          if (!createdVariant) continue;
+
+          const vi = variantImages.find(
+            (v) => v.variantKey === variant.variantKey,
+          );
+          if (!vi || vi.buffers.length === 0) continue;
+
           await processAndUploadVariantImages(
             product.id,
-            variant.id,
-            variantImg.buffers,
-            variantImg.fileNames,
-            variantImg.defaultImageIndex, // ← user-selected
+            createdVariant.id,
+            vi.buffers,
+            vi.fileNames,
+            vi.defaultImageIndex,
           );
         }
         console.log(
@@ -266,13 +301,36 @@ class AdminBuyingProductService {
     }
   }
 
+  async deleteVariantImages(imageIds: string[]): Promise<void> {
+    if (imageIds.length === 0) return;
+
+    const images = await prisma.buyingProductImage.findMany({
+      where: { id: { in: imageIds } },
+    });
+
+    for (const img of images) {
+      const keysToDelete = [img.xs, img.sm, img.md, img.lg].filter(
+        Boolean,
+      ) as string[];
+
+      for (const key of keysToDelete) {
+        await S3Service.deleteFile(key);
+      }
+    }
+
+    await prisma.buyingProductImage.deleteMany({
+      where: { id: { in: imageIds } },
+    });
+  }
+
   async updateBuyingProduct(
     input: UpdateBuyingProductInput,
     variantImages?: {
       variantId: string;
-      defaultImageIndex: number; // ← user-selected
+      defaultImageIndex: number;
       buffers: Buffer[];
       fileNames: string[];
+      existingImageKeys?: string[];
     }[],
   ) {
     try {
@@ -282,6 +340,7 @@ class AdminBuyingProductService {
       const product = await prisma.buyingProduct.findUnique({ where: { id } });
       if (!product) return throwNotFoundError("Buying product not found");
 
+      // ── Update specifications ──
       if (specifications && specifications.length > 0) {
         await prisma.buyingSpecification.deleteMany({
           where: { productId: id },
@@ -297,21 +356,100 @@ class AdminBuyingProductService {
         });
       }
 
+      // ── Update variants ──
+      if (variants && variants.length > 0) {
+        for (const v of variants as any[]) {
+          await prisma.buyingVariant.update({
+            where: { id: v.variantKey },
+            data: {
+              variantSubtitle: v.variantSubtitle ?? undefined,
+              inventoryProductId: v.inventoryProductId ?? null,
+              liveLink: v.liveLink ?? null,
+              color: v.color ?? null,
+              colorCode: v.colorCode ?? null,
+              storage: v.storage ?? null,
+              ram: v.ram ?? null,
+              price: v.price ?? undefined,
+              mrp: v.mrp ?? undefined,
+              emiBasePrice: v.emiBasePrice ?? null,
+              quantity: v.quantity ?? undefined,
+              productSpec: v.productSpec ?? null,
+              condition: v.condition as any,
+              availability: v.availability as any,
+              screenSize: v.screenSize ?? null,
+              os: (v.os || null) as any,
+              processor: v.processor ?? null,
+              batteryCapacity: v.batteryCapacity ?? null,
+              warrantyType: v.warrantyType as any,
+              warrantyDescription: v.warrantyDescription ?? null,
+              whatsInTheBox: v.whatsInTheBox ?? [],
+              whatsExtra: v.whatsExtra ?? null,
+            },
+          });
+        }
+      }
+
+      // ── Handle image deletions + default image change ──
+      if (variantImages && variantImages.length > 0) {
+        for (const vi of variantImages) {
+          if (!vi.existingImageKeys) continue;
+
+          const currentImages = await prisma.buyingProductImage.findMany({
+            where: { variantId: vi.variantId },
+          });
+
+          // ── Delete removed images ──
+          const removedImageIds = currentImages
+            .filter((img) => img.md && !vi.existingImageKeys!.includes(img.md))
+            .map((img) => img.id);
+
+          await this.deleteVariantImages(removedImageIds);
+
+          // ── Handle default image change for existing images ──
+          if (vi.existingImageKeys.length === 0) continue;
+
+          const defaultIsExisting =
+            vi.defaultImageIndex < vi.existingImageKeys.length;
+
+          if (defaultIsExisting) {
+            const defaultKey = vi.existingImageKeys[vi.defaultImageIndex];
+            if (!defaultKey) continue;
+
+            await prisma.buyingProductImage.updateMany({
+              where: { variantId: vi.variantId },
+              data: { isDefault: false },
+            });
+
+            await prisma.buyingProductImage.updateMany({
+              where: { variantId: vi.variantId, md: defaultKey },
+              data: { isDefault: true },
+            });
+          }
+        }
+      }
+      // ── Update product fields ──
       const updated = await prisma.buyingProduct.update({
         where: { id },
-        data: { ...updateData, isTrending: updateData.isTrending },
+        data: {
+          ...updateData,
+          brandId: updateData.brandId || null,
+          manualBrand: updateData.manualBrand || null,
+          isTrending: updateData.isTrending,
+        },
         include: buyingProductInclude,
       });
 
+      // ── Upload new images in background ──
       if (variantImages && variantImages.length > 0) {
         setImmediate(async () => {
           for (const vi of variantImages) {
+            if (!vi.buffers || vi.buffers.length === 0) continue;
             await processAndUploadVariantImages(
               id,
               vi.variantId,
               vi.buffers,
               vi.fileNames,
-              vi.defaultImageIndex, // ← user-selected
+              -1,
             );
           }
         });
@@ -327,15 +465,11 @@ class AdminBuyingProductService {
     try {
       const product = await prisma.buyingProduct.findUnique({
         where: { id },
-        include: { images: true, variants: { include: { images: true } } },
+        include: { variants: { include: { images: true } } },
       });
       if (!product) return throwNotFoundError("Buying product not found");
 
-      const allImages = [
-        ...product.images,
-        ...product.variants.flatMap((v) => v.images),
-      ];
-
+      const allImages = product.variants.flatMap((v) => v.images);
       await Promise.all(
         allImages.flatMap((img) =>
           [img.xs, img.sm, img.md, img.lg]
@@ -356,7 +490,7 @@ class AdminBuyingProductService {
     variantInput: any,
     imageBuffers: Buffer[],
     imageFileNames: string[],
-    defaultImageIndex: number, // ← user-selected, required
+    defaultImageIndex: number,
   ) {
     try {
       const product = await prisma.buyingProduct.findUnique({
@@ -374,32 +508,17 @@ class AdminBuyingProductService {
         return;
       }
 
+      const existingCount = await prisma.buyingVariant.count({
+        where: { productId },
+      });
+
       const variant = await prisma.buyingVariant.create({
         data: {
           productId,
-          sku: variantInput.sku,
-          shortId: variantInput.shortId,
-          liveLink: variantInput.liveLink ?? null,
-          variantSubtitle: variantInput.variantSubtitle ?? null,
-          color: variantInput.color ?? null,
-          colorCode: variantInput.colorCode ?? null,
-          storage: variantInput.storage,
-          ram: variantInput.ram ?? null,
-          price: variantInput.price,
-          mrp: variantInput.mrp,
-          emiBasePrice: variantInput.emiBasePrice ?? null,
-          quantity: variantInput.quantity,
-          productSpec: variantInput.productSpec ?? null,
-          condition: variantInput.condition,
-          availability: variantInput.availability ?? "IN_STOCK",
-          screenSize: variantInput.screenSize ?? null,
-          os: variantInput.os ?? null,
-          processor: variantInput.processor ?? null,
-          batteryCapacity: variantInput.batteryCapacity ?? null,
-          warrantyType: variantInput.warrantyType,
-          warrantyDescription: variantInput.warrantyDescription ?? null,
-          whatsInTheBox: variantInput.whatsInTheBox ?? [],
-          whatsExtra: variantInput.whatsExtra ?? null,
+          ...buildVariantData(
+            variantInput,
+            generateSKU(product.productName, existingCount),
+          ),
         },
       });
 
@@ -409,7 +528,7 @@ class AdminBuyingProductService {
           variant.id,
           imageBuffers,
           imageFileNames,
-          defaultImageIndex, // ← user-selected
+          defaultImageIndex,
         );
       });
 
@@ -424,7 +543,7 @@ class AdminBuyingProductService {
     variantId: string,
     imageBuffers: Buffer[],
     imageFileNames: string[],
-    defaultImageIndex: number, // ← required, user must pick
+    defaultImageIndex: number,
   ) {
     if (imageBuffers.length === 0) {
       throwInputError("At least one image is required");

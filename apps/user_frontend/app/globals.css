@@ -1,13 +1,10 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tailwindcss";
+@source "../../../packages/ui/src/**/*.tsx";
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html,
@@ -16,35 +13,38 @@ body {
   overflow-x: hidden;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
-
 a {
-  color: inherit;
+  /* color: inherit; */
   text-decoration: none;
 }
 
-.imgDark {
-  display: none;
+.text-gradient-gold {
+  background: -webkit-linear-gradient(60deg, #d6d6d6, #d9d9d1 5%, #ccaf69);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+@theme {
+  --color-primary: #1b70cd;
+  --color-primary-light: #277eff;
+  --color-seconday: rgb(33, 76, 123);
+  --color-primary-hover: #1560b0;
+  --color-primary-light-hover: #1b6fe8;
+  --color-primary-surface: #ecf1f7;
+  --color-faq-surface: #c2ddfbe5;
+  --color-card-surface: #f8fafc;
+  --color-card-border: #e2e8f0;
+  --color-success: #10b981;
 
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
+  /* WhyHelloFi section colors */
+  --color-hf-promise: #c2410c;
+  --color-hf-badge: #bb4d00;
+  --color-hf-badge-border: #fee685cc;
+  --color-hf-dark: #0a0a0a;
+  --color-hf-amber-glow: #d97706;
+  --color-hf-title: #1a1a2e;
+  --color-hf-price-blue: #155dfc;
+  --color-hf-price-border: #bedbff;
+  --color-hf-preowned-border: #fe9a004d;
 }

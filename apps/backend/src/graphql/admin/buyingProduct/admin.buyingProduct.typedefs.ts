@@ -24,20 +24,18 @@ export const typeDefs = `#graphql
   }
 
   type BuyingProductImage {
-    id: ID!
-    productId: String
-    variantId: String
-    xs: String
-    sm: String
-    md: String
-    lg: String
-    alt: String
-    priority: Int!
-    isDefault: Boolean!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
-
+  id: ID!
+  variantId: String!
+  xs: String
+  sm: String
+  md: String
+  lg: String
+  alt: String
+  priority: Int!
+  isDefault: Boolean!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
   type BuyingSpecification {
     id: ID!
     productId: String!
@@ -50,128 +48,163 @@ export const typeDefs = `#graphql
   }
 
   type BuyingVariant {
-    id: ID!
-    productId: String!
-    sku: String!
-    shortId: String!
-    liveLink: String
-    variantSubtitle: String
-    color: String
-    colorCode: String
-    storage: String!
-    ram: String
-    price: Float!
-    mrp: Float!
-    emiBasePrice: Float
-    quantity: Int!
-    reservedQuantity: Int!
-    productSpec: String
-    condition: BuyingCondition!
-    availability: BuyingAvailability!
-    screenSize: String
-    os: BuyingOS
-    processor: String
-    batteryCapacity: String
-    warrantyType: BuyingWarrantyType!
-    warrantyDescription: String
-    whatsInTheBox: [String!]!
-    whatsExtra: String
-    images: [BuyingProductImage!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
-
-  type BuyingProduct {
-    id: ID!
-    productName: String!
-    productSubtitle: String!
-    slug: String!
-    brandId: String!
-    categoryId: String!
-    isTrending: Boolean!
-    brand: Brand
-    category: Category
-    variants: [BuyingVariant!]!
-    images: [BuyingProductImage!]!
-    specifications: [BuyingSpecification!]!
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
-
-  type BuyingProductsResponse {
-    items: [BuyingProduct!]!
-    total: Int!
-    page: Int!
-    pageSize: Int!
-    totalPages: Int!
-  }
-
-  input BuyingSpecificationInput {
-    key: String!
-    value: String!
-    group: String
-    sortOrder: Int
-  }
-
-  input BuyingVariantInput {
-    sku: String!
-    shortId: String!
-    liveLink: String
-    variantSubtitle: String
-    color: String
-    colorCode: String
-    storage: String!
-    ram: String
-    price: Float!
-    mrp: Float!
-    emiBasePrice: Float
-    quantity: Int!
-    productSpec: String
-    condition: BuyingCondition!
-    availability: BuyingAvailability
-    screenSize: String
-    os: BuyingOS
-    processor: String
-    batteryCapacity: String
-    warrantyType: BuyingWarrantyType!
-    warrantyDescription: String
-    whatsInTheBox: [String!]
-    whatsExtra: String
-  }
-
-  input CreateBuyingProductInput {
-    productName: String!
-    productSubtitle: String!
-    slug: String!
-    brandId: String!
-    categoryId: String!
-    isTrending: Boolean
-    specifications: [BuyingSpecificationInput!]
-    variants: [BuyingVariantInput!]
-  }
-
-  input UpdateBuyingProductInput {
-    productName: String
-    productSubtitle: String
-    slug: String
-    brandId: String
-    categoryId: String
-    isTrending: Boolean
-    specifications: [BuyingSpecificationInput!]
-  }
-
-  input BuyingProductFilterInput {
-    search: String
-    brandId: String
-    categoryId: String
-    isTrending: Boolean
-    page: Int
-    pageSize: Int
-  }
-
-  input VariantImageInput {
-  variantIndex: Int!
-  defaultImageIndex: Int!
-  images: [Upload!]!
+  id: ID!
+  productId: String!
+  sku: String!               # ← auto-generated in backend
+  variantSubtitle: String! 
+  inventoryProductId: String
+  liveLink: String
+  color: String
+  colorCode: String
+  storage: String
+  ram: String
+  price: Float!
+  mrp: Float!
+  emiBasePrice: Float
+  quantity: Int!
+  reservedQuantity: Int!
+  productSpec: String
+  condition: BuyingCondition!
+  availability: BuyingAvailability!
+  screenSize: String
+  os: BuyingOS
+  processor: String
+  batteryCapacity: String
+  warrantyType: BuyingWarrantyType!
+  warrantyDescription: String
+  whatsInTheBox: [String!]!
+  whatsExtra: String
+  images: [BuyingProductImage!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
 }
+
+type BuyingProduct {
+  id: ID!
+  productName: String!
+  productSubtitle: String!
+  slug: String!
+  brandId: String
+  manualBrand: String   # ← add
+  categoryId: String!
+  isTrending: Boolean!
+  brand: Brand
+  category: Category
+  variants: [BuyingVariant!]!
+  specifications: [BuyingSpecification!]!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+type BuyingProductsResponse {
+  items: [BuyingProduct!]!
+  total: Int!
+  page: Int!
+  pageSize: Int!
+  totalPages: Int!
+}
+
+input BuyingSpecificationInput {
+  key: String!
+  value: String!
+  group: String
+  sortOrder: Int
+}
+
+input BuyingVariantInput {
+  liveLink: String
+  variantSubtitle: String!
+  inventoryProductId: String
+  color: String
+  colorCode: String
+  storage: String
+  ram: String
+  price: Float!
+  mrp: Float!
+  emiBasePrice: Float
+  quantity: Int!
+  productSpec: String
+  condition: BuyingCondition!
+  availability: BuyingAvailability
+  screenSize: String
+  os: BuyingOS
+  processor: String
+  batteryCapacity: String
+  warrantyType: BuyingWarrantyType!
+  warrantyDescription: String
+  whatsInTheBox: [String!]
+  whatsExtra: String
+  variantKey: String
+}
+
+input CreateBuyingProductInput {
+  productName: String!
+  productSubtitle: String!
+  slug: String!
+  brandId: String
+  manualBrand: String   # ← add
+  categoryId: String!
+  isTrending: Boolean
+  specifications: [BuyingSpecificationInput!]
+  variants: [BuyingVariantInput!]
+}
+
+
+input UpdateBuyingVariantInput {
+  variantKey: String!
+  liveLink: String
+  variantSubtitle: String
+  inventoryProductId: String
+  color: String
+  colorCode: String
+  storage: String
+  ram: String
+  price: Float
+  mrp: Float
+  emiBasePrice: Float
+  quantity: Int
+  productSpec: String
+  condition: BuyingCondition
+  availability: BuyingAvailability
+  screenSize: String
+  os: BuyingOS
+  processor: String
+  batteryCapacity: String
+  warrantyType: BuyingWarrantyType
+  warrantyDescription: String
+  whatsInTheBox: [String!]
+  whatsExtra: String
+}
+
+
+input UpdateBuyingProductInput {
+  productName: String
+  productSubtitle: String
+  slug: String
+  brandId: String
+  manualBrand: String
+  categoryId: String
+  isTrending: Boolean
+  specifications: [BuyingSpecificationInput!]
+  variants: [UpdateBuyingVariantInput!]
+}
+
+
+input BuyingProductFilterInput {
+  search: String
+  brandId: String
+  categoryId: String
+  isTrending: Boolean
+  page: Int
+  pageSize: Int
+}
+
+
+
+input VariantImageInput {
+  variantKey: String!
+  defaultImageIndex: Int!
+  images: [Upload!]
+  existingImageKeys: [String!]
+}
+
 `;

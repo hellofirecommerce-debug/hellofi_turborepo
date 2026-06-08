@@ -210,29 +210,29 @@ model BuyingProduct {
   productName     String
   productSubtitle String
   slug            String   @unique
-  brandId         String
+  brandId         String?
+  manualBrand     String?
   categoryId      String
   isTrending      Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  brand          Brand                 @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brand          Brand?                @relation(fields: [brandId], references: [id], onDelete: Cascade)
   category       Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   variants       BuyingVariant[]
-  images         BuyingProductImage[]
   specifications BuyingSpecification[]
 }
 
 model BuyingVariant {
   id                  String             @id @default(uuid())
   productId           String
-  sku                 String
-  shortId             String             @unique
+  sku                 String             @unique
+  inventoryProductId  String?            @unique
+  variantSubtitle     String
   liveLink            String?
-  variantSubtitle     String?
   color               String?
   colorCode           String?
-  storage             String
+  storage             String?
   ram                 String?
   price               Decimal
   mrp                 Decimal
@@ -253,16 +253,14 @@ model BuyingVariant {
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
-  product BuyingProduct        @relation(fields: [productId], references: [id], onDelete: Cascade)
-  images  BuyingProductImage[]
-
-  @@index([shortId])
+  product          BuyingProduct        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  images           BuyingProductImage[]
+  inventoryProduct InventoryProduct?    @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull) // ← add this
 }
 
 model BuyingProductImage {
   id        String   @id @default(uuid())
-  variantId String?
-  productId String?
+  variantId String
   xs        String?
   sm        String?
   md        String?
@@ -274,7 +272,6 @@ model BuyingProductImage {
   updatedAt DateTime @updatedAt
 
   variant BuyingVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
-  product BuyingProduct? @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model BuyingSpecification {
@@ -367,7 +364,8 @@ model InventoryProduct {
   brand    Brand?   @relation(fields: [brandId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
 
-  invoiceItem InvoiceItem?
+  invoiceItem   InvoiceItem?
+  buyingVariant BuyingVariant?
 
   @@index([imeiOrSerial])
   @@index([customerEmail])

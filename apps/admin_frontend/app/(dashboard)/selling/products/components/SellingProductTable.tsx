@@ -42,10 +42,13 @@ export const SellingProductTable: React.FC<Props> = ({
 
   return (
     <div>
-      <div className="overflow-x-auto w-full">
+      <div
+        className="overflow-x-auto overflow-y-auto w-full"
+        style={{ maxHeight: "calc(100vh - 320px)" }}
+      >
         <div className="min-w-[1000px]">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 z-10 bg-white">
               <TableCell isHeader className="w-16">
                 Image
               </TableCell>
