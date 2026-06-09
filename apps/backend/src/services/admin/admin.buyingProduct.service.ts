@@ -356,36 +356,71 @@ class AdminBuyingProductService {
         });
       }
 
-      // ── Update variants ──
+      // ── Update or create variants ──
       if (variants && variants.length > 0) {
+        const existingVariantIds = (
+          await prisma.buyingVariant.findMany({
+            where: { productId: id },
+            select: { id: true },
+          })
+        ).map((v) => v.id);
+
         for (const v of variants as any[]) {
-          await prisma.buyingVariant.update({
-            where: { id: v.variantKey },
-            data: {
-              variantSubtitle: v.variantSubtitle ?? undefined,
-              inventoryProductId: v.inventoryProductId ?? null,
-              liveLink: v.liveLink ?? null,
-              color: v.color ?? null,
-              colorCode: v.colorCode ?? null,
-              storage: v.storage ?? null,
-              ram: v.ram ?? null,
-              price: v.price ?? undefined,
-              mrp: v.mrp ?? undefined,
-              emiBasePrice: v.emiBasePrice ?? null,
-              quantity: v.quantity ?? undefined,
-              productSpec: v.productSpec ?? null,
-              condition: v.condition as any,
-              availability: v.availability as any,
-              screenSize: v.screenSize ?? null,
-              os: (v.os || null) as any,
-              processor: v.processor ?? null,
-              batteryCapacity: v.batteryCapacity ?? null,
-              warrantyType: v.warrantyType as any,
-              warrantyDescription: v.warrantyDescription ?? null,
-              whatsInTheBox: v.whatsInTheBox ?? [],
-              whatsExtra: v.whatsExtra ?? null,
-            },
-          });
+          const isExisting = existingVariantIds.includes(v.variantKey);
+
+          if (isExisting) {
+            // ── Update existing variant ──
+            await prisma.buyingVariant.update({
+              where: { id: v.variantKey },
+              data: {
+                variantSubtitle: v.variantSubtitle ?? undefined,
+                inventoryProductId: v.inventoryProductId ?? null,
+                liveLink: v.liveLink ?? null,
+                color: v.color ?? null,
+                colorCode: v.colorCode ?? null,
+                storage: v.storage ?? null,
+                ram: v.ram ?? null,
+                price: v.price ?? undefined,
+                mrp: v.mrp ?? undefined,
+                emiBasePrice: v.emiBasePrice ?? null,
+                quantity: v.quantity ?? undefined,
+                productSpec: v.productSpec ?? null,
+                condition: v.condition as any,
+                availability: v.availability as any,
+                screenSize: v.screenSize ?? null,
+                os: (v.os || null) as any,
+                processor: v.processor ?? null,
+                batteryCapacity: v.batteryCapacity ?? null,
+                warrantyType: v.warrantyType as any,
+                warrantyDescription: v.warrantyDescription ?? null,
+                whatsInTheBox: v.whatsInTheBox ?? [],
+                whatsExtra: v.whatsExtra ?? null,
+              },
+            });
+          } else {
+            // ── Create new variant ──
+            const existingCount = await prisma.buyingVariant.count({
+              where: { productId: id },
+            });
+
+            const newVariant = await prisma.buyingVariant.create({
+              data: {
+                productId: id,
+                ...buildVariantData(
+                  v,
+                  generateSKU(product.productName, existingCount),
+                ),
+              },
+            });
+
+            // ── Remap variantId in variantImages to real DB id ──
+            if (variantImages) {
+              const vi = variantImages.find(
+                (img) => img.variantId === v.variantKey,
+              );
+              if (vi) vi.variantId = newVariant.id;
+            }
+          }
         }
       }
 
@@ -427,6 +462,7 @@ class AdminBuyingProductService {
           }
         }
       }
+
       // ── Update product fields ──
       const updated = await prisma.buyingProduct.update({
         where: { id },
