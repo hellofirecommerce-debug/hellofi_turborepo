@@ -8,6 +8,7 @@ import { AdminCategory } from "./admin/category";
 import { AdminSeries } from "./admin/series";
 import { AdminSellingProduct } from "./admin/sellingProduct";
 import { AdminBuyingProduct } from "./admin/buyingProduct";
+import { AdminVideoReviews } from "./admin/video-review";
 import { CommonCategory } from "./common/category";
 import { CommonBrand } from "./common/brand";
 import { GraphQLUpload } from "graphql-upload-ts";
@@ -35,6 +36,7 @@ async function createApolloGraphqlServer() {
     ${AdminSeries.queries}
     ${AdminSellingProduct.queries}
     ${AdminBuyingProduct.queries}
+    ${AdminVideoReviews.queries}
    } 
 
    type Mutation {
@@ -48,6 +50,7 @@ async function createApolloGraphqlServer() {
     ${AdminSeries.mutations}
     ${AdminSellingProduct.mutations}
     ${AdminBuyingProduct.mutations}
+    ${AdminVideoReviews.mutations}
    }
 
     # Type Definitions
@@ -60,6 +63,7 @@ async function createApolloGraphqlServer() {
     ${AdminSeries.typeDefs}
     ${AdminSellingProduct.typeDefs}
     ${AdminBuyingProduct.typeDefs}
+    ${AdminVideoReviews.typeDefs}
 
 
     # Common Category Typedefs
@@ -78,6 +82,7 @@ async function createApolloGraphqlServer() {
       ...AdminSeries.resolvers.Query,
       ...AdminSellingProduct.resolvers.Query,
       ...AdminBuyingProduct.resolvers.Query,
+      ...AdminVideoReviews.resolvers.Query,
 
       ...CommonCategory.resolvers.Query,
       ...CommonBrand.resolvers.Query,
@@ -93,6 +98,7 @@ async function createApolloGraphqlServer() {
       ...AdminSeries.resolvers.Mutation,
       ...AdminSellingProduct.resolvers.Mutation,
       ...AdminBuyingProduct.resolvers.Mutation,
+      ...AdminVideoReviews.resolvers.Mutation,
     },
   };
 

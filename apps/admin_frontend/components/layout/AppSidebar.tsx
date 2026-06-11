@@ -12,6 +12,7 @@ import {
   Layers,
   KeyRound,
   ShoppingBag,
+  Play,
 } from "lucide-react";
 import { SidebarLogo } from "./SidebarLogo";
 import { SidebarSection } from "./SidebarSection";
@@ -95,6 +96,11 @@ const othersItems: NavItem[] = [
       { name: "Sign In", path: "/signin", pro: false },
       { name: "Sign Up", path: "/signup", pro: false },
     ],
+  },
+  {
+    icon: <Play size={20} />,
+    name: "Others",
+    subItems: [{ name: "Video Reviews", path: "/others/video-reviews" }],
   },
 ];
 

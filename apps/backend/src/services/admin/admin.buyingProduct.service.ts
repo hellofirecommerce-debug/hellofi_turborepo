@@ -369,7 +369,6 @@ class AdminBuyingProductService {
           const isExisting = existingVariantIds.includes(v.variantKey);
 
           if (isExisting) {
-            // ── Update existing variant ──
             await prisma.buyingVariant.update({
               where: { id: v.variantKey },
               data: {
@@ -398,7 +397,6 @@ class AdminBuyingProductService {
               },
             });
           } else {
-            // ── Create new variant ──
             const existingCount = await prisma.buyingVariant.count({
               where: { productId: id },
             });
@@ -424,7 +422,7 @@ class AdminBuyingProductService {
         }
       }
 
-      // ── Handle image deletions + default image change ──
+      // ── Handle image deletions + priority update + default image change ──
       if (variantImages && variantImages.length > 0) {
         for (const vi of variantImages) {
           if (!vi.existingImageKeys) continue;
@@ -440,9 +438,19 @@ class AdminBuyingProductService {
 
           await this.deleteVariantImages(removedImageIds);
 
-          // ── Handle default image change for existing images ──
           if (vi.existingImageKeys.length === 0) continue;
 
+          // ── Update priority for existing images based on new order ──
+          for (let i = 0; i < vi.existingImageKeys.length; i++) {
+            const key = vi.existingImageKeys[i];
+            if (!key) continue;
+            await prisma.buyingProductImage.updateMany({
+              where: { variantId: vi.variantId, md: key },
+              data: { priority: i },
+            });
+          }
+
+          // ── Handle default image change for existing images ──
           const defaultIsExisting =
             vi.defaultImageIndex < vi.existingImageKeys.length;
 
@@ -480,12 +488,29 @@ class AdminBuyingProductService {
         setImmediate(async () => {
           for (const vi of variantImages) {
             if (!vi.buffers || vi.buffers.length === 0) continue;
+
+            // ── Calculate if default is a new image ──
+            const existingKeysLength = vi.existingImageKeys?.length ?? 0;
+            const defaultIsNewImage =
+              vi.defaultImageIndex >= existingKeysLength;
+            const newImageDefaultIndex = defaultIsNewImage
+              ? vi.defaultImageIndex - existingKeysLength
+              : -1;
+
+            // ── If new image is default reset all existing isDefault first ──
+            if (defaultIsNewImage) {
+              await prisma.buyingProductImage.updateMany({
+                where: { variantId: vi.variantId },
+                data: { isDefault: false },
+              });
+            }
+
             await processAndUploadVariantImages(
               id,
               vi.variantId,
               vi.buffers,
               vi.fileNames,
-              -1,
+              newImageDefaultIndex,
             );
           }
         });

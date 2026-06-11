@@ -10,6 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum VideoReviewType {
+  BUY
+  SELL
+  HOME
+}
+
 enum Status {
   ACTIVE
   INACTIVE
@@ -586,4 +592,18 @@ model SellingVariant {
   sellingProduct SellingProduct @relation(fields: [sellingProductId], references: [id], onDelete: Cascade)
 
   @@map("selling_variants")
+}
+
+model VideoReview {
+  id           String          @id @default(uuid())
+  title        String?
+  videoUrl     String // S3 key of the video file
+  thumbnailUrl String // S3 key of the thumbnail image
+  type         VideoReviewType
+  priority     Int             @default(0)
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@map("video_reviews")
 }
