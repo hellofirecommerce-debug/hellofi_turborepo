@@ -58,7 +58,7 @@ class S3Service {
           ContentType: contentType,
         }),
       );
-      return `${CDN_URL}/${key}`;
+      return `${key}`;
     } catch (error) {
       console.error("S3 Upload Error:", error);
       return throwServerError("File upload failed");
