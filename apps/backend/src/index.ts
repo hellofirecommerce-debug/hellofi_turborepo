@@ -15,7 +15,7 @@ async function init() {
   const app = express();
   const PORT = Number(process.env.PORT) || 8000;
 
-  app.use(graphqlUploadExpress({ maxFileSize: 10_000_000, maxFiles: 10 }));
+  app.use(graphqlUploadExpress({ maxFileSize: 100_000_000, maxFiles: 10 }));
   app.use(express.json());
   app.use(cookieParser()); // ← needed for req.cookies to work
   app.use(compression());
