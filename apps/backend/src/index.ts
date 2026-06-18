@@ -23,6 +23,7 @@ async function init() {
     cors({
       origin: [
         process.env.CLIENT_URL!,
+        process.env.CLIENT_URL2!,
         "https://studio.apollographql.com", // ← for playground
         "http://localhost:3001",
         "http://localhost:3000",
