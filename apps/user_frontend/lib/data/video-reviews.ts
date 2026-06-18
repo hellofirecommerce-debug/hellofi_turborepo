@@ -37,7 +37,7 @@ export async function fetchHomeVideoStories(): Promise<VideoStory[]> {
         query: GET_VIDEO_REVIEWS_QUERY,
         variables: { type: "HOME" },
       }),
-      next: { revalidate: 86400 },
+      next: { revalidate: 300 },
     });
 
     console.log("VIDEO REVIEWS STATUS:", res.status);
