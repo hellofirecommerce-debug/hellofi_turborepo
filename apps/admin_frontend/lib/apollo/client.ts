@@ -10,11 +10,9 @@ const uploadLink = new UploadHttpLink({
   },
 });
 
-const client = new ApolloClient({
+const clientOptions = {
   link: ApolloLink.from([errorLink, uploadLink as unknown as ApolloLink]),
   cache: new InMemoryCache(),
-
-  // 🔥🔥 THIS IS THE REAL FIX (GLOBAL)
   defaultOptions: {
     watchQuery: {
       errorPolicy: "all",
@@ -23,9 +21,11 @@ const client = new ApolloClient({
       errorPolicy: "all",
     },
     mutate: {
-      errorPolicy: "all", // ✅ applies to ALL mutations automatically
+      errorPolicy: "all",
     },
   },
-});
+} as unknown as ConstructorParameters<typeof ApolloClient>[0];
+
+const client = new ApolloClient(clientOptions);
 
 export default client;

@@ -11,15 +11,19 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
+    "@apollo/client": "4.1.6",
+    "@repo/graphql": "*",
     "@repo/ui": "*",
     "@tailwindcss/postcss": "^4.3.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "extract-files": "^13.0.0",
     "lucide-react": "^1.16.0",
     "next": "16.1.0",
     "postcss": "^8.5.15",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "sonner": "^2.0.7",
     "tailwindcss": "^4.3.0"
   },
   "devDependencies": {

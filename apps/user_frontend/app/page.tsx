@@ -6,10 +6,14 @@ import { StepsToSell } from "../components/home/StepsToSell";
 import { CitiesSection } from "../components/home/CitiesSection";
 import { PremiumSection } from "../components/home/PremiumSection";
 import { WhyHelloFiSection } from "../components/home/WhyHellofiSection";
+import { StoriesAndReviewsSection } from "../components/home/StoriesAndReviewsSection";
 import { FAQSection } from "../components/home/FAQSection";
 import { SEOContentSection } from "../components/home/SEOContentSection";
+import { fetchHomeVideoStories } from "../lib/data/video-reviews";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const stories = await fetchHomeVideoStories();
+
   return (
     <main className="pb-20 lg:pb-0">
       <HeroSection />
@@ -20,6 +24,7 @@ export default function HomePage() {
       <CitiesSection />
       <PremiumSection />
       <WhyHelloFiSection />
+      <StoriesAndReviewsSection stories={stories} />
       <FAQSection />
       <SEOContentSection />
     </main>

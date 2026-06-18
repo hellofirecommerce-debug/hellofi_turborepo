@@ -9,12 +9,12 @@ import { VideoReviewsTable } from "./VideoReviewsTable";
 import { VideoReviewsSkeleton } from "./VideoReviewsSkeleton";
 import { AddVideoReviewModal } from "./AddVideoReviewModal";
 import { VideoReview } from "./types";
+import { GET_VIDEO_REVIEWS } from "../../../../lib/graphql/queries/videoReview.queries";
 import {
-  GET_VIDEO_REVIEWS,
   CREATE_VIDEO_REVIEW,
   UPDATE_VIDEO_REVIEW,
   DELETE_VIDEO_REVIEW,
-} from "../../../../lib/graphql/queries/videoReview.queries";
+} from "../../../../lib/graphql/mutations/videoReview.mutations";
 
 export default function VideoReviewsPage() {
   const [showModal, setShowModal] = useState(false);

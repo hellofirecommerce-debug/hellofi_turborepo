@@ -32,7 +32,8 @@
     "zod": "^4.3.5"
   },
   "overrides": {
-    "@types/express-serve-static-core": "^5.0.0"
+    "@types/express-serve-static-core": "^5.0.0",
+    "graphql": "^16.12.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",

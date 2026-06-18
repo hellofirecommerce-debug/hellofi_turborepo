@@ -10,7 +10,6 @@ export const resolvers = {
       args: { type?: string },
       context: GraphQLContext,
     ) => {
-      AdminAuthService.requireAdmin(context.req);
       return AdminVideoReviewService.getVideoReviews(args.type);
     },
 

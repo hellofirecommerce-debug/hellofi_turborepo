@@ -27,6 +27,10 @@ interface AdminLoginResponse {
   };
 }
 
+interface AdminLoginVariables {
+  payload: AdminLoginInput;
+}
+
 export default function LoginForm() {
   const router = useRouter();
   const { navigate } = useNavigate();
@@ -38,8 +42,10 @@ export default function LoginForm() {
 
   useRedirectIfLoggedIn(); // ← replaces useQuery + useEffect
 
-  const [adminLogin, { loading }] =
-    useMutation<AdminLoginResponse>(ADMIN_LOGIN);
+  const [adminLogin, { loading }] = useMutation<
+    AdminLoginResponse,
+    AdminLoginVariables
+  >(ADMIN_LOGIN);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Navbar } from "../components/layout/Navbar";
 import { BottomNav } from "../components/layout/BottomNav";
 import { Footer } from "../components/layout/Footer";
+import Providers from "./providers";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -27,7 +28,7 @@ export default function RootLayout({
     <html lang="en" className={poppins.variable}>
       <body className="font-[family-name:var(--font-poppins)] bg-white text-[#1a1a2e] antialiased">
         <Navbar />
-        {children}
+        <Providers>{children}</Providers>
         <BottomNav />
         <Footer />
       </body>
