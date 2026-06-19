@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
+import { motion } from "motion/react";
 import { PlaceholderCard, Button } from "@repo/ui";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import "swiper/css";
@@ -83,7 +84,13 @@ export function TrendingSection() {
         </Link>
       </div>
 
-      <div className="relative">
+      <motion.div
+        className="relative"
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-80px" }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
         {/* Prev */}
         <Button
           variant="outline"
@@ -120,7 +127,7 @@ export function TrendingSection() {
         >
           {TRENDING_PRODUCTS.map((product) => (
             <SwiperSlide key={product.id} style={{ userSelect: "none" }}>
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow select-none">
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow select-none hover:-translate-y-1.5 transition-transform duration-300">
                 <div className="relative">
                   <PlaceholderCard
                     width="100%"
@@ -156,7 +163,7 @@ export function TrendingSection() {
             </SwiperSlide>
           ))}
         </Swiper>
-      </div>
+      </motion.div>
     </section>
   );
 }

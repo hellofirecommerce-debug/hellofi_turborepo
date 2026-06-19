@@ -1,4 +1,7 @@
+"use client";
+
 import Image from "next/image";
+import { motion } from "motion/react";
 
 export function HeroImages() {
   return (
@@ -6,7 +9,13 @@ export function HeroImages() {
       {/* Desktop: tall phone + 2 stacked */}
       <div className="hidden lg:flex items-start gap-3 flex-shrink-0">
         {/* Main tall phone */}
-        <div className="rounded-2xl overflow-hidden w-[280px] h-[390px]">
+        <motion.div
+          className="rounded-2xl overflow-hidden w-[280px] h-[390px]"
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          whileHover={{ y: -6 }}
+        >
           <Image
             src="/images/home/hero-phone.jpg"
             alt="Featured phone"
@@ -15,11 +24,17 @@ export function HeroImages() {
             className="object-cover w-full h-full"
             priority
           />
-        </div>
+        </motion.div>
 
         {/* Right stacked */}
         <div className="flex flex-col gap-3">
-          <div className="rounded-2xl overflow-hidden w-[280px] h-[200px]">
+          <motion.div
+            className="rounded-2xl overflow-hidden w-[280px] h-[200px]"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+            whileHover={{ y: -6 }}
+          >
             <Image
               src="/images/home/hero-technician.png"
               alt="Technician"
@@ -27,8 +42,14 @@ export function HeroImages() {
               height={200}
               className="object-cover w-full h-full"
             />
-          </div>
-          <div className="rounded-2xl overflow-hidden w-[280px] h-[180px]">
+          </motion.div>
+          <motion.div
+            className="rounded-2xl overflow-hidden w-[280px] h-[180px]"
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            whileHover={{ y: -6 }}
+          >
             <Image
               src="/images/home/hero-snapmint.jpg"
               alt="Snapmint EMI"
@@ -36,13 +57,18 @@ export function HeroImages() {
               height={180}
               className="object-cover w-full h-full"
             />
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Mobile: 2 side-by-side */}
       <div className="flex lg:hidden gap-3">
-        <div className="flex-1 rounded-2xl overflow-hidden">
+        <motion.div
+          className="flex-1 rounded-2xl overflow-hidden"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
           <Image
             src="/images/home/hero-mobile-1.jpg"
             alt="Unboxing"
@@ -50,8 +76,13 @@ export function HeroImages() {
             height={400}
             className="object-cover w-full h-[160px]"
           />
-        </div>
-        <div className="flex-1 rounded-2xl overflow-hidden">
+        </motion.div>
+        <motion.div
+          className="flex-1 rounded-2xl overflow-hidden"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
           <Image
             src="/images/home/hero-mobile-2.jpg"
             alt="Smartwatch"
@@ -59,7 +90,7 @@ export function HeroImages() {
             height={400}
             className="object-cover w-full h-[160px]"
           />
-        </div>
+        </motion.div>
       </div>
     </>
   );

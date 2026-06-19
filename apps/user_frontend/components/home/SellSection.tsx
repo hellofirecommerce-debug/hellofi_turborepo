@@ -7,9 +7,9 @@ import {
   Tablet,
   Watch,
   Headphones,
+  Grid3X3,
 } from "lucide-react";
 import { Button } from "@repo/ui";
-import { Grid3X3 } from "lucide-react";
 
 const CATEGORIES = [
   { label: "Mobiles", icon: Smartphone, href: "/sell/mobiles" },
@@ -49,16 +49,12 @@ export function SellSection() {
         </div>
       </div>
 
-      {/* 60-40 split */}
+      {/* 50-50 split */}
       <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
-        {/* Left — 60% */}
-        <div className="w-full lg:w-[60%] flex flex-col">
+        {/* Left — 50% */}
+        <div className="w-full lg:w-1/2 flex flex-col">
           <p className="text-xs font-semibold tracking-widest text-gray-500 uppercase mb-4 flex items-center gap-2">
-            <span className="w-4 h-4  rounded-sm inline-flex items-center justify-center">
-              <span className="text-primary text-[8px]">
-                <Grid3X3 />
-              </span>
-            </span>
+            <Grid3X3 size={16} className="text-primary" />
             Sell by Product
           </p>
           {/* 2 cols on mobile, 3 cols on sm+ */}
@@ -83,23 +79,25 @@ export function SellSection() {
           </div>
         </div>
 
-        {/* Right — 40%, desktop only */}
-        <div className="hidden lg:flex flex-col gap-3 w-full lg:w-[40%]">
-          <div className="rounded-2xl overflow-hidden relative flex-1 min-h-0">
+        {/* Right — 50%, desktop only */}
+        <div className="hidden lg:flex flex-col gap-3 w-full lg:w-1/2">
+          {/* Top wide image — takes ~60% of the height */}
+          <div className="rounded-2xl overflow-hidden relative flex-[3] min-h-0">
             <Image
               src="/images/sell/sell-macbook.png"
               alt="MacBook"
               fill
-              className="object-cover"
+              className="object-cover object-center"
             />
           </div>
-          <div className="flex gap-3 h-[130px] flex-shrink-0">
+          {/* Bottom two images — take ~40% */}
+          <div className="flex gap-3 flex-[2] min-h-0">
             <div className="flex-1 rounded-2xl overflow-hidden relative">
               <Image
                 src="/images/sell/sell-smartwatch.jpg"
                 alt="Smartwatch"
                 fill
-                className="object-cover"
+                className="object-cover object-center"
               />
             </div>
             <div className="flex-1 rounded-2xl overflow-hidden relative">
@@ -107,7 +105,7 @@ export function SellSection() {
                 src="/images/sell/sell-earbuds.jpg"
                 alt="Earbuds"
                 fill
-                className="object-cover"
+                className="object-cover object-center"
               />
             </div>
           </div>
