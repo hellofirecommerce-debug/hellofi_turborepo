@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { motion } from "motion/react";
 import {
   Smartphone,
   Laptop,
@@ -26,10 +29,10 @@ export function SellSection() {
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-8">
         <div className="flex-1">
-          <h2 className="text-2xl lg:text-3xl font-extrabold text-[#1a1a2e] mb-2">
+          <h2 className="text-2xl lg:text-3xl font-extrabold text-black mb-2">
             What Are You Selling Today?
           </h2>
-          <p className="text-sm text-gray-500 max-w-lg">
+          <p className="text-sm text-gray-500 max-w-4xl">
             Get the Best Price for Your Old & Used Electronics with Same-Day
             Free Doorstep Pickup. No Hidden Charges, No Hassle, No Last Minute
             Negotiations and No Third Party Pickup Executives Just a Smooth,
@@ -59,56 +62,78 @@ export function SellSection() {
           </p>
           {/* 2 cols on mobile, 3 cols on sm+ */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
-            {CATEGORIES.map(({ label, icon: Icon, href }) => (
-              <Link
+            {CATEGORIES.map(({ label, icon: Icon, href }, i) => (
+              <motion.div
                 key={label}
-                href={href}
-                className="flex flex-col items-center justify-center gap-2 border-2 border-gray-200 rounded-2xl py-6 px-3 hover:border-primary hover:bg-primary-surface transition-colors group"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{
+                  duration: 0.5,
+                  delay: i * 0.08,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                whileHover={{ y: -4 }}
               >
-                <div className="w-11 h-11 rounded-full bg-primary-surface flex items-center justify-center group-hover:bg-primary transition-colors">
-                  <Icon
-                    size={20}
-                    className="text-primary group-hover:text-white transition-colors"
-                  />
-                </div>
-                <span className="text-xs font-semibold text-black text-center">
-                  {label}
-                </span>
-              </Link>
+                <Link
+                  href={href}
+                  className="flex flex-col items-center justify-center gap-2 border-2 border-gray-200 rounded-2xl py-6 px-3 hover:border-primary hover:bg-primary-surface transition-colors group h-full"
+                >
+                  <div className="w-11 h-11 rounded-full bg-primary-surface flex items-center justify-center group-hover:bg-primary transition-colors">
+                    <Icon
+                      size={20}
+                      className="text-primary group-hover:text-white transition-colors"
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-black text-center">
+                    {label}
+                  </span>
+                </Link>
+              </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Right — 50%, desktop only */}
-        <div className="hidden lg:flex flex-col gap-3 w-full lg:w-1/2">
-          {/* Top wide image — takes ~60% of the height */}
-          <div className="rounded-2xl overflow-hidden relative flex-[3] min-h-0">
+        {/* Right — 50%, desktop only, matches left height */}
+        <div className="hidden lg:flex gap-3 w-full lg:w-1/2">
+          <motion.div
+            className="flex-1 rounded-2xl overflow-hidden relative"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{
+              duration: 0.6,
+              delay: 0.25,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            whileHover={{ scale: 1.02 }}
+          >
             <Image
-              src="/images/sell/sell-macbook.png"
-              alt="MacBook"
+              src="/images/sell/sell-smartwatch.jpg"
+              alt="Smartwatch"
               fill
               className="object-cover object-center"
             />
-          </div>
-          {/* Bottom two images — take ~40% */}
-          <div className="flex gap-3 flex-[2] min-h-0">
-            <div className="flex-1 rounded-2xl overflow-hidden relative">
-              <Image
-                src="/images/sell/sell-smartwatch.jpg"
-                alt="Smartwatch"
-                fill
-                className="object-cover object-center"
-              />
-            </div>
-            <div className="flex-1 rounded-2xl overflow-hidden relative">
-              <Image
-                src="/images/sell/sell-earbuds.jpg"
-                alt="Earbuds"
-                fill
-                className="object-cover object-center"
-              />
-            </div>
-          </div>
+          </motion.div>
+          <motion.div
+            className="flex-1 rounded-2xl overflow-hidden relative"
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{
+              duration: 0.6,
+              delay: 0.4,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            whileHover={{ scale: 1.02 }}
+          >
+            <Image
+              src="/images/sell/sell-earbuds.jpg"
+              alt="Earbuds"
+              fill
+              className="object-cover object-center"
+            />
+          </motion.div>
         </div>
       </div>
 

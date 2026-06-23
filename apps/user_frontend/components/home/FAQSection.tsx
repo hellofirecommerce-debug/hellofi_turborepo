@@ -48,38 +48,77 @@ export function FAQSection() {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       <div className="flex flex-col lg:flex-row gap-10 lg:gap-16">
         {/* Left */}
-        <div className="lg:w-[35%]">
-          <span className="inline-block border border-gray-300 text-primary text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-5 bg-faq-surface">
+        <motion.div
+          className="lg:w-[35%]"
+          initial={{ opacity: 0, x: -40 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
+        >
+          <motion.span
+            className="inline-block border border-gray-300 text-primary text-xs font-semibold tracking-widest uppercase px-3 py-1 rounded-full mb-5 bg-faq-surface"
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.15 }}
+          >
             Got Questions?
-          </span>
-          <h2 className="text-3xl lg:text-4xl font-extrabold text-black leading-tight mb-4">
+          </motion.span>
+          <motion.h2
+            className="text-3xl lg:text-4xl font-extrabold text-black leading-tight mb-4"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.25 }}
+          >
             Frequently
             <br />
             Asked
             <br />
             <span className="text-primary">Questions</span>
-          </h2>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6">
+          </motion.h2>
+          <motion.p
+            className="text-gray-500 text-sm leading-relaxed mb-6"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.35 }}
+          >
             Can't find the answer you're looking for?
             <br />
             Reach out to our customer support team.
-          </p>
-          <Link
-            href="/support"
-            className="inline-flex items-center justify-center border-2 border-primary text-primary text-xs font-bold px-6 py-2.5 rounded-full hover:bg-primary hover:text-white transition-colors tracking-widest uppercase"
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.45 }}
           >
-            Contact Support
-          </Link>
-        </div>
+            <Link
+              href="/support"
+              className="inline-flex items-center justify-center border-2 border-primary text-primary text-xs font-bold px-6 py-2.5 rounded-full hover:bg-primary hover:text-white transition-colors tracking-widest uppercase"
+            >
+              Contact Support
+            </Link>
+          </motion.div>
+        </motion.div>
 
         {/* Right — accordion */}
         <div className="flex-1 flex flex-col gap-3">
-          {FAQS.map((faq) => {
+          {FAQS.map((faq, i) => {
             const isOpen = openId === faq.id;
             return (
               <motion.div
                 key={faq.id}
                 layout
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{
+                  duration: 0.5,
+                  delay: i * 0.1,
+                  ease: [0.22, 1, 0.36, 1] as const,
+                }}
                 className={`rounded-2xl border overflow-hidden transition-colors duration-200 ${
                   isOpen
                     ? "border-primary bg-primary-surface"
@@ -121,7 +160,7 @@ export function FAQSection() {
                       exit={{ height: 0, opacity: 0 }}
                       transition={{
                         duration: 0.3,
-                        ease: [0.04, 0.62, 0.23, 0.98],
+                        ease: [0.04, 0.62, 0.23, 0.98] as const,
                       }}
                       style={{ overflow: "hidden" }}
                     >

@@ -1,10 +1,35 @@
+"use client";
+
 import { Check, LayoutGrid } from "lucide-react";
+import { motion } from "motion/react";
+
+const cardEntrance = {
+  initial: { opacity: 0, y: 30, scale: 0.97 },
+  whileInView: { opacity: 1, y: 0, scale: 1 },
+  viewport: { once: true, margin: "-40px" },
+};
+
+const smoothHover = {
+  scale: 1.03,
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+};
+
+const smoothHoverLg = {
+  scale: 1.02,
+  transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const },
+};
 
 export function WhyHelloFiSection() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
       {/* Header */}
-      <div className="text-center mb-10">
+      <motion.div
+        className="text-center mb-10"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
         <p className="text-hf-promise text-sm font-bold tracking-widest uppercase mb-2">
           Why HelloFi Stands Out
         </p>
@@ -15,13 +40,18 @@ export function WhyHelloFiSection() {
           We believe great tech shouldn't cost the earth. We deliver premium
           quality services while championing sustainability.
         </p>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Row 1 */}
-        <div className="lg:col-span-1 rounded-3xl border border-gray-200 p-8 flex flex-col relative overflow-hidden bg-white">
+        {/* Row 1 — Why HelloFi (white card) */}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHover}
+          className="group lg:col-span-1 rounded-3xl border border-gray-200 p-8 flex flex-col relative overflow-hidden bg-white"
+        >
           <div
-            className="absolute -top-8 -left-8 w-40 h-40 rounded-full pointer-events-none"
+            className="absolute -top-8 -left-8 w-40 h-40 rounded-full pointer-events-none transition-all duration-700"
             style={{ background: "#FFFBEB", filter: "blur(25px)" }}
           />
           <p className="text-[10px] font-bold tracking-widest text-hf-promise uppercase mb-3 relative z-10">
@@ -41,11 +71,17 @@ export function WhyHelloFiSection() {
               Trust Comes First
             </span>
           </p>
-        </div>
+        </motion.div>
 
-        <div className="lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-hf-dark">
+        {/* 50%+ */}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHover}
+          className="group lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-hf-dark"
+        >
           <div
-            className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none"
+            className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none transition-all duration-700"
             style={{
               background: "#D97706",
               filter: "blur(60px)",
@@ -67,15 +103,17 @@ export function WhyHelloFiSection() {
               and satisfaction we consistently deliver.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* 40-Point card */}
-        <div
-          className="md:col-span-2 lg:col-span-2 rounded-3xl p-8 flex shrink-0 w-full relative"
-          style={{ boxShadow: "0px 2px 40px 0px rgba(0, 0, 0, 0.04)" }}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHoverLg}
+          className="group md:col-span-2 lg:col-span-2 rounded-3xl p-8 flex shrink-0 w-full relative overflow-hidden shadow-[0px_2px_40px_rgba(0,0,0,0.04)] hover:shadow-[0px_12px_45px_rgba(0,0,0,0.12)] transition-shadow duration-700"
         >
           <div
-            className="absolute -left-16 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none"
+            className="absolute -left-16 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none transition-all duration-700"
             style={{
               background:
                 "radial-gradient(circle, #D0FAE5 0%, transparent 70%)",
@@ -104,12 +142,17 @@ export function WhyHelloFiSection() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Row 2 */}
-        <div className="lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-black">
+        {/* Row 2 — Strictly Preowned */}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHover}
+          className="group lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-black"
+        >
           <div
-            className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none"
+            className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none transition-all duration-700"
             style={{
               background:
                 "radial-gradient(circle, #F59E0B 0%, transparent 70%)",
@@ -133,11 +176,17 @@ export function WhyHelloFiSection() {
               repaired, rebuilt, or altered gadgets.
             </p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-black">
+        {/* Greener Purpose */}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHover}
+          className="group lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-black"
+        >
           <div
-            className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none"
+            className="absolute -top-16 -right-16 w-64 h-64 rounded-full pointer-events-none transition-all duration-700"
             style={{
               background:
                 "radial-gradient(circle, #10B981 0%, transparent 70%)",
@@ -159,15 +208,17 @@ export function WhyHelloFiSection() {
               great tech a second chance.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* No Last Minute Drops card */}
-        <div
-          className="md:col-span-2 lg:col-span-2 rounded-3xl p-8 flex items-center h-full relative overflow-hidden"
-          style={{ boxShadow: "0px 2px 40px 0px rgba(0, 0, 0, 0.04)" }}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHoverLg}
+          className="group md:col-span-2 lg:col-span-2 rounded-3xl p-8 flex items-center h-full relative overflow-hidden shadow-[0px_2px_40px_rgba(0,0,0,0.04)] hover:shadow-[0px_12px_45px_rgba(0,0,0,0.12)] transition-shadow duration-700"
         >
           <div
-            className="absolute -left-16 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none"
+            className="absolute -left-16 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none transition-all duration-700"
             style={{
               background:
                 "radial-gradient(circle, #DBEAFE80 0%, transparent 70%)",
@@ -196,12 +247,17 @@ export function WhyHelloFiSection() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        {/* Row 3 */}
-        <div className="lg:col-span-1 rounded-3xl border border-gray-200 p-8 flex flex-col relative overflow-hidden bg-white">
+        {/* Row 3 — 20K+ */}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHover}
+          className="group lg:col-span-1 rounded-3xl border border-gray-200 p-8 flex flex-col relative overflow-hidden bg-white"
+        >
           <div
-            className="absolute rounded-full pointer-events-none"
+            className="absolute rounded-full pointer-events-none transition-all duration-700"
             style={{
               width: "256px",
               height: "256px",
@@ -226,11 +282,17 @@ export function WhyHelloFiSection() {
               Powered by referrals and word-of-mouth not aggressive marketing.
             </p>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-black">
+        {/* Trained Professionals */}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHover}
+          className="group lg:col-span-1 rounded-3xl p-8 flex flex-col relative overflow-hidden bg-black"
+        >
           <div
-            className="absolute rounded-full pointer-events-none"
+            className="absolute rounded-full pointer-events-none transition-all duration-700"
             style={{
               width: "256px",
               height: "256px",
@@ -253,15 +315,17 @@ export function WhyHelloFiSection() {
               random third party agent.
             </p>
           </div>
-        </div>
+        </motion.div>
 
         {/* 500+ card */}
-        <div
-          className="md:col-span-2 lg:col-span-2 rounded-3xl p-8 flex relative overflow-hidden"
-          style={{ boxShadow: "0px 2px 40px 0px rgba(0, 0, 0, 0.04)" }}
+        <motion.div
+          {...cardEntrance}
+          transition={{ duration: 0.5, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          whileHover={smoothHoverLg}
+          className="group md:col-span-2 lg:col-span-2 rounded-3xl p-8 flex relative overflow-hidden shadow-[0px_2px_40px_rgba(0,0,0,0.04)] hover:shadow-[0px_12px_45px_rgba(0,0,0,0.12)] transition-shadow duration-700"
         >
           <div
-            className="absolute -left-16 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none"
+            className="absolute -left-16 top-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none transition-all duration-700"
             style={{
               background:
                 "radial-gradient(circle, #FFFBEB 0%, transparent 70%)",
@@ -288,7 +352,7 @@ export function WhyHelloFiSection() {
               </p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

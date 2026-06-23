@@ -1,5 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import { Phone, Mail, Clock } from "lucide-react";
+import { motion } from "motion/react";
 
 const COMPANY_LINKS = [
   { label: "About Us", href: "/about" },
@@ -83,6 +86,12 @@ const SOCIAL_LINKS = [
   },
 ];
 
+const colFade = {
+  initial: { opacity: 0, y: 30 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-40px" },
+};
+
 export function Footer() {
   return (
     <footer className="bg-[#0d1526] text-white mt-10">
@@ -91,7 +100,15 @@ export function Footer() {
         <div className="hidden lg:block">
           <div className="flex flex-row gap-10 xl:gap-14">
             {/* Col 1 — Logo + desc + social */}
-            <div className="w-[200px] flex-shrink-0 flex flex-col">
+            <motion.div
+              className="w-[200px] flex-shrink-0 flex flex-col"
+              {...colFade}
+              transition={{
+                duration: 0.6,
+                delay: 0,
+                ease: [0.22, 1, 0.36, 1] as const,
+              }}
+            >
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-7 h-7 bg-primary rounded flex items-center justify-center">
                   <span className="text-white text-xs font-bold">H</span>
@@ -105,22 +122,35 @@ export function Footer() {
                 pre-owned electronics.
               </p>
               <div className="flex flex-wrap gap-2.5">
-                {SOCIAL_LINKS.map((s) => (
-                  <a
+                {SOCIAL_LINKS.map((s, i) => (
+                  <motion.a
                     key={s.label}
                     href={s.href}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white hover:border-white transition-colors"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: 0.3 + i * 0.08 }}
+                    whileHover={{ scale: 1.15, y: -2 }}
                   >
                     {s.icon}
-                  </a>
+                  </motion.a>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Col 2 — Company */}
-            <div className="flex-1">
+            <motion.div
+              className="flex-1"
+              {...colFade}
+              transition={{
+                duration: 0.6,
+                delay: 0.1,
+                ease: [0.22, 1, 0.36, 1] as const,
+              }}
+            >
               <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-5">
                 Company
               </p>
@@ -135,10 +165,18 @@ export function Footer() {
                   </Link>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Col 3 — Support */}
-            <div className="flex-1">
+            <motion.div
+              className="flex-1"
+              {...colFade}
+              transition={{
+                duration: 0.6,
+                delay: 0.2,
+                ease: [0.22, 1, 0.36, 1] as const,
+              }}
+            >
               <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-5">
                 Support
               </p>
@@ -153,10 +191,18 @@ export function Footer() {
                   </Link>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Col 4 — Quick Actions */}
-            <div className="flex-1">
+            <motion.div
+              className="flex-1"
+              {...colFade}
+              transition={{
+                duration: 0.6,
+                delay: 0.3,
+                ease: [0.22, 1, 0.36, 1] as const,
+              }}
+            >
               <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-5">
                 Quick Actions
               </p>
@@ -171,10 +217,18 @@ export function Footer() {
                   </Link>
                 ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Col 5 — Find Us */}
-            <div className="w-[240px]">
+            <motion.div
+              className="w-[240px]"
+              {...colFade}
+              transition={{
+                duration: 0.6,
+                delay: 0.4,
+                ease: [0.22, 1, 0.36, 1] as const,
+              }}
+            >
               <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-5">
                 Find Us
               </p>
@@ -204,14 +258,14 @@ export function Footer() {
                   11AM – 9PM (Mon – Sun)
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
 
         {/* Mobile layout */}
         <div className="lg:hidden flex flex-col gap-8">
           {/* Logo + desc + social */}
-          <div>
+          <motion.div {...colFade} transition={{ duration: 0.5, delay: 0 }}>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 bg-primary rounded flex items-center justify-center">
                 <span className="text-white text-xs font-bold">H</span>
@@ -225,22 +279,31 @@ export function Footer() {
               pre-owned electronics.
             </p>
             <div className="flex flex-wrap gap-3">
-              {SOCIAL_LINKS.map((s) => (
-                <a
+              {SOCIAL_LINKS.map((s, i) => (
+                <motion.a
                   key={s.label}
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-8 h-8 rounded-full border border-gray-600 flex items-center justify-center text-gray-400 hover:text-white transition-colors"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: 0.2 + i * 0.08 }}
+                  whileHover={{ scale: 1.15, y: -2 }}
                 >
                   {s.icon}
-                </a>
+                </motion.a>
               ))}
             </div>
-          </div>
+          </motion.div>
 
           {/* Quick Actions + Company — 2 col */}
-          <div className="grid grid-cols-2 gap-6">
+          <motion.div
+            className="grid grid-cols-2 gap-6"
+            {...colFade}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <div>
               <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-3">
                 Quick Actions
@@ -273,10 +336,14 @@ export function Footer() {
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Support + Find Us — 2 col */}
-          <div className="grid grid-cols-2 gap-6">
+          <motion.div
+            className="grid grid-cols-2 gap-6"
+            {...colFade}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <div>
               <p className="text-[10px] font-bold tracking-widest uppercase text-gray-400 mb-3">
                 Support
@@ -312,10 +379,14 @@ export function Footer() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Map — full width on mobile */}
-          <div className="rounded-xl overflow-hidden h-[180px]">
+          <motion.div
+            className="rounded-xl overflow-hidden h-[180px]"
+            {...colFade}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.6756993004424!2d77.6334983740949!3d12.928552987382869!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae150c3f13efb3%3A0x7c63fb5ed43e5ec!2sHelloFi%20Recommerce!5e0!3m2!1sen!2sin!4v1779693151603!5m2!1sen!2sin"
               width="100%"
@@ -326,11 +397,17 @@ export function Footer() {
               referrerPolicy="no-referrer-when-downgrade"
               title="HelloFi Location"
             />
-          </div>
+          </motion.div>
         </div>
 
         {/* Bottom bar */}
-        <div className="border-t border-gray-700 mt-10 mb-6 sm:mb-0 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <motion.div
+          className="border-t border-gray-700 mt-10 mb-6 sm:mb-0 pt-5 flex flex-col sm:flex-row items-center justify-between gap-3"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           <p className="text-xs text-gray-500">
             © 2026 HelloFi Recommerce · GST: 29AAQFH3388A1Z4
           </p>
@@ -347,7 +424,7 @@ export function Footer() {
               ),
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );

@@ -35,27 +35,41 @@ const blogCards: BlogCard[] = [
 export const BlogCardColumn: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const yRef = useRef(0);
+  const initialized = useRef(false);
   const [paused, setPaused] = useState(false);
   const doubled = [...blogCards, ...blogCards];
 
   useAnimationFrame((_, delta) => {
     if (paused || !containerRef.current) return;
+
+    const half = containerRef.current.scrollHeight / 2;
+
+    if (!initialized.current) {
+      yRef.current = -half;
+      initialized.current = true;
+    }
+
     const speed = 0.03;
-    yRef.current -= speed * delta;
-    const resetPoint = -(containerRef.current.scrollHeight / 2);
-    if (yRef.current <= resetPoint) yRef.current = 0;
+    yRef.current += speed * delta;
+
+    if (yRef.current >= 0) yRef.current = -half;
+
     containerRef.current.style.transform = `translateY(${yRef.current}px)`;
   });
 
   return (
-    <div
+    <motion.div
       className="relative h-[360px] sm:h-[420px] md:h-[480px] lg:h-[500px] xl:h-[530px] mb-8 md:mb-0 overflow-hidden"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
     >
-      <motion.div
+      <div
         ref={containerRef}
         className="absolute inset-0 flex flex-col gap-5"
         style={{ willChange: "transform" }}
@@ -77,7 +91,7 @@ export const BlogCardColumn: React.FC = () => {
             </div>
           </div>
         ))}
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 };

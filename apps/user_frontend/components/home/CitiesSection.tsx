@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { motion } from "motion/react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -41,16 +42,31 @@ const CITIES = [
 export function CitiesSection() {
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h2 className="text-xl font-bold text-[#1a1a2e] mb-6 text-center sm:text-left">
+      <motion.h2
+        className="text-xl font-bold text-black mb-6 text-center sm:text-left"
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
         We Pickup In These Cities
-      </h2>
+      </motion.h2>
 
       {/* Desktop: 6 equal columns */}
       <div className="hidden sm:grid grid-cols-6 gap-3">
-        {CITIES.map((city) => (
-          <div
+        {CITIES.map((city, i) => (
+          <motion.div
             key={city.name}
             className="relative rounded-2xl overflow-hidden h-[160px] group cursor-pointer"
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{
+              duration: 0.5,
+              delay: i * 0.1,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+            whileHover={{ y: -6 }}
           >
             <Image
               src={city.image}
@@ -63,12 +79,12 @@ export function CitiesSection() {
               <p className="text-white font-bold text-sm">{city.name}</p>
               <p className="text-white/80 text-[10px]">{city.stat}</p>
             </div>
-          </div>
+          </motion.div>
         ))}
       </div>
 
       {/* Mobile: Swiper coverflow */}
-      <div className="sm:hidden" style={{ minHeight: "210px" }}>
+      <div className="sm:hidden h-[225px]">
         <Swiper
           modules={[Autoplay]}
           autoplay={{ delay: 2500, disableOnInteraction: false }}
@@ -100,7 +116,7 @@ export function CitiesSection() {
                       fill
                       className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-top from-black/70 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
                     <div className="absolute bottom-0 left-0 right-0 p-2">
                       <p className="text-white font-bold text-sm">
                         {city.name}

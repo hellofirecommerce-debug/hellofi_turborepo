@@ -6,6 +6,7 @@ import { StepsToSell } from "../components/home/StepsToSell";
 import { CitiesSection } from "../components/home/CitiesSection";
 import { PremiumSection } from "../components/home/PremiumSection";
 import { WhyHelloFiSection } from "../components/home/WhyHellofiSection";
+import { VideoTestimonialCarousel } from "../components/home/VideoTestimonialCarousel";
 import { StoriesAndReviewsSection } from "../components/home/StoriesAndReviewsSection";
 import { FAQSection } from "../components/home/FAQSection";
 import { SEOContentSection } from "../components/home/SEOContentSection";
@@ -24,7 +25,8 @@ export default async function HomePage() {
       <CitiesSection />
       <PremiumSection />
       <WhyHelloFiSection />
-      <StoriesAndReviewsSection stories={stories} />
+      <VideoTestimonialCarousel stories={stories} />
+      <StoriesAndReviewsSection />
       <FAQSection />
       <SEOContentSection />
     </main>

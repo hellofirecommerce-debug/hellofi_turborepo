@@ -53,14 +53,18 @@ export const ReviewColumn: React.FC = () => {
   });
 
   return (
-    <div
+    <motion.div
       className="relative h-[360px] sm:h-[420px] md:h-[480px] lg:h-[500px] xl:h-[530px] mb-8 md:mb-0 overflow-hidden"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-50px" }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}
       onTouchEnd={() => setPaused(false)}
     >
-      <motion.div
+      <div
         ref={containerRef}
         className="absolute inset-0 flex flex-col gap-3"
         style={{ willChange: "transform" }}
@@ -95,10 +99,10 @@ export const ReviewColumn: React.FC = () => {
             </div>
           </div>
         ))}
-      </motion.div>
+      </div>
       <p className="text-right text-sm font-medium mt-1 absolute -bottom-7 right-0">
         Read more reviews →
       </p>
-    </div>
+    </motion.div>
   );
 };
