@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
@@ -18,6 +18,17 @@ export const VideoTestimonialCarousel: React.FC<Props> = ({ stories = [] }) => {
   const [activeRealIndex, setActiveRealIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
+
+  // Replicate the stories so Swiper always has enough slides for a clean,
+  // gap-free centered loop (avoids blank slides + off-center start).
+  const slides = useMemo(() => {
+    if (stories.length === 0) return [];
+    let out = [...stories];
+    while (out.length < 12) {
+      out = [...out, ...stories];
+    }
+    return out;
+  }, [stories]);
 
   if (stories.length === 0) return null;
 
@@ -84,25 +95,21 @@ export const VideoTestimonialCarousel: React.FC<Props> = ({ stories = [] }) => {
           modules={[Autoplay]}
           onSwiper={(sw) => {
             setSwiper(sw);
-            setTimeout(() => {
-              playActive(sw, false);
-            }, 150);
+            setTimeout(() => playActive(sw, false), 100);
           }}
           onSlideChange={handleSlideChange}
           centeredSlides
           loop
-          initialSlide={0}
-          loopAdditionalSlides={stories.length}
-          slidesPerView={1.4}
+          slidesPerView={1.2}
           spaceBetween={16}
           autoplay={{ delay: 4000, disableOnInteraction: false }}
           breakpoints={{
-            640: { slidesPerView: 2.4, spaceBetween: 20 },
+            640: { slidesPerView: 2, spaceBetween: 20 },
             1024: { slidesPerView: 3.4, spaceBetween: 28 },
           }}
           style={{ padding: "30px 0" }}
         >
-          {stories.map((story, i) => (
+          {slides.map((story, i) => (
             <SwiperSlide key={i}>
               {({ isActive }) => (
                 <div
