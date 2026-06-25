@@ -70,6 +70,7 @@ export function PremiumSection() {
     <section className="bg-[#0a0f1e] py-14 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col lg:flex-row lg:items-center gap-10">
         {/* Mobile — carousel first */}
+
         <motion.div
           className="lg:hidden w-full"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -77,7 +78,9 @@ export function PremiumSection() {
           viewport={{ once: true, margin: "-50px" }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
         >
-          <PremiumCarousel />
+          <div className="h-[250px]">
+            <PremiumCarousel />
+          </div>
         </motion.div>
 
         {/* Left — text */}

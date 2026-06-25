@@ -84,7 +84,7 @@ export function CitiesSection() {
       </div>
 
       {/* Mobile: Swiper coverflow */}
-      <div className="sm:hidden h-[225px]">
+      <div className="sm:hidden h-[225px] sm:h-[350px]">
         <Swiper
           modules={[Autoplay]}
           autoplay={{ delay: 2500, disableOnInteraction: false }}

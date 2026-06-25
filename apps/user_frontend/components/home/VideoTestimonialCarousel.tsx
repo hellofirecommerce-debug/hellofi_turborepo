@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Autoplay } from "swiper/modules";
+import { Autoplay, EffectCoverflow } from "swiper/modules";
 import type { Swiper as SwiperType } from "swiper";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight, Volume2, VolumeX } from "lucide-react";
 import { VideoStory } from "./StoriesAndReviewsSection";
 import "swiper/css";
+import "swiper/css/effect-coverflow";
 
 interface Props {
   stories: VideoStory[];
@@ -15,36 +16,33 @@ interface Props {
 
 export const VideoTestimonialCarousel: React.FC<Props> = ({ stories = [] }) => {
   const [swiper, setSwiper] = useState<SwiperType | null>(null);
-  const [activeRealIndex, setActiveRealIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
   const [muted, setMuted] = useState(true);
-  const videoRefs = useRef<Record<number, HTMLVideoElement | null>>({});
+  const [ready, setReady] = useState(false);
 
-  // Replicate the stories so Swiper always has enough slides for a clean,
-  // gap-free centered loop (avoids blank slides + off-center start).
-  const slides = useMemo(() => {
-    if (stories.length === 0) return [];
-    let out = [...stories];
-    while (out.length < 12) {
-      out = [...out, ...stories];
-    }
-    return out;
-  }, [stories]);
-
-  if (stories.length === 0) return null;
+  useEffect(() => {
+    const id = requestAnimationFrame(() =>
+      requestAnimationFrame(() => setReady(true)),
+    );
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   const playActive = (sw: SwiperType, stopAutoplay = true) => {
-    const realIndex = sw.realIndex;
-    setActiveRealIndex(realIndex);
-    Object.entries(videoRefs.current).forEach(([key, vid]) => {
-      if (!vid) return;
-      if (Number(key) === realIndex) {
-        vid.currentTime = 0;
-        vid.play().catch(() => {});
-        if (stopAutoplay) sw.autoplay?.stop();
-      } else {
-        vid.pause();
-      }
+    setActiveIndex(sw.activeIndex);
+    sw.el.querySelectorAll("video").forEach((v) => {
+      (v as HTMLVideoElement).pause();
     });
+    const activeSlide = sw.slides[sw.activeIndex];
+    const activeVideo = activeSlide?.querySelector(
+      "video",
+    ) as HTMLVideoElement | null;
+    if (activeVideo) {
+      activeVideo.currentTime = 0;
+      activeVideo.muted = muted;
+      const p = activeVideo.play();
+      if (p && typeof p.catch === "function") p.catch(() => {});
+      if (stopAutoplay) sw.autoplay?.stop();
+    }
   };
 
   const handleSlideChange = (sw: SwiperType) => {
@@ -53,32 +51,65 @@ export const VideoTestimonialCarousel: React.FC<Props> = ({ stories = [] }) => {
 
   const handleCardClick = (i: number) => {
     if (!swiper) return;
-    if (i === activeRealIndex) return;
-    swiper.slideToLoop(i);
+    if (i === activeIndex) return;
+    swiper.slideTo(i);
   };
 
-  const handleVideoEnded = (sw: SwiperType | null) => {
-    if (!sw) return;
-    sw.slideNext();
+  const handleVideoEnded = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (!swiper) return;
+    const endedVideo = e.currentTarget;
+    const activeSlide = swiper.slides[swiper.activeIndex];
+    const activeVideo = activeSlide?.querySelector("video");
+    if (endedVideo === activeVideo) {
+      // loop manually: go next, or back to start at the end
+      if (swiper.activeIndex >= stories.length - 1) {
+        swiper.slideTo(0);
+      } else {
+        swiper.slideNext();
+      }
+    }
   };
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const activeSlide = swiper?.slides[swiper.activeIndex];
+    const activeVideo = activeSlide?.querySelector(
+      "video",
+    ) as HTMLVideoElement | null;
+    const next = !muted;
+    if (activeVideo) {
+      activeVideo.muted = next;
+      if (!next) {
+        const p = activeVideo.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      }
+    }
+    setMuted(next);
+  };
+
+  if (stories.length === 0) return null;
 
   return (
     <motion.section
-      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10"
+      className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12"
       initial={{ opacity: 0, y: 40 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
     >
+      <h2 className="text-2xl sm:text-3xl font-bold text-center text-[#1a1a2e] mb-8 tracking-tight uppercase">
+        Customer Testimonials
+      </h2>
+
       <div className="relative">
         {/* Prev */}
         <button
           type="button"
           title="Previous"
           onClick={() => swiper?.slidePrev()}
-          className="hidden sm:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white shadow-md items-center justify-center hover:bg-gray-50 transition-colors"
+          className="flex absolute left-1 sm:left-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white shadow-md items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
         >
-          <ChevronLeft size={20} className="text-gray-700" />
+          <ChevronLeft size={18} className="text-gray-700" />
         </button>
 
         {/* Next */}
@@ -86,89 +117,92 @@ export const VideoTestimonialCarousel: React.FC<Props> = ({ stories = [] }) => {
           type="button"
           title="Next"
           onClick={() => swiper?.slideNext()}
-          className="hidden sm:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-white shadow-md items-center justify-center hover:bg-gray-50 transition-colors"
+          className="flex absolute right-1 sm:right-6 top-1/2 -translate-y-1/2 z-30 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white shadow-md items-center justify-center hover:bg-gray-50 transition-colors cursor-pointer"
         >
-          <ChevronRight size={20} className="text-gray-700" />
+          <ChevronRight size={18} className="text-gray-700" />
         </button>
 
-        <Swiper
-          modules={[Autoplay]}
-          onSwiper={(sw) => {
-            setSwiper(sw);
-            setTimeout(() => playActive(sw, false), 100);
-          }}
-          onSlideChange={handleSlideChange}
-          centeredSlides
-          loop
-          slidesPerView={1.2}
-          spaceBetween={16}
-          autoplay={{ delay: 4000, disableOnInteraction: false }}
-          breakpoints={{
-            640: { slidesPerView: 2, spaceBetween: 20 },
-            1024: { slidesPerView: 3.4, spaceBetween: 28 },
-          }}
-          style={{ padding: "30px 0" }}
-        >
-          {slides.map((story, i) => (
-            <SwiperSlide key={i}>
-              {({ isActive }) => (
-                <div
-                  className="transition-all duration-500 flex justify-center cursor-pointer"
-                  onClick={() => handleCardClick(i)}
-                  style={{
-                    transform: isActive ? "scale(1)" : "scale(0.82)",
-                    opacity: isActive ? 1 : 0.85,
-                  }}
-                >
+        {ready && (
+          <Swiper
+            modules={[Autoplay, EffectCoverflow]}
+            effect="coverflow"
+            grabCursor
+            centeredSlides
+            slidesPerView="auto"
+            speed={500}
+            watchSlidesProgress
+            initialSlide={Math.floor(stories.length / 2)}
+            coverflowEffect={{
+              rotate: 0,
+              stretch: 0,
+              depth: 400,
+              modifier: 1,
+              slideShadows: false,
+            }}
+            autoplay={{ delay: 5000, disableOnInteraction: false }}
+            onSwiper={(sw) => {
+              setSwiper(sw);
+              sw.update();
+              playActive(sw, false);
+            }}
+            onSlideChange={handleSlideChange}
+            className="!py-6"
+          >
+            {stories.map((story, i) => (
+              <SwiperSlide
+                key={i}
+                className="!w-[140px] sm:!w-[200px] md:!w-[225px] !h-[250px] sm:!h-[350px] md:!h-[400px]"
+              >
+                {({ isActive }) => (
                   <div
-                    className={`relative rounded-2xl overflow-hidden bg-gray-900 w-full ${
-                      isActive ? "shadow-2xl" : ""
-                    }`}
-                    style={{ aspectRatio: "9 / 13" }}
+                    className="relative w-full h-full rounded-[18px] overflow-hidden bg-gray-900 cursor-pointer"
+                    onClick={() => handleCardClick(i)}
+                    style={{
+                      boxShadow: "rgba(0, 0, 0, 0.28) 0px 0px 18px",
+                    }}
                   >
                     <video
-                      ref={(el) => {
-                        videoRefs.current[i] = el;
-                      }}
                       src={story.videoUrl}
                       poster={story.thumbnailUrl}
                       className="absolute inset-0 w-full h-full object-cover"
                       playsInline
-                      muted={muted}
-                      onEnded={() => handleVideoEnded(swiper)}
+                      onEnded={handleVideoEnded}
                     />
+
+                    {story.duration && (
+                      <span className="absolute top-2 left-2 sm:top-3 sm:left-3 z-10 flex items-center gap-1 bg-black/55 text-white text-[10px] sm:text-[11px] font-medium px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-md">
+                        {story.duration}
+                      </span>
+                    )}
 
                     {isActive && (
                       <button
                         type="button"
                         title={muted ? "Unmute" : "Mute"}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setMuted((m) => !m);
-                        }}
-                        className="absolute bottom-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                        onClick={toggleMute}
+                        className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-10 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors cursor-pointer"
                       >
                         {muted ? (
-                          <VolumeX size={16} className="text-white" />
+                          <VolumeX size={15} className="text-white" />
                         ) : (
-                          <Volume2 size={16} className="text-white" />
+                          <Volume2 size={15} className="text-white" />
                         )}
                       </button>
                     )}
 
                     {!isActive && story.title && (
-                      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent">
-                        <p className="text-white text-xs font-medium line-clamp-2">
+                      <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 bg-gradient-to-t from-black/70 to-transparent">
+                        <p className="text-white text-[10px] sm:text-xs font-medium line-clamp-2">
                           {story.title}
                         </p>
                       </div>
                     )}
                   </div>
-                </div>
-              )}
-            </SwiperSlide>
-          ))}
-        </Swiper>
+                )}
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
       </div>
     </motion.section>
   );

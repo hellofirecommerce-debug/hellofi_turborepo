@@ -34,7 +34,7 @@ export const StoriesAndReviewsSection: React.FC = () => {
         Stories
       </motion.h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-5 lg:gap-6 xl:gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3  md:gap-5 lg:gap-6 xl:gap-6 items-start">
         <motion.div
           {...colEntrance}
           transition={{

@@ -1,7 +1,6 @@
 "use client";
-import React from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, useAnimationFrame } from "motion/react";
-import { useRef, useState } from "react";
 
 interface BlogCard {
   eyebrow: string;
@@ -34,32 +33,60 @@ const blogCards: BlogCard[] = [
 
 export const BlogCardColumn: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const yRef = useRef(0);
+  const posRef = useRef(0);
   const initialized = useRef(false);
   const [paused, setPaused] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const doubled = [...blogCards, ...blogCards];
+
+  // detect mobile (< md)
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
+  // reset when switching between mobile/desktop
+  useEffect(() => {
+    posRef.current = 0;
+    initialized.current = false;
+    if (containerRef.current) containerRef.current.style.transform = "";
+  }, [isMobile]);
 
   useAnimationFrame((_, delta) => {
     if (paused || !containerRef.current) return;
+    const el = containerRef.current;
 
-    const half = containerRef.current.scrollHeight / 2;
-
-    if (!initialized.current) {
-      yRef.current = -half;
-      initialized.current = true;
+    if (isMobile) {
+      // horizontal — moves RIGHT (opposite of side columns)
+      const half = el.scrollWidth / 2;
+      if (!initialized.current) {
+        posRef.current = -half;
+        initialized.current = true;
+      }
+      const speed = 0.05;
+      posRef.current += speed * delta;
+      if (posRef.current >= 0) posRef.current = -half;
+      el.style.transform = `translateX(${posRef.current}px)`;
+    } else {
+      // vertical — moves DOWN (opposite of side columns)
+      const half = el.scrollHeight / 2;
+      if (!initialized.current) {
+        posRef.current = -half;
+        initialized.current = true;
+      }
+      const speed = 0.03;
+      posRef.current += speed * delta;
+      if (posRef.current >= 0) posRef.current = -half;
+      el.style.transform = `translateY(${posRef.current}px)`;
     }
-
-    const speed = 0.03;
-    yRef.current += speed * delta;
-
-    if (yRef.current >= 0) yRef.current = -half;
-
-    containerRef.current.style.transform = `translateY(${yRef.current}px)`;
   });
 
   return (
     <motion.div
-      className="relative h-[360px] sm:h-[420px] md:h-[480px] lg:h-[500px] xl:h-[530px] mb-8 md:mb-0 overflow-hidden"
+      className="relative h-[170px] md:h-[480px] lg:h-[500px] xl:h-[530px] mb-3 md:mb-0 overflow-hidden"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
@@ -71,15 +98,15 @@ export const BlogCardColumn: React.FC = () => {
     >
       <div
         ref={containerRef}
-        className="absolute inset-0 flex flex-col gap-5"
+        className="absolute inset-0 flex flex-row md:flex-col items-center md:items-stretch gap-4 md:gap-5"
         style={{ willChange: "transform" }}
       >
         {doubled.map((b, i) => (
           <div
             key={i}
-            className="flex-shrink-0 flex gap-3 rounded-xl border border-card-border bg-card-surface p-3.5"
+            className="flex-shrink-0 w-[300px] md:w-auto flex gap-3 rounded-xl border border-card-border bg-card-surface p-4 md:p-3.5"
           >
-            <div className="w-20 h-20 rounded-md bg-primary-surface flex-shrink-0" />
+            <div className="w-24 h-24 md:w-20 md:h-20 rounded-md bg-primary-surface flex-shrink-0" />
             <div>
               <p className="text-[11px] text-primary font-medium mb-1">
                 {b.eyebrow}
