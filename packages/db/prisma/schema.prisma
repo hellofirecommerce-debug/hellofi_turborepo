@@ -149,20 +149,6 @@ model Session {
   @@map("sessions")
 }
 
-model Banner {
-  id          String    @id @default(uuid())
-  alt         String
-  lg          String
-  sm          String
-  redirectUrl String?
-  priority    Int       @default(0)
-  isActive    Boolean   @default(true)
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
 model Category {
   id           String   @id @default(uuid())
   name         String
@@ -606,4 +592,37 @@ model VideoReview {
   updatedAt    DateTime        @updatedAt
 
   @@map("video_reviews")
+}
+
+enum BannerPlacement {
+  HOME
+  BUY_ALL
+  BUY_MOBILE
+  BUY_LAPTOP
+  BUY_TABLET
+  BUY_SMARTWATCH
+  BUY_ACCESSORIES
+  SELL_MOBILE
+  SELL_LAPTOP
+  SELL_TABLET
+  SELL_SMARTWATCH
+  SELL_ACCESSORIES
+}
+
+model Banner {
+  id          String          @id @default(uuid())
+  alt         String
+  lg          String // desktop image (S3 key/url)
+  sm          String // mobile image (S3 key/url)
+  redirectUrl String? // where the banner links to on click
+  placement   BannerPlacement @default(HOME) // where this banner shows
+  priority    Int             @default(0) // ordering within a placement
+  isActive    Boolean         @default(true)
+  startDate   DateTime? // optional scheduling
+  endDate     DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([placement, isActive, priority])
+  @@map("banners")
 }

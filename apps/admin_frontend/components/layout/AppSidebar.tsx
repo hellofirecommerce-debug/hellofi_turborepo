@@ -12,6 +12,7 @@ import {
   Layers,
   KeyRound,
   ShoppingBag,
+  GalleryHorizontalEnd,
   Play,
 } from "lucide-react";
 import { SidebarLogo } from "./SidebarLogo";
@@ -27,7 +28,7 @@ const navItems: NavItem[] = [
   },
   {
     icon: <Tag size={20} />,
-    name: "Catalogue", // ← one item, two sub pages
+    name: "Catalogue",
     subItems: [
       { name: "Brands", path: "/brands" },
       { name: "Categories", path: "/categories" },
@@ -60,6 +61,11 @@ const navItems: NavItem[] = [
       { name: "Create Invoice", path: "/inventory/invoices/create" },
       { name: "Settings", path: "/inventory/settings" },
     ],
+  },
+  {
+    icon: <GalleryHorizontalEnd size={20} />,
+    name: "Banners",
+    subItems: [{ name: "Buying Category Banner", path: "/banners" }],
   },
   {
     icon: <ShoppingCart size={20} />,

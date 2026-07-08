@@ -1,14 +1,10 @@
-import { ApolloClient, InMemoryCache, ApolloLink } from "@apollo/client";
 import UploadHttpLink from "apollo-upload-client/UploadHttpLink.mjs";
 import { createErrorLink } from "./errorLink";
+import { ApolloClient, InMemoryCache, ApolloLink } from "@apollo/client";
 
-export function createApolloClient(
-  graphqlUrl: string,
-  silentOperations: string[] = [],
-) {
-  console.log("🟢 createApolloClient BUILT, url:", graphqlUrl);
+export function createClient() {
   const uploadLink = new UploadHttpLink({
-    uri: graphqlUrl,
+    uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql",
     credentials: "include",
     headers: {
       "Apollo-Require-Preflight": "true",
@@ -17,7 +13,7 @@ export function createApolloClient(
 
   const clientOptions = {
     link: ApolloLink.from([
-      createErrorLink(silentOperations),
+      createErrorLink(),
       uploadLink as unknown as ApolloLink,
     ]),
     cache: new InMemoryCache(),

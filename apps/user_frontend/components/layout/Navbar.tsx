@@ -4,45 +4,28 @@ import Link from "next/link";
 import { Button } from "@repo/ui";
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
-
-const NAV_LINKS = [
-  { label: "Buy", href: "/buy" },
-  { label: "Sell", href: "/sell" },
-  { label: "Premium", href: "/premium" },
-  { label: "Stories", href: "/stories" },
-  { label: "Support", href: "/support" },
-  { label: "More Options", href: "/more" },
-];
+import { DesktopNav } from "./DesktopNav";
+import { MobileNav } from "./MobileNav";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-gray-100">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-[#4F46E5] rounded flex items-center justify-center">
-              <span className="text-white text-xs font-bold">H</span>
+          <Link href="/" className="flex items-center gap-2.5 cursor-pointer">
+            <div className="w-9 h-9 bg-[#4F46E5] rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm font-bold">H</span>
             </div>
-            <span className="font-bold text-[#1a1a2e] text-lg tracking-tight">
+            <span className="font-extrabold text-[#1a1a2e] text-xl tracking-tight">
               HELLOFI
             </span>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-8">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-sm text-gray-600 hover:text-[#4F46E5] font-medium transition-colors"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
+          <DesktopNav />
 
           {/* Desktop CTA */}
           <div className="hidden lg:block">
@@ -50,7 +33,7 @@ export function Navbar() {
               asChild
               variant="default"
               size="md"
-              className="rounded-full bg-black text-white hover:bg-primary-light-hover w-full"
+              className="rounded-full bg-black text-white hover:bg-primary-light-hover w-full cursor-pointer"
             >
               <Link href="/auth/login">LOGIN / SIGNUP</Link>
             </Button>
@@ -60,39 +43,16 @@ export function Navbar() {
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden cursor-pointer"
             onClick={() => setMobileOpen(!mobileOpen)}
           >
-            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
           </Button>
         </div>
       </div>
 
       {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="lg:hidden bg-white border-t border-gray-100 px-4 py-4 flex flex-col gap-4">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm text-gray-700 font-medium"
-              onClick={() => setMobileOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
-          <Button
-            asChild
-            variant="default"
-            size="md"
-            className="rounded-full bg-black text-white hover:bg-primary-light-hover w-full"
-          >
-            <Link href="/auth/login" onClick={() => setMobileOpen(false)}>
-              LOGIN / SIGNUP
-            </Link>
-          </Button>
-        </div>
-      )}
+      {mobileOpen && <MobileNav onClose={() => setMobileOpen(false)} />}
     </header>
   );
 }

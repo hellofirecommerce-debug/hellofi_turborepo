@@ -25,10 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={poppins.variable}>
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
       <body className="font-[family-name:var(--font-poppins)] bg-white text-[#1a1a2e] antialiased">
         <Navbar />
-        <Providers>{children}</Providers>
+        <main className="pt-20">
+          <Providers>{children}</Providers>
+        </main>
         <BottomNav />
         <Footer />
       </body>

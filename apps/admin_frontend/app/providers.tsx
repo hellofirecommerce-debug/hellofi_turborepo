@@ -1,18 +1,18 @@
 // app/providers.tsx
 "use client";
+import React, { useMemo } from "react";
 import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
-import { GraphQLProvider } from "@repo/graphql";
+import { ApolloProvider } from "@apollo/client/react";
 import { Toaster } from "sonner";
 import { SidebarProvider } from "../context/SidebarContext";
 
+import { createClient } from "./client";
+
 export default function Providers({ children }: { children: React.ReactNode }) {
+  const client = useMemo(() => createClient(), []);
+
   return (
-    <GraphQLProvider
-      graphqlUrl={
-        process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql"
-      }
-      silentOperations={["AdminMe"]}
-    >
+    <ApolloProvider client={client}>
       <SidebarProvider>
         <Toaster position="bottom-right" richColors />
         <ProgressBar
@@ -23,6 +23,6 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         />
         {children}
       </SidebarProvider>
-    </GraphQLProvider>
+    </ApolloProvider>
   );
 }

@@ -5,6 +5,7 @@ import { AdminInvoiceSettings } from "./admin/invoiceSettings";
 import { AdminBrand } from "./admin/brand";
 import { AdminAuth } from "./admin/auth";
 import { AdminCategory } from "./admin/category";
+import { AdminBanner } from "./admin/banner";
 import { AdminSeries } from "./admin/series";
 import { AdminSellingProduct } from "./admin/sellingProduct";
 import { AdminBuyingProduct } from "./admin/buyingProduct";
@@ -28,6 +29,7 @@ async function createApolloGraphqlServer() {
     ${CommonBrand.queries}
 
     # Admin
+    ${AdminBanner.queries}
     ${AdminAuth.queries}
     ${AdminCategory.queries}
     ${AdminInventory.queries}
@@ -41,6 +43,7 @@ async function createApolloGraphqlServer() {
 
    type Mutation {
     # Admin
+    ${AdminBanner.mutations}
     ${AdminAuth.mutations}
     ${AdminCategory.mutations}
     ${AdminBrand.mutations}
@@ -54,6 +57,7 @@ async function createApolloGraphqlServer() {
    }
 
     # Type Definitions
+    ${AdminBanner.typeDefs}
     ${AdminAuth.typeDefs}
     ${AdminCategory.typeDefs}
     ${AdminBrand.typeDefs}
@@ -75,6 +79,7 @@ async function createApolloGraphqlServer() {
   const allResolvers = {
     Upload: GraphQLUpload,
     Query: {
+      ...AdminBanner.resolvers.Query,
       ...AdminAuth.resolvers.Query,
       ...AdminInventory.resolvers.Query,
       ...AdminInvoiceSettings.resolvers.Query,
@@ -89,6 +94,7 @@ async function createApolloGraphqlServer() {
     },
 
     Mutation: {
+      ...AdminBanner.resolvers.Mutation,
       ...AdminInventory.resolvers.Mutation,
       ...AdminBrand.resolvers.Mutation,
       ...AdminAuth.resolvers.Mutation,

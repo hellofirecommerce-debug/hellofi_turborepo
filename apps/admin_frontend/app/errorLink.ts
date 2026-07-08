@@ -1,23 +1,21 @@
 import { ApolloLink } from "@apollo/client";
+const SILENT_OPERATIONS = ["AdminMe"];
 import { map } from "rxjs";
 import { toast } from "sonner";
 
-export function createErrorLink(silentOperations: string[] = []) {
+export function createErrorLink() {
   return new ApolloLink((operation, forward) => {
     return forward(operation).pipe(
       map((response: any) => {
         const opName = operation.operationName;
 
-        // skip silent operations
-        if (opName && silentOperations.includes(opName)) {
+        if (opName && SILENT_OPERATIONS.includes(opName)) {
           return response;
         }
 
         const errors = response?.errors;
 
         if (Array.isArray(errors) && errors.length > 0) {
-          console.log("[errorLink] response errors:", errors);
-
           errors.forEach((err: any) => {
             const fieldErrors = err.extensions?.fieldErrors as
               | Record<string, string[]>
