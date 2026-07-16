@@ -32,13 +32,41 @@ export function Banner({ placement }: BannerProps) {
     },
   );
 
-  if (loading || error || !data?.activeBanner) return null;
+  console.log("[Banner] render", {
+    placement,
+    loading,
+    error: error?.message,
+    data,
+  });
+
+  if (loading) {
+    console.log("[Banner] still loading for placement:", placement);
+    return null;
+  }
+
+  if (error) {
+    console.error("[Banner] query error for placement:", placement, error);
+    return null;
+  }
+
+  if (!data?.activeBanner) {
+    console.warn(
+      "[Banner] no active banner returned for placement:",
+      placement,
+    );
+    return null;
+  }
 
   const { alt, lg, sm, redirectUrl } = data.activeBanner;
 
+  console.log("[Banner] rendering with URLs:", {
+    cdnUrl: process.env.NEXT_PUBLIC_CDN_URL,
+    lgFullUrl: `${process.env.NEXT_PUBLIC_CDN_URL}/${lg}`,
+    smFullUrl: `${process.env.NEXT_PUBLIC_CDN_URL}/${sm}`,
+  });
+
   const content = (
     <>
-      {/* mobile — below sm breakpoint */}
       <Image
         src={`${process.env.NEXT_PUBLIC_CDN_URL}/${sm}`}
         alt={alt}
@@ -47,13 +75,12 @@ export function Banner({ placement }: BannerProps) {
         className="block sm:hidden w-full h-[200px] object-contain rounded-2xl"
         priority
       />
-      {/* desktop — sm breakpoint and above */}
       <Image
         src={`${process.env.NEXT_PUBLIC_CDN_URL}/${lg}`}
         alt={alt}
         width={1600}
         height={300}
-        className="hidden sm:block w-full h-[400px]  rounded-2xl"
+        className="hidden sm:block w-full h-[400px] rounded-2xl"
         priority
       />
     </>

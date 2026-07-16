@@ -214,10 +214,16 @@ class AdminBannerService {
   }
 
   // frontend — active banners for a placement (e.g. HOME, BUY_MOBILE)
+  // admin — all banners, optionally by placement
   async getActiveBanner(placement: string) {
     try {
+      console.log(
+        "[BannerService] getActiveBanner called with placement:",
+        placement,
+      );
+
       const now = new Date();
-      return await prisma.banner.findFirst({
+      const banner = await prisma.banner.findFirst({
         where: {
           placement: placement as any,
           isActive: true,
@@ -227,11 +233,22 @@ class AdminBannerService {
           ],
         },
       });
+
+      console.log(
+        "[BannerService] result:",
+        banner ? banner.id : "NO BANNER FOUND",
+        {
+          placementReceived: placement,
+          now: now.toISOString(),
+        },
+      );
+
+      return banner;
     } catch (error) {
+      console.error("[BannerService] getActiveBanner error:", error);
       handleServiceError(error);
     }
   }
-
   // admin — all banners, optionally by placement
   async getAllBanners(placement?: string) {
     try {
