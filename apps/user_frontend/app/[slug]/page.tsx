@@ -17,6 +17,8 @@ import { KeyFeaturesSection } from "../../components/category-page/KeyFeaturesSe
 import { PreownedFAQSection } from "../../components/category-page/PreownedFAQSection";
 import { CustomerReviewsSection } from "../../components/category-page/CustomerReviewsSection";
 import { BlogSection } from "../../components/category-page/BlogSection";
+import { EMIOptionsSection } from "../../components/category-page/EMIOptionsSection";
+import { LaptopDealsSection } from "../../components/category-page/LaptopDealsSection";
 
 // BUY categories: slug after "buy-used-"
 const BUY_MAP: Record<
@@ -121,6 +123,7 @@ export default async function DynamicPage({
         <div className="max-w-7xl mx-auto px-4 w-full">
           <TopSellingLaptopsSection />
         </div>
+        <LaptopDealsSection />
         <div className="max-w-7xl mx-auto px-4 w-full">
           <QualityGradeSection />
         </div>
@@ -133,6 +136,7 @@ export default async function DynamicPage({
         <div className="max-w-7xl mx-auto px-4 w-full">
           <LatestSmartwatchesSection />
         </div>
+        <EMIOptionsSection />
         <div className="max-w-7xl mx-auto px-4 w-full">
           <OtherGadgetsSection />
         </div>
