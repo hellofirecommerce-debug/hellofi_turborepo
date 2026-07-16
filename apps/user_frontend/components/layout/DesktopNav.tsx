@@ -19,18 +19,33 @@ export function DesktopNav() {
             onMouseEnter={() => setOpenDropdown(link.label)}
             onMouseLeave={() => setOpenDropdown(null)}
           >
-            <button
-              type="button"
-              className="flex items-center gap-1 text-[15px] text-gray-700 hover:text-primary font-semibold transition-colors cursor-pointer"
-            >
-              {link.label}
-              <ChevronDown
-                size={15}
-                className={`transition-transform duration-200 ${
-                  openDropdown === link.label ? "rotate-180" : ""
-                }`}
-              />
-            </button>
+            {link.href ? (
+              <Link
+                href={link.href}
+                className="flex items-center gap-1 text-[15px] text-gray-700 hover:text-primary font-semibold transition-colors cursor-pointer"
+              >
+                {link.label}
+                <ChevronDown
+                  size={15}
+                  className={`transition-transform duration-200 ${
+                    openDropdown === link.label ? "rotate-180" : ""
+                  }`}
+                />
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="flex items-center gap-1 text-[15px] text-gray-700 hover:text-primary font-semibold transition-colors cursor-pointer"
+              >
+                {link.label}
+                <ChevronDown
+                  size={15}
+                  className={`transition-transform duration-200 ${
+                    openDropdown === link.label ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+            )}
 
             <AnimatePresence>
               {openDropdown === link.label && (

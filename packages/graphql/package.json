@@ -23,13 +23,6 @@
   ],
   "author": "HelloFi Team",
   "license": "ISC",
-  "dependencies": {
-    "@apollo/client": "*",
-    "apollo-upload-client": "*",
-    "extract-files": "^13.0.0",
-    "graphql-tag": "*",
-    "sonner": "*"
-  },
   "peerDependencies": {
     "react": "*"
   },
@@ -37,5 +30,8 @@
     "@repo/typescript-config": "*",
     "@types/react": "*",
     "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@apollo/client": "^4.2.7"
   }
 }

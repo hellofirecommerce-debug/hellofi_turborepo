@@ -7,8 +7,8 @@ export const resolvers = {
       return AdminBannerService.getAllBanners(args.placement);
     },
 
-    activeBanners: async (_parent: unknown, args: { placement: string }) => {
-      return AdminBannerService.getActiveBanners(args.placement);
+    activeBanner: async (_parent: unknown, args: { placement: string }) => {
+      return AdminBannerService.getActiveBanner(args.placement);
     },
   },
 

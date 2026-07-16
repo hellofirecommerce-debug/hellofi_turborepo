@@ -5,6 +5,7 @@ interface ResizeOptions {
   width: number;
   height: number;
   quality?: number;
+  background?: string; // padding color, e.g. "#ffffff" or "transparent"
 }
 
 interface MultiSizeOutput {
@@ -18,7 +19,10 @@ class ImageService {
   async compress(buffer: Buffer, options: ResizeOptions): Promise<Buffer> {
     try {
       return await sharp(buffer)
-        .resize(options.width, options.height)
+        .resize(options.width, options.height, {
+          fit: "contain",
+          background: options.background ?? "#ffffff",
+        })
         .webp({ quality: options.quality ?? 80 })
         .toBuffer();
     } catch (error) {

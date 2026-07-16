@@ -11,6 +11,7 @@ import { StoriesAndReviewsSection } from "../components/home/StoriesAndReviewsSe
 import { FAQSection } from "../components/home/FAQSection";
 import { SEOContentSection } from "../components/home/SEOContentSection";
 import { fetchHomeVideoStories } from "../lib/data/video-reviews";
+import { HomeFAQSection } from "../components/home/HomeFAQSection";
 
 export default async function HomePage() {
   const stories = await fetchHomeVideoStories();
@@ -27,7 +28,7 @@ export default async function HomePage() {
       <WhyHelloFiSection />
       <VideoTestimonialCarousel stories={stories} />
       <StoriesAndReviewsSection />
-      <FAQSection />
+      <HomeFAQSection />
       <SEOContentSection />
     </main>
   );

@@ -57,6 +57,16 @@ class AdminBannerService {
         endDate,
       });
 
+      // ← block creating a second banner for a placement that already has one
+      const existing = await prisma.banner.findFirst({
+        where: { placement: placement as any },
+      });
+      if (existing) {
+        return throwInputError(
+          `A banner already exists for placement "${placement}". Delete or update the existing one instead.`,
+        );
+      }
+
       // validate both images
       validateImage(lgBuffer, lgFileName);
       validateImage(smBuffer, smFileName);
@@ -115,6 +125,18 @@ class AdminBannerService {
         where: { id: input.id },
       });
       if (!banner) return throwNotFoundError("Banner not found");
+
+      // ← if placement is being changed, make sure no other banner already owns it
+      if (input.placement && input.placement !== banner.placement) {
+        const existing = await prisma.banner.findFirst({
+          where: { placement: input.placement as any },
+        });
+        if (existing && existing.id !== banner.id) {
+          return throwInputError(
+            `A banner already exists for placement "${input.placement}". Delete or update the existing one instead.`,
+          );
+        }
+      }
 
       const { id, redirectUrl, startDate, endDate, ...rest } = input;
 
@@ -192,10 +214,10 @@ class AdminBannerService {
   }
 
   // frontend — active banners for a placement (e.g. HOME, BUY_MOBILE)
-  async getActiveBanners(placement: string) {
+  async getActiveBanner(placement: string) {
     try {
       const now = new Date();
-      return await prisma.banner.findMany({
+      return await prisma.banner.findFirst({
         where: {
           placement: placement as any,
           isActive: true,
@@ -204,7 +226,6 @@ class AdminBannerService {
             { OR: [{ endDate: null }, { endDate: { gte: now } }] },
           ],
         },
-        orderBy: { priority: "asc" },
       });
     } catch (error) {
       handleServiceError(error);

@@ -22,11 +22,13 @@ export const NAV_LINKS: NavItem[] = [
   },
   {
     label: "Buy",
+    href: "/buy-used-gadgets",
     children: [
-      { label: "Buy Used Phones", href: "/buy-refurbished-phone" },
-      { label: "Buy Used Laptops", href: "/buy-refurbished-laptop" },
-      { label: "Buy Used MacBooks", href: "/buy-refurbished-macbook" },
-      { label: "Buy Used Tablet", href: "/buy-refurbished-tablet" },
+      { label: "Buy Used Phones", href: "/buy-used-mobile-phones" },
+      { label: "Buy Used Laptops", href: "/buy-used-laptops" },
+      { label: "Buy Used Tablets", href: "/buy-used-tablets" },
+      { label: "Buy Used Smart Watches", href: "/buy-used-smartwatches" },
+      { label: "Buy Used Accessories", href: "/buy-used-accessories" },
     ],
   },
   { label: "Premium", href: "/premium" },

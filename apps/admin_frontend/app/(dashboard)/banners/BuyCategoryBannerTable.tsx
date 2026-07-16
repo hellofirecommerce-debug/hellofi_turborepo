@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import React from "react";
-import { Button } from "@repo/ui";
 import { Table } from "../../../components/table/Table";
 import { TableHeader } from "../../../components/table/TableHeader";
 import { TableBody } from "../../../components/table/TableBody";
@@ -21,17 +20,16 @@ export const BuyCategoryBannerTable: React.FC<Props> = ({
   onEdit,
   onDelete,
 }) => {
+  console.log("This is the banners:", banners);
   return (
     <Table>
       <TableHeader>
-        <TableRow>
-          <TableCell isHeader>Desktop</TableCell>
-          <TableCell isHeader>Mobile</TableCell>
-          <TableCell isHeader>Placement</TableCell>
-          <TableCell isHeader>Priority</TableCell>
-          <TableCell isHeader>Status</TableCell>
-          <TableCell isHeader>Actions</TableCell>
-        </TableRow>
+        <TableCell isHeader>Desktop</TableCell>
+        <TableCell isHeader>Mobile</TableCell>
+        <TableCell isHeader>Placement</TableCell>
+        <TableCell isHeader>Priority</TableCell>
+        <TableCell isHeader>Status</TableCell>
+        <TableCell isHeader>Actions</TableCell>
       </TableHeader>
 
       <TableBody>
@@ -42,7 +40,7 @@ export const BuyCategoryBannerTable: React.FC<Props> = ({
               {banner.lg ? (
                 <div className="relative w-[90px] h-[45px] rounded-lg overflow-hidden bg-gray-100">
                   <Image
-                    src={banner.lg}
+                    src={`${process.env.NEXT_PUBLIC_CDN_URL}/${banner.lg}`}
                     alt={banner.alt}
                     fill
                     className="object-cover"
@@ -58,7 +56,7 @@ export const BuyCategoryBannerTable: React.FC<Props> = ({
               {banner.sm ? (
                 <div className="relative w-[45px] h-[60px] rounded-lg overflow-hidden bg-gray-100">
                   <Image
-                    src={banner.sm}
+                    src={`${process.env.NEXT_PUBLIC_CDN_URL}/${banner.sm}`}
                     alt={banner.alt}
                     fill
                     className="object-cover"
@@ -95,20 +93,24 @@ export const BuyCategoryBannerTable: React.FC<Props> = ({
             {/* Actions */}
             <TableCell>
               <div className="flex gap-2">
-                <Button
+                <button
                   type="button"
+                  title="Edit banner"
+                  aria-label="Edit banner"
                   onClick={() => onEdit?.(banner)}
                   className="h-8 w-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-gray-50 cursor-pointer"
                 >
                   <Pencil size={15} className="text-gray-600" />
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
+                  title="Delete banner"
+                  aria-label="Delete banner"
                   onClick={() => onDelete?.(banner.id)}
                   className="h-8 w-8 rounded-lg border border-gray-200 flex items-center justify-center hover:bg-red-50 cursor-pointer"
                 >
                   <Trash2 size={15} className="text-red-500" />
-                </Button>
+                </button>
               </div>
             </TableCell>
           </TableRow>

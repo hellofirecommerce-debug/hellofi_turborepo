@@ -1,16 +1,25 @@
-import { GraphQLProvider } from "@repo/graphql";
+// app/providers.tsx
+"use client";
+
+import React, { useMemo } from "react";
+import { AppProgressBar as ProgressBar } from "next-nprogress-bar";
+import { ApolloProvider } from "@apollo/client/react";
 import { Toaster } from "sonner";
+import { createClient } from "./client";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
+  const client = useMemo(() => createClient(), []);
+
   return (
-    <GraphQLProvider
-      graphqlUrl={
-        process.env.NEXT_PUBLIC_GRAPHQL_URL || "http://localhost:8000/graphql"
-      }
-      silentOperations={["Me"]}
-    >
+    <ApolloProvider client={client}>
       <Toaster position="bottom-right" richColors />
+      <ProgressBar
+        height="3px"
+        color="rgb(33,76,123)"
+        options={{ showSpinner: false }}
+        shallowRouting
+      />
       {children}
-    </GraphQLProvider>
+    </ApolloProvider>
   );
 }

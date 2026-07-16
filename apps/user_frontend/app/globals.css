@@ -24,6 +24,13 @@ a {
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
 
 @theme {
   --color-primary: #1b70cd;
@@ -47,4 +54,12 @@ a {
   --color-hf-price-blue: #155dfc;
   --color-hf-price-border: #bedbff;
   --color-hf-preowned-border: #fe9a004d;
+
+  /* Trust badges strip */
+  --color-trust-gold: #fcc800;
+  --color-trust-purple: #8a08fc;
+  --color-trust-green: #00b87a;
+  --color-trust-brown: #993613;
+  --color-trust-bg: #f0f5ff;
+  --color-trust-subtitle: #888888;
 }

@@ -6,6 +6,10 @@ const nextConfig = {
         protocol: "https",
         hostname: "placehold.co",
       },
+      {
+        protocol: "https",
+        hostname: "hellofi-new.s3.ap-south-1.amazonaws.com",
+      },
     ],
   },
 };

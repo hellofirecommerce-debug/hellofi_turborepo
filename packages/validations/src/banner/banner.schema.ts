@@ -2,6 +2,7 @@ import * as z from "zod";
 
 const BANNER_PLACEMENTS = [
   "HOME",
+  "BUY_ALL",
   "BUY_MOBILE",
   "BUY_LAPTOP",
   "BUY_TABLET",
