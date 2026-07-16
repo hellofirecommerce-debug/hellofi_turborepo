@@ -28,6 +28,7 @@ async function init() {
         "http://localhost:3001",
         "http://localhost:3000",
         "https://admin.hellofi.in",
+        "https://test.hellofi.in/",
       ],
       credentials: true,
       allowedHeaders: [
