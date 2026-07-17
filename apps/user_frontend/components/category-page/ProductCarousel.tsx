@@ -10,6 +10,7 @@ interface ProductCarouselProps {
   badgeText?: string;
   seeAllHref?: string;
   products: Product[];
+  variant?: "light" | "dark";
 }
 
 export function ProductCarousel({
@@ -17,8 +18,10 @@ export function ProductCarousel({
   badgeText,
   seeAllHref = "#",
   products,
+  variant = "light",
 }: ProductCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isDark = variant === "dark";
 
   const scroll = (direction: "left" | "right") => {
     const container = scrollRef.current;
@@ -34,11 +37,19 @@ export function ProductCarousel({
     <section className="w-full">
       <div className="flex items-center justify-between mb-3 sm:mb-4">
         <div className="flex items-center gap-2">
-          <h2 className="text-base sm:text-lg lg:text-xl font-bold text-black">
+          <h2
+            className={`text-base sm:text-lg lg:text-xl font-bold ${isDark ? "text-white" : "text-black"}`}
+          >
             {title}
           </h2>
           {badgeText && (
-            <span className="text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full bg-primary-surface text-primary">
+            <span
+              className={`text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full ${
+                isDark
+                  ? "bg-amber-400/10 text-amber-400"
+                  : "bg-primary-surface text-primary"
+              }`}
+            >
               {badgeText}
             </span>
           )}
@@ -46,21 +57,29 @@ export function ProductCarousel({
 
         <Link
           href={seeAllHref}
-          className="text-xs sm:text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          className={`text-xs sm:text-sm font-medium hover:underline whitespace-nowrap ${
+            isDark ? "text-amber-400" : "text-primary"
+          }`}
         >
           See All →
         </Link>
       </div>
 
       <div className="relative">
-        {/* left arrow — floating, overlapping edge, hidden below 1024px */}
         <button
           type="button"
           onClick={() => scroll("left")}
           aria-label="Scroll left"
-          className="hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white border border-card-border shadow-md hover:bg-primary-surface transition-colors"
+          className={`hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md transition-colors ${
+            isDark
+              ? "bg-[#12100A] border border-amber-400/30 hover:bg-amber-400/10"
+              : "bg-white border border-card-border hover:bg-primary-surface"
+          }`}
         >
-          <ChevronLeft size={20} className="text-black" />
+          <ChevronLeft
+            size={20}
+            className={isDark ? "text-amber-400" : "text-black"}
+          />
         </button>
 
         <div
@@ -68,18 +87,24 @@ export function ProductCarousel({
           className="flex gap-2.5 sm:gap-3 lg:gap-4 overflow-x-auto scrollbar-hide scroll-smooth pb-1"
         >
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product.id} product={product} variant={variant} />
           ))}
         </div>
 
-        {/* right arrow — floating, overlapping edge, hidden below 1024px */}
         <button
           type="button"
           onClick={() => scroll("right")}
           aria-label="Scroll right"
-          className="hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full bg-white border border-card-border shadow-md hover:bg-primary-surface transition-colors"
+          className={`hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md transition-colors ${
+            isDark
+              ? "bg-[#12100A] border border-amber-400/30 hover:bg-amber-400/10"
+              : "bg-white border border-card-border hover:bg-primary-surface"
+          }`}
         >
-          <ChevronRight size={20} className="text-black" />
+          <ChevronRight
+            size={20}
+            className={isDark ? "text-amber-400" : "text-black"}
+          />
         </button>
       </div>
     </section>

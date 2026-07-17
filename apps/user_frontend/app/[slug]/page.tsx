@@ -19,6 +19,7 @@ import { CustomerReviewsSection } from "../../components/category-page/CustomerR
 import { BlogSection } from "../../components/category-page/BlogSection";
 import { EMIOptionsSection } from "../../components/category-page/EMIOptionsSection";
 import { LaptopDealsSection } from "../../components/category-page/LaptopDealsSection";
+import { PremiumLuxSection } from "../../components/category-page/PremiumLuxSection";
 
 // BUY categories: slug after "buy-used-"
 const BUY_MAP: Record<
@@ -133,6 +134,7 @@ export default async function DynamicPage({
         <div className="max-w-7xl mx-auto px-4 w-full">
           <TabletsIpadSection />
         </div>
+        <PremiumLuxSection />
         <div className="max-w-7xl mx-auto px-4 w-full">
           <LatestSmartwatchesSection />
         </div>
