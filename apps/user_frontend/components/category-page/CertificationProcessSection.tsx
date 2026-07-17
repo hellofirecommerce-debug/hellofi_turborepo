@@ -1,4 +1,7 @@
 // components/category-page/CertificationProcessSection.tsx
+"use client";
+
+import { useState } from "react";
 import {
   PackageCheck,
   Microscope,
@@ -6,6 +9,8 @@ import {
   Truck,
   CheckCircle2,
 } from "lucide-react";
+import { AnimatePresence } from "motion/react";
+import { ChecklistModal } from "./ChecklistModal";
 
 interface ProcessStep {
   number: string;
@@ -69,6 +74,8 @@ const CHECKLIST_ITEMS = [
 ];
 
 export function CertificationProcessSection() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
     <div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12">
@@ -141,20 +148,35 @@ export function CertificationProcessSection() {
           </div>
 
           <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-            {CHECKLIST_ITEMS.map((item) => (
-              <div
-                key={item}
-                className="flex items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-surface px-2.5 py-2 sm:px-3 sm:py-2.5"
-              >
-                <CheckCircle2 size={13} className="shrink-0 text-success" />
-                <span className="text-[10px] sm:text-xs font-medium text-black leading-tight">
-                  {item}
-                </span>
-              </div>
-            ))}
+            {CHECKLIST_ITEMS.map((item) => {
+              const isSeeAll = item === "See All 40+ Check Point";
+              return (
+                <button
+                  key={item}
+                  type="button"
+                  onClick={isSeeAll ? () => setIsModalOpen(true) : undefined}
+                  className={`flex items-center gap-1.5 sm:gap-2 rounded-lg bg-primary-surface px-2.5 py-2 sm:px-3 sm:py-2.5 text-left ${
+                    isSeeAll
+                      ? "cursor-pointer hover:bg-primary/10 transition-colors"
+                      : "cursor-default"
+                  }`}
+                >
+                  <CheckCircle2 size={13} className="shrink-0 text-success" />
+                  <span className="text-[10px] sm:text-xs font-medium text-black leading-tight">
+                    {item}
+                  </span>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isModalOpen && (
+          <ChecklistModal onClose={() => setIsModalOpen(false)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

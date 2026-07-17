@@ -115,7 +115,13 @@ export function PremiumLuxSection() {
                 Premium Pre-Owned
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
+            <h2
+              className="text-2xl sm:text-3xl lg:text-4xl font-extrabold bg-clip-text text-transparent"
+              style={{
+                backgroundImage:
+                  "linear-gradient(120deg, #e8dfc9 1.67%, #f0cf8f 30.32%, #674e2e 93.87%)",
+              }}
+            >
               HelloFi Lux
             </h2>
           </div>

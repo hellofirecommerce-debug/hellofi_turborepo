@@ -1,3 +1,4 @@
+// components/product-carousel/ProductCard.tsx
 import { Heart } from "lucide-react";
 import Image from "next/image";
 
@@ -45,10 +46,9 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
   return (
     <div
       className={`shrink-0 w-[220px] sm:w-[250px] lg:w-[280px] rounded-xl overflow-hidden border ${
-        isDark
-          ? "bg-[#12100A] border-amber-400/20"
-          : "bg-card-surface border-card-border"
+        isDark ? "bg-[#12100A]" : "bg-card-surface border-card-border"
       }`}
+      style={isDark ? { borderColor: "#674e2e55" } : undefined}
     >
       <div
         className={`relative aspect-square flex items-center justify-center ${
@@ -73,7 +73,8 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
         >
           <Heart
             size={13}
-            className={isDark ? "text-amber-400/70" : "text-gray-500"}
+            style={isDark ? { color: "#d7ba86" } : undefined}
+            className={!isDark ? "text-gray-500" : ""}
           />
         </button>
 
@@ -87,9 +88,8 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
           />
         ) : (
           <span
-            className={`text-xs sm:text-sm font-medium ${
-              isDark ? "text-amber-400/50" : "text-gray-400"
-            }`}
+            className="text-xs sm:text-sm font-medium"
+            style={isDark ? { color: "#d7ba8680" } : { color: "#9ca3af" }}
           >
             {name}
           </span>
@@ -98,7 +98,8 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
 
       <div className="p-2.5 sm:p-3 flex flex-col gap-1">
         <p
-          className={`text-[10px] sm:text-xs ${isDark ? "text-amber-400/60" : "text-gray-400"}`}
+          className="text-[10px] sm:text-xs"
+          style={isDark ? { color: "#d7ba8699" } : { color: "#9ca3af" }}
         >
           {brand}
         </p>
@@ -112,13 +113,20 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
 
         <div className="flex items-center gap-1.5 mt-0.5">
           <span
-            className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-medium ${
+            className="text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-medium"
+            style={
               isDark
-                ? "bg-amber-400/10 text-amber-400"
-                : "bg-primary-surface text-primary"
-            }`}
+                ? { backgroundColor: "#d7ba861a", color: "#f0cf8f" }
+                : undefined
+            }
           >
-            {storage}
+            {isDark ? (
+              storage
+            ) : (
+              <span className="bg-primary-surface text-primary px-0 py-0 rounded">
+                {storage}
+              </span>
+            )}
           </span>
           <span
             className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-medium ${
@@ -157,9 +165,18 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
           type="button"
           className={`mt-2 w-full text-xs sm:text-sm font-semibold py-1.5 sm:py-2 rounded-lg border transition-colors ${
             isDark
-              ? "border-amber-400 text-amber-400 hover:bg-amber-400 hover:text-black"
+              ? "text-black"
               : "border-primary text-primary hover:bg-primary hover:text-white"
           }`}
+          style={
+            isDark
+              ? {
+                  borderColor: "#d7ba86",
+                  backgroundImage:
+                    "linear-gradient(120deg, #e8dfc9 1.67%, #f0cf8f 30.32%, #d7ba86 93.87%)",
+                }
+              : undefined
+          }
         >
           Add to Cart
         </button>
