@@ -58,7 +58,7 @@ export function ProductCarousel({
         <Link
           href={seeAllHref}
           className={`text-xs sm:text-sm font-medium hover:underline whitespace-nowrap ${
-            isDark ? "text-amber-400" : "text-primary"
+            isDark ? "text-[#f0cf8f]" : "text-primary"
           }`}
         >
           See All →

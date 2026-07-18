@@ -122,34 +122,43 @@ export function PremiumLuxSection() {
                   "linear-gradient(120deg, #e8dfc9 1.67%, #f0cf8f 30.32%, #674e2e 93.87%)",
               }}
             >
-              HelloFi Lux
+              HelloFi Luxe
             </h2>
           </div>
 
           <Link
             href="/premium"
             className="shrink-0 hidden sm:inline-block bg-white text-black text-xs sm:text-sm font-bold rounded-full px-5 sm:px-6 py-2 sm:py-2.5 hover:bg-gray-100 transition-colors whitespace-nowrap"
+            style={{
+              backgroundImage:
+                "linear-gradient(120deg, #e8dfc9 1.67%, #f0cf8f 30.32%, #d7ba86 93.87%)",
+            }}
           >
             Browse Premium
           </Link>
         </div>
 
         {/* mobile browse button */}
-        <Link
-          href="/premium"
-          className="sm:hidden block text-center bg-white text-black text-xs font-bold rounded-full px-5 py-2.5 mb-6"
-        >
-          Browse Premium
-        </Link>
 
         {/* product carousel — dark variant, placeholder images (no external image URLs) */}
         <ProductCarousel
           title="Premium Picks"
-          badgeText="HelloFi Lux"
+          // badgeText="HelloFi Lux"
           seeAllHref="/premium"
           products={PREMIUM_LUX_PRODUCTS}
           variant="dark"
         />
+
+        <Link
+          href="/premium"
+          style={{
+            backgroundImage:
+              "linear-gradient(120deg, #e8dfc9 1.67%, #f0cf8f 30.32%, #d7ba86 93.87%)",
+          }}
+          className="sm:hidden mt-4 block text-center bg-white text-black text-xs font-bold rounded-full px-5 py-2.5 mb-6"
+        >
+          Browse Premium
+        </Link>
 
         {/* tags — centered, below products */}
         <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mt-8 sm:mt-10">
