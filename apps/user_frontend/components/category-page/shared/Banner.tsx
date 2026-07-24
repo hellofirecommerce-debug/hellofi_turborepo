@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@apollo/client/react";
-import { GET_ACTIVE_BANNER } from "../../lib/graphql/queires/banner.queries";
+import { GET_ACTIVE_BANNER } from "../../../lib/graphql/queires/banner.queries";
 
 interface BannerProps {
   placement: string;

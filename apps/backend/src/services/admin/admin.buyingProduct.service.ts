@@ -17,6 +17,8 @@ import {
 } from "@repo/validations";
 import { generateRandomString } from "../../lib/utils/generateRandomString";
 
+const MAX_ITEMS_PER_SECTION = 7;
+
 const buyingProductInclude = {
   brand: true,
   category: true,
@@ -90,7 +92,7 @@ async function processAndUploadVariantImages(
     );
   }
 }
-// ← helper to build variant data without TypeScript conflict
+
 function buildVariantData(
   v: {
     variantSubtitle: string;
@@ -121,7 +123,7 @@ function buildVariantData(
   return {
     sku,
     variantSubtitle: v.variantSubtitle,
-    inventoryProductId: v.inventoryProductId || null, // ← direct field, no connect
+    inventoryProductId: v.inventoryProductId || null,
     liveLink: v.liveLink ?? null,
     color: v.color ?? null,
     colorCode: v.colorCode ?? null,
@@ -145,12 +147,100 @@ function buildVariantData(
   };
 }
 
+// ── Enforce: only ONE of {featuredSection, isTopSelling, isGaming} can be active ──
+function assertPlacementCompatibility(
+  featuredSection: string | undefined,
+  isTopSelling: boolean | undefined,
+  isGaming: boolean | undefined,
+) {
+  const activeCount = [
+    featuredSection !== undefined && featuredSection !== "NONE",
+    isTopSelling === true,
+    isGaming === true,
+  ].filter(Boolean).length;
+
+  if (activeCount > 1) {
+    throwInputError(
+      "A product can only have one placement at a time — Featured Section (Most Loved / People Love), Top Selling, or Gaming. Choose only one.",
+    );
+  }
+}
+
+// ── Enforce: max MAX_ITEMS_PER_SECTION products per category for a given flag ──
+async function assertSectionCapacity(params: {
+  categoryId: string;
+  featuredSection?: string;
+  isTopSelling?: boolean;
+  isGaming?: boolean;
+  excludeProductId?: string; // ← used on update, to not count itself
+}) {
+  const {
+    categoryId,
+    featuredSection,
+    isTopSelling,
+    isGaming,
+    excludeProductId,
+  } = params;
+
+  if (featuredSection && featuredSection !== "NONE") {
+    const count = await prisma.buyingProduct.count({
+      where: {
+        categoryId,
+        featuredSection: featuredSection as any,
+        ...(excludeProductId ? { id: { not: excludeProductId } } : {}),
+      },
+    });
+    if (count >= MAX_ITEMS_PER_SECTION) {
+      const label =
+        featuredSection === "MOST_LOVED"
+          ? "Most Loved This Week"
+          : "Phones People Are Loving";
+      throwInputError(
+        `"${label}" already has ${MAX_ITEMS_PER_SECTION} products for this category. Remove one before adding another.`,
+      );
+    }
+  }
+
+  if (isTopSelling === true) {
+    const count = await prisma.buyingProduct.count({
+      where: {
+        categoryId,
+        isTopSelling: true,
+        ...(excludeProductId ? { id: { not: excludeProductId } } : {}),
+      },
+    });
+    if (count >= MAX_ITEMS_PER_SECTION) {
+      throwInputError(
+        `"Top Selling" already has ${MAX_ITEMS_PER_SECTION} products for this category. Remove one before adding another.`,
+      );
+    }
+  }
+
+  if (isGaming === true) {
+    const count = await prisma.buyingProduct.count({
+      where: {
+        categoryId,
+        isGaming: true,
+        ...(excludeProductId ? { id: { not: excludeProductId } } : {}),
+      },
+    });
+    if (count >= MAX_ITEMS_PER_SECTION) {
+      throwInputError(
+        `"Gaming" already has ${MAX_ITEMS_PER_SECTION} products for this category. Remove one before adding another.`,
+      );
+    }
+  }
+}
+
 class AdminBuyingProductService {
   async getBuyingProducts(filter?: {
     search?: string;
     brandId?: string;
     categoryId?: string;
+    featuredSection?: "NONE" | "MOST_LOVED" | "PEOPLE_LOVE";
     isTrending?: boolean;
+    isTopSelling?: boolean;
+    isGaming?: boolean;
     page?: number;
     pageSize?: number;
   }) {
@@ -168,8 +258,17 @@ class AdminBuyingProductService {
         }),
         ...(filter?.brandId && { brandId: filter.brandId }),
         ...(filter?.categoryId && { categoryId: filter.categoryId }),
+        ...(filter?.featuredSection && {
+          featuredSection: filter.featuredSection,
+        }),
         ...(filter?.isTrending !== undefined && {
           isTrending: filter.isTrending,
+        }),
+        ...(filter?.isTopSelling !== undefined && {
+          isTopSelling: filter.isTopSelling,
+        }),
+        ...(filter?.isGaming !== undefined && {
+          isGaming: filter.isGaming,
         }),
       };
 
@@ -229,6 +328,19 @@ class AdminBuyingProductService {
         return;
       }
 
+      // ── Mutual exclusivity + capacity checks ──
+      assertPlacementCompatibility(
+        validated.featuredSection,
+        validated.isTopSelling,
+        validated.isGaming,
+      );
+      await assertSectionCapacity({
+        categoryId: validated.categoryId,
+        featuredSection: validated.featuredSection,
+        isTopSelling: validated.isTopSelling,
+        isGaming: validated.isGaming,
+      });
+
       for (const variant of validated.variants ?? []) {
         if (!variant.variantKey) continue;
         const vi = variantImages.find(
@@ -248,7 +360,10 @@ class AdminBuyingProductService {
           brandId: validated.brandId || null,
           manualBrand: validated.manualBrand || null,
           categoryId: validated.categoryId,
+          featuredSection: (validated.featuredSection ?? "NONE") as any,
           isTrending: validated.isTrending,
+          isTopSelling: validated.isTopSelling ?? false,
+          isGaming: validated.isGaming ?? false,
           specifications: {
             create: (validated.specifications ?? []).map((s) => ({
               key: s.key,
@@ -339,6 +454,47 @@ class AdminBuyingProductService {
 
       const product = await prisma.buyingProduct.findUnique({ where: { id } });
       if (!product) return throwNotFoundError("Buying product not found");
+
+      // ── Resolve effective values (fall back to existing product's current value) ──
+      const effectiveCategoryId = updateData.categoryId ?? product.categoryId;
+      const effectiveFeaturedSection =
+        updateData.featuredSection ?? (product as any).featuredSection;
+      const effectiveIsTopSelling =
+        updateData.isTopSelling ?? (product as any).isTopSelling;
+      const effectiveIsGaming =
+        updateData.isGaming ?? (product as any).isGaming;
+
+      // ── Mutual exclusivity check ──
+      assertPlacementCompatibility(
+        effectiveFeaturedSection,
+        effectiveIsTopSelling,
+        effectiveIsGaming,
+      );
+
+      // ── Capacity check — only re-check the flags that are actually changing ──
+      const featuredSectionChanging =
+        updateData.featuredSection !== undefined &&
+        updateData.featuredSection !== (product as any).featuredSection;
+      const isTopSellingChanging =
+        updateData.isTopSelling !== undefined &&
+        updateData.isTopSelling !== (product as any).isTopSelling;
+      const isGamingChanging =
+        updateData.isGaming !== undefined &&
+        updateData.isGaming !== (product as any).isGaming;
+
+      if (featuredSectionChanging || isTopSellingChanging || isGamingChanging) {
+        await assertSectionCapacity({
+          categoryId: effectiveCategoryId,
+          featuredSection: featuredSectionChanging
+            ? effectiveFeaturedSection
+            : undefined,
+          isTopSelling: isTopSellingChanging
+            ? effectiveIsTopSelling
+            : undefined,
+          isGaming: isGamingChanging ? effectiveIsGaming : undefined,
+          excludeProductId: id,
+        });
+      }
 
       // ── Update specifications ──
       if (specifications && specifications.length > 0) {
@@ -478,7 +634,10 @@ class AdminBuyingProductService {
           ...updateData,
           brandId: updateData.brandId || null,
           manualBrand: updateData.manualBrand || null,
+          featuredSection: (updateData.featuredSection ?? undefined) as any,
           isTrending: updateData.isTrending,
+          isTopSelling: updateData.isTopSelling,
+          isGaming: updateData.isGaming,
         },
         include: buyingProductInclude,
       });
@@ -489,7 +648,6 @@ class AdminBuyingProductService {
           for (const vi of variantImages) {
             if (!vi.buffers || vi.buffers.length === 0) continue;
 
-            // ── Calculate if default is a new image ──
             const existingKeysLength = vi.existingImageKeys?.length ?? 0;
             const defaultIsNewImage =
               vi.defaultImageIndex >= existingKeysLength;
@@ -497,7 +655,6 @@ class AdminBuyingProductService {
               ? vi.defaultImageIndex - existingKeysLength
               : -1;
 
-            // ── If new image is default reset all existing isDefault first ──
             if (defaultIsNewImage) {
               await prisma.buyingProductImage.updateMany({
                 where: { variantId: vi.variantId },

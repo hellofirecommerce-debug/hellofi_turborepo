@@ -40,11 +40,15 @@ export const createBuyingProductSchema = z.object({
   brandId: z.string().optional(),
   manualBrand: z.string().optional(),
   categoryId: z.string().min(1, "Category is required"),
+  featuredSection: z
+    .enum(["NONE", "MOST_LOVED", "PEOPLE_LOVE"])
+    .default("NONE"),
   isTrending: z.boolean().default(false),
+  isTopSelling: z.boolean().default(false),
+  isGaming: z.boolean().default(false),
   specifications: z.array(createBuyingSpecificationSchema).default([]),
   variants: z.array(createBuyingVariantSchema).default([]),
 });
-
 // ── Separate update variant schema — variantKey required as the identifier ──
 export const updateBuyingVariantSchema = z.object({
   variantKey: z.string().min(1),
@@ -85,7 +89,11 @@ export const updateBuyingProductSchema = z.object({
   brandId: z.string().optional().nullable(),
   manualBrand: z.string().optional().nullable(),
   categoryId: z.string().optional(),
+  platform: z.enum(["IOS", "ANDROID", "WINDOWS", "MACOS", "NONE"]).optional(),
+  featuredSection: z.enum(["NONE", "MOST_LOVED", "PEOPLE_LOVE"]).optional(),
   isTrending: z.boolean().optional(),
+  isTopSelling: z.boolean().optional(),
+  isGaming: z.boolean().optional(),
   specifications: z
     .array(
       z.object({

@@ -197,22 +197,35 @@ model BrandCategory {
   @@unique([brandId, categoryId])
 }
 
+enum FeaturedSection {
+  NONE
+  MOST_LOVED
+  PEOPLE_LOVE
+}
+
 model BuyingProduct {
-  id              String   @id @default(uuid())
+  id              String          @id @default(uuid())
   productName     String
   productSubtitle String
-  slug            String   @unique
+  slug            String          @unique
   brandId         String?
   manualBrand     String?
   categoryId      String
-  isTrending      Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  featuredSection FeaturedSection @default(NONE)
+  isTrending      Boolean         @default(false)
+  isTopSelling    Boolean         @default(false)
+  isGaming        Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   brand          Brand?                @relation(fields: [brandId], references: [id], onDelete: Cascade)
   category       Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   variants       BuyingVariant[]
   specifications BuyingSpecification[]
+
+  @@index([categoryId, featuredSection])
+  @@index([categoryId, isTopSelling])
+  @@index([categoryId, isTrending])
 }
 
 model BuyingVariant {

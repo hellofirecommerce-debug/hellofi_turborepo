@@ -53,7 +53,10 @@ export const BuyingProductForm: React.FC<Props> = ({
     brandId: "",
     manualBrand: "",
     categoryId: "",
+    featuredSection: "NONE",
     isTrending: false,
+    isTopSelling: false,
+    isGaming: false,
     specifications: [],
     variants: [],
   });
@@ -96,7 +99,10 @@ export const BuyingProductForm: React.FC<Props> = ({
         brandId: editData.brandId,
         manualBrand: editData.manualBrand ?? "",
         categoryId: editData.categoryId,
+        featuredSection: editData.featuredSection ?? "NONE",
         isTrending: editData.isTrending,
+        isTopSelling: editData.isTopSelling ?? false,
+        isGaming: editData.isGaming ?? false,
         specifications: editData.specifications.map((s) => ({
           key: s.key,
           value: s.value,

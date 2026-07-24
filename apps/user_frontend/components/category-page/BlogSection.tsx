@@ -31,11 +31,20 @@ const BLOG_POSTS: BlogPost[] = [
     image: "icloud-status-check-guide",
     href: "/blog/check-icloud-status-preowned-iphone",
   },
+  {
+    category: "Buying Guide",
+    readTime: "4 min read",
+    title: "Battery Health Explained: What Percentage Is Actually Good?",
+    excerpt:
+      "Anything above 85% is generally considered healthy, but the real story depends on usage patterns and charge cycles. Here's how to read the numbers.",
+    image: "battery-health-explained",
+    href: "/blog/battery-health-explained",
+  },
 ];
 
 export function BlogSection() {
   return (
-    <section className="max-w-3xl mx-auto px-4 py-8 sm:py-10 lg:py-14">
+    <section className="max-w-7xl mx-auto px-4 py-8 sm:py-10 lg:py-14">
       <div className="flex items-start justify-between gap-4 mb-5 sm:mb-6">
         <div>
           <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase text-primary mb-1.5">
@@ -54,7 +63,7 @@ export function BlogSection() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
         {BLOG_POSTS.map(
           ({ category, readTime, title, excerpt, image, href }) => (
             <Link

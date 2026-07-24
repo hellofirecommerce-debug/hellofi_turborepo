@@ -70,7 +70,7 @@ export function ProductCarousel({
           type="button"
           onClick={() => scroll("left")}
           aria-label="Scroll left"
-          className={`hidden lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md transition-colors ${
+          className={`hidden cursor-pointer lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md transition-colors ${
             isDark
               ? "bg-[#12100A] border border-amber-400/30 hover:bg-amber-400/10"
               : "bg-white border border-card-border hover:bg-primary-surface"
@@ -95,7 +95,7 @@ export function ProductCarousel({
           type="button"
           onClick={() => scroll("right")}
           aria-label="Scroll right"
-          className={`hidden lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md transition-colors ${
+          className={`hidden cursor-pointer lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md transition-colors ${
             isDark
               ? "bg-[#12100A] border border-amber-400/30 hover:bg-amber-400/10"
               : "bg-white border border-card-border hover:bg-primary-surface"

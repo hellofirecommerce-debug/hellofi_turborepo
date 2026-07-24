@@ -62,9 +62,11 @@ export default function EditBuyingProductPage() {
     // ── Sanitize variants — remove empty string enums ──
     const sanitizedInput = {
       ...formData,
+      platform: (formData as any).platform || undefined,
+      featuredSection: (formData as any).featuredSection || undefined,
       variants: (formData.variants ?? []).map((v: any) => ({
         ...v,
-        os: v.os || undefined, // "" → undefined
+        os: v.os || undefined,
         condition: v.condition || undefined,
         availability: v.availability || undefined,
         warrantyType: v.warrantyType || undefined,

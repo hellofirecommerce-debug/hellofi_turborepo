@@ -17,6 +17,14 @@ export const typeDefs = `#graphql
     MACOS
   }
 
+ 
+
+  enum FeaturedSection {
+    NONE
+    MOST_LOVED
+    PEOPLE_LOVE
+  }
+
   enum BuyingWarrantyType {
     HELLOFI_WARRANTY
     BRAND_WARRANTY
@@ -85,9 +93,13 @@ type BuyingProduct {
   productSubtitle: String!
   slug: String!
   brandId: String
-  manualBrand: String   # ← add
+  manualBrand: String
   categoryId: String!
+
+  featuredSection: FeaturedSection!
   isTrending: Boolean!
+  isTopSelling: Boolean!
+  isGaming: Boolean!
   brand: Brand
   category: Category
   variants: [BuyingVariant!]!
@@ -141,9 +153,13 @@ input CreateBuyingProductInput {
   productSubtitle: String!
   slug: String!
   brandId: String
-  manualBrand: String   # ← add
+  manualBrand: String
   categoryId: String!
+
+  featuredSection: FeaturedSection
   isTrending: Boolean
+  isTopSelling: Boolean
+  isGaming: Boolean
   specifications: [BuyingSpecificationInput!]
   variants: [BuyingVariantInput!]
 }
@@ -183,7 +199,11 @@ input UpdateBuyingProductInput {
   brandId: String
   manualBrand: String
   categoryId: String
+  
+  featuredSection: FeaturedSection
   isTrending: Boolean
+  isTopSelling: Boolean
+  isGaming: Boolean
   specifications: [BuyingSpecificationInput!]
   variants: [UpdateBuyingVariantInput!]
 }
@@ -193,7 +213,11 @@ input BuyingProductFilterInput {
   search: String
   brandId: String
   categoryId: String
+ 
+  featuredSection: FeaturedSection
   isTrending: Boolean
+  isTopSelling: Boolean
+  isGaming: Boolean
   page: Int
   pageSize: Int
 }
@@ -206,5 +230,4 @@ input VariantImageInput {
   images: [Upload!]
   existingImageKeys: [String!]
 }
-
 `;

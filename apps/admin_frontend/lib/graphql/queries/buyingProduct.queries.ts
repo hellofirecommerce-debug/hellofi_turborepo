@@ -11,7 +11,11 @@ export const GET_BUYING_PRODUCTS = gql`
         brandId
         manualBrand
         categoryId
+
+        featuredSection
         isTrending
+        isTopSelling
+        isGaming
         brand {
           id
           name
@@ -23,7 +27,6 @@ export const GET_BUYING_PRODUCTS = gql`
         variants {
           id
           sku
-
           storage
           ram
           price
@@ -62,6 +65,7 @@ export const GET_BUYING_PRODUCTS = gql`
     }
   }
 `;
+
 export const GET_BUYING_PRODUCT_BY_ID = gql`
   query GetBuyingProductById($id: ID!) {
     getBuyingProductById(id: $id) {
@@ -72,7 +76,10 @@ export const GET_BUYING_PRODUCT_BY_ID = gql`
       brandId
       manualBrand
       categoryId
+      featuredSection
       isTrending
+      isTopSelling
+      isGaming
       brand {
         id
         name

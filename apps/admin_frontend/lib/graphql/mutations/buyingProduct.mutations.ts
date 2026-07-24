@@ -9,6 +9,11 @@ export const CREATE_BUYING_PRODUCT = gql`
       id
       productName
       slug
+
+      featuredSection
+      isTrending
+      isTopSelling
+      isGaming
       brand {
         id
         name
@@ -52,7 +57,10 @@ export const UPDATE_BUYING_PRODUCT = gql`
       brandId
       manualBrand
       categoryId
+      featuredSection
       isTrending
+      isTopSelling
+      isGaming
       brand {
         id
         name
@@ -120,7 +128,6 @@ export const ADD_VARIANT_TO_PRODUCT = gql`
     ) {
       id
       sku
-      shortId
       storage
       ram
       price

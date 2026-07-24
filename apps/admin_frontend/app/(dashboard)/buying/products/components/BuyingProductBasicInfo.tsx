@@ -25,6 +25,55 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
   const isOtherAccessories = selectedCategory?.name
     ?.toLowerCase()
     .includes("accessories");
+  const isLaptopCategory = selectedCategory?.name
+    ?.toLowerCase()
+    .includes("laptop");
+  const isMobileCategory = selectedCategory?.name
+    ?.toLowerCase()
+    .includes("mobile");
+
+  const currentFeaturedSection = (form as any).featuredSection ?? "NONE";
+  const currentIsTopSelling = (form as any).isTopSelling ?? false;
+  const currentIsGaming = (form as any).isGaming ?? false;
+
+  // ── Only one placement active at a time: Featured Section, Top Selling, Gaming ──
+  const handleFeaturedSectionChange = (value: string) => {
+    onChange("featuredSection" as any, value);
+    if (value !== "NONE") {
+      if (currentIsTopSelling) onChange("isTopSelling" as any, false);
+      if (currentIsGaming) onChange("isGaming" as any, false);
+    }
+  };
+
+  const handleTopSellingChange = (checked: boolean) => {
+    onChange("isTopSelling" as any, checked);
+    if (checked) {
+      if (currentFeaturedSection !== "NONE") {
+        onChange("featuredSection" as any, "NONE");
+      }
+      if (currentIsGaming) onChange("isGaming" as any, false);
+    }
+  };
+
+  const handleGamingChange = (checked: boolean) => {
+    onChange("isGaming" as any, checked);
+    if (checked) {
+      if (currentFeaturedSection !== "NONE") {
+        onChange("featuredSection" as any, "NONE");
+      }
+      if (currentIsTopSelling) onChange("isTopSelling" as any, false);
+    }
+  };
+
+  // ── Any placement already taken blocks the others ──
+  const anyPlacementActive =
+    currentFeaturedSection !== "NONE" || currentIsTopSelling || currentIsGaming;
+
+  const featuredSectionDisabled = currentIsTopSelling || currentIsGaming;
+  const topSellingDisabled =
+    currentFeaturedSection !== "NONE" || currentIsGaming;
+  const gamingDisabled =
+    currentFeaturedSection !== "NONE" || currentIsTopSelling;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4">
@@ -133,7 +182,75 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
           />
         </div>
 
-        {/* Trending */}
+        {/* Featured Section — mutually exclusive with Top Selling and Gaming */}
+        <div className="flex flex-col gap-2 sm:col-span-2">
+          <Label>Featured Section</Label>
+          <p className="text-xs text-gray-400 -mt-1">
+            A product can only have one placement — Featured Section, Top
+            Selling, or Gaming, not more than one.
+          </p>
+          <div
+            className={`flex flex-wrap gap-5 ${
+              featuredSectionDisabled ? "opacity-50" : ""
+            }`}
+          >
+            <label
+              className={`flex items-center gap-2 text-sm text-gray-700 ${
+                featuredSectionDisabled
+                  ? "cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
+            >
+              <input
+                type="radio"
+                name="featuredSection"
+                disabled={featuredSectionDisabled}
+                checked={currentFeaturedSection === "NONE"}
+                onChange={() => handleFeaturedSectionChange("NONE")}
+                className="w-4 h-4"
+              />
+              None
+            </label>
+            <label
+              className={`flex items-center gap-2 text-sm text-gray-700 ${
+                featuredSectionDisabled
+                  ? "cursor-not-allowed"
+                  : "cursor-pointer"
+              }`}
+            >
+              <input
+                type="radio"
+                name="featuredSection"
+                disabled={featuredSectionDisabled}
+                checked={currentFeaturedSection === "MOST_LOVED"}
+                onChange={() => handleFeaturedSectionChange("MOST_LOVED")}
+                className="w-4 h-4"
+              />
+              Most Loved This Week
+            </label>
+            {isMobileCategory && (
+              <label
+                className={`flex items-center gap-2 text-sm text-gray-700 ${
+                  featuredSectionDisabled
+                    ? "cursor-not-allowed"
+                    : "cursor-pointer"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="featuredSection"
+                  disabled={featuredSectionDisabled}
+                  checked={currentFeaturedSection === "PEOPLE_LOVE"}
+                  onChange={() => handleFeaturedSectionChange("PEOPLE_LOVE")}
+                  className="w-4 h-4"
+                />
+                Phones People Are Loving
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* Trending — independent, optional, unaffected by placement rules */}
         <div className="flex items-center gap-3">
           <input
             type="checkbox"
@@ -149,6 +266,59 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
             Mark as Trending
           </label>
         </div>
+
+        {/* Top Selling — mutually exclusive with Featured Section and Gaming */}
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="isTopSelling"
+            checked={currentIsTopSelling}
+            disabled={topSellingDisabled}
+            onChange={(e) => handleTopSellingChange(e.target.checked)}
+            className="w-4 h-4 rounded"
+          />
+          <label
+            htmlFor="isTopSelling"
+            className={`text-sm text-gray-700 ${
+              topSellingDisabled
+                ? "cursor-not-allowed opacity-50"
+                : "cursor-pointer"
+            }`}
+          >
+            Mark as Top Selling
+          </label>
+        </div>
+
+        {/* Gaming — only for laptop category, mutually exclusive with Featured Section and Top Selling */}
+        {isLaptopCategory && (
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isGaming"
+              checked={currentIsGaming}
+              disabled={gamingDisabled}
+              onChange={(e) => handleGamingChange(e.target.checked)}
+              className="w-4 h-4 rounded"
+            />
+            <label
+              htmlFor="isGaming"
+              className={`text-sm text-gray-700 ${
+                gamingDisabled
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }`}
+            >
+              Mark as Gaming Laptop
+            </label>
+          </div>
+        )}
+
+        {anyPlacementActive && (
+          <p className="text-xs text-gray-400 sm:col-span-2 -mt-2">
+            Only one placement can be active per product. Uncheck the current
+            one to choose another.
+          </p>
+        )}
       </div>
     </div>
   );

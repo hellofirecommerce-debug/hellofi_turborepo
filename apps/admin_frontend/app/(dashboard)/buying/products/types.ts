@@ -1,6 +1,6 @@
 export interface BuyingProductImage {
   id: string;
-  variantId: string; // ← required, no productId
+  variantId: string;
   xs?: string;
   sm?: string;
   md?: string;
@@ -24,11 +24,10 @@ export interface BuyingSpecification {
 export interface BuyingVariant {
   id: string;
   productId: string;
-  sku: string; // ← keep, auto-generated in backend
-  variantSubtitle: string; // ← required
-  inventoryProductId?: string; // ← add
+  sku: string;
+  variantSubtitle: string;
+  inventoryProductId?: string;
   inventoryProduct?: {
-    // ← add
     id: string;
     productName: string;
     imeiOrSerial: string;
@@ -37,7 +36,7 @@ export interface BuyingVariant {
   liveLink?: string;
   color?: string;
   colorCode?: string;
-  storage?: string; // ← optional
+  storage?: string;
   ram?: string;
   price: number;
   mrp: number;
@@ -60,20 +59,24 @@ export interface BuyingVariant {
   updatedAt: string;
 }
 
+export type FeaturedSection = "NONE" | "MOST_LOVED" | "PEOPLE_LOVE";
+
 export interface BuyingProduct {
   id: string;
   productName: string;
   productSubtitle: string;
   slug: string;
-  brandId?: string; // ← optional
-  manualBrand?: string; // ← add
+  brandId?: string;
+  manualBrand?: string;
   categoryId: string;
+  featuredSection: FeaturedSection;
   isTrending: boolean;
-  brand?: { id: string; name: string }; // ← optional
+  isTopSelling: boolean;
+  isGaming: boolean;
+  brand?: { id: string; name: string };
   category: { id: string; name: string };
   variants: BuyingVariant[];
   specifications: BuyingSpecification[];
-  // ← no images at product level
   createdAt: string;
   updatedAt: string;
 }
@@ -90,7 +93,10 @@ export interface BuyingProductFilter {
   search?: string;
   brandId?: string;
   categoryId?: string;
+  featuredSection?: FeaturedSection;
   isTrending?: boolean;
+  isTopSelling?: boolean;
+  isGaming?: boolean;
   page?: number;
   pageSize?: number;
 }

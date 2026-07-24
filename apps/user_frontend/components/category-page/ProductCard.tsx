@@ -24,7 +24,7 @@ const BADGE_STYLES: Record<string, string> = {
 
 interface ProductCardProps {
   product: Product;
-  variant?: "light" | "dark";
+  variant?: "light" | "dark" | "flash";
 }
 
 export function ProductCard({ product, variant = "light" }: ProductCardProps) {
@@ -42,18 +42,26 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
   } = product;
 
   const isDark = variant === "dark";
+  const isFlash = variant === "flash";
 
   return (
     <div
-      className={`shrink-0 w-[220px] sm:w-[250px] lg:w-[280px] rounded-xl overflow-hidden border ${
-        isDark ? "bg-[#12100A]" : "bg-card-surface border-card-border"
+      className={`shrink-0 w-[220px] sm:w-[250px] lg:w-[280px] rounded-xl cursor-pointer overflow-hidden border ${
+        isDark || isFlash ? "" : "bg-card-surface border-card-border"
       }`}
-      style={isDark ? { borderColor: "#674e2e55" } : undefined}
+      style={
+        isDark
+          ? { backgroundColor: "#12100A", borderColor: "#674e2e55" }
+          : isFlash
+            ? { backgroundColor: "#121212", borderColor: "#FFFFFF1a" }
+            : undefined
+      }
     >
       <div
         className={`relative aspect-square flex items-center justify-center ${
-          isDark ? "bg-[#1A1610]" : "bg-gray-200"
+          isDark ? "" : isFlash ? "bg-white" : "bg-gray-200"
         }`}
+        style={isDark ? { backgroundColor: "#1A1610" } : undefined}
       >
         {badge && (
           <span
@@ -66,15 +74,21 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
           type="button"
           aria-label="Add to wishlist"
           className={`absolute top-2 right-2 z-10 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full transition-colors ${
-            isDark
+            isDark || isFlash
               ? "bg-black/50 hover:bg-black/70"
               : "bg-white/90 hover:bg-white"
           }`}
         >
           <Heart
             size={13}
-            style={isDark ? { color: "#d7ba86" } : undefined}
-            className={!isDark ? "text-gray-500" : ""}
+            style={
+              isDark
+                ? { color: "#d7ba86" }
+                : isFlash
+                  ? { color: "#1B70CD" }
+                  : undefined
+            }
+            className={!isDark && !isFlash ? "text-gray-500" : ""}
           />
         </button>
 
@@ -89,7 +103,13 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
         ) : (
           <span
             className="text-xs sm:text-sm font-medium"
-            style={isDark ? { color: "#d7ba8680" } : { color: "#9ca3af" }}
+            style={
+              isDark
+                ? { color: "#d7ba8680" }
+                : isFlash
+                  ? { color: "#9ca3af" }
+                  : { color: "#9ca3af" }
+            }
           >
             {name}
           </span>
@@ -99,13 +119,19 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
       <div className="p-2.5 sm:p-3 flex flex-col gap-1">
         <p
           className="text-[10px] sm:text-xs"
-          style={isDark ? { color: "#d7ba8699" } : { color: "#9ca3af" }}
+          style={
+            isDark
+              ? { color: "#d7ba8699" }
+              : isFlash
+                ? { color: "#6b7280" }
+                : { color: "#9ca3af" }
+          }
         >
           {brand}
         </p>
         <p
           className={`text-xs sm:text-sm font-semibold leading-tight truncate ${
-            isDark ? "text-white" : "text-black"
+            isDark || isFlash ? "text-white" : "text-black"
           }`}
         >
           {name}
@@ -117,10 +143,12 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
             style={
               isDark
                 ? { backgroundColor: "#d7ba861a", color: "#f0cf8f" }
-                : undefined
+                : isFlash
+                  ? { backgroundColor: "#1B70CD1a", color: "#1B70CD" }
+                  : undefined
             }
           >
-            {isDark ? (
+            {isDark || isFlash ? (
               storage
             ) : (
               <span className="bg-primary-surface text-primary px-0 py-0 rounded">
@@ -130,7 +158,9 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
           </span>
           <span
             className={`text-[10px] sm:text-xs px-1.5 py-0.5 rounded font-medium ${
-              isDark ? "bg-white/5 text-gray-400" : "bg-gray-100 text-gray-500"
+              isDark || isFlash
+                ? "bg-white/5 text-gray-400"
+                : "bg-gray-100 text-gray-500"
             }`}
           >
             {condition}
@@ -139,7 +169,11 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
 
         <div className="flex items-baseline gap-1.5 mt-1">
           <span
-            className={`text-sm sm:text-base font-bold ${isDark ? "text-white" : "text-black"}`}
+            className="text-sm sm:text-base font-bold"
+            style={isFlash ? { color: "#1B70CD" } : undefined}
+            {...(!isFlash && {
+              className: `text-sm sm:text-base font-bold ${isDark ? "text-white" : "text-black"}`,
+            })}
           >
             ₹{price.toLocaleString("en-IN")}
           </span>
@@ -149,24 +183,28 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
         </div>
         <span
           className={`text-[10px] sm:text-xs line-through -mt-1 ${
-            isDark ? "text-gray-500" : "text-gray-400"
+            isDark || isFlash ? "text-gray-500" : "text-gray-400"
           }`}
         >
           ₹{originalPrice.toLocaleString("en-IN")}
         </span>
 
         <p
-          className={`text-[9px] sm:text-[11px] mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}
+          className={`text-[9px] sm:text-[11px] mt-0.5 ${
+            isDark || isFlash ? "text-gray-500" : "text-gray-400"
+          }`}
         >
           EMI Available from ₹{emiFrom}/Month
         </p>
 
         <button
           type="button"
-          className={`mt-2 w-full text-xs sm:text-sm font-semibold py-1.5 sm:py-2 rounded-lg border transition-colors ${
+          className={`mt-2 cursor-pointer w-full text-xs sm:text-sm font-semibold py-1.5 sm:py-2 rounded-lg transition-colors ${
             isDark
-              ? "text-black"
-              : "border-primary text-primary hover:bg-primary hover:text-white"
+              ? "text-black border"
+              : isFlash
+                ? "text-white"
+                : "border border-primary text-primary hover:bg-primary hover:text-white"
           }`}
           style={
             isDark
@@ -175,10 +213,12 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
                   backgroundImage:
                     "linear-gradient(120deg, #e8dfc9 1.67%, #f0cf8f 30.32%, #d7ba86 93.87%)",
                 }
-              : undefined
+              : isFlash
+                ? { backgroundColor: "#0066FF" }
+                : undefined
           }
         >
-          Add to Cart
+          {isFlash ? "BUY NOW" : "Add to Cart"}
         </button>
       </div>
     </div>
