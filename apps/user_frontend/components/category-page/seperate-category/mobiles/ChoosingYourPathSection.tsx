@@ -61,7 +61,7 @@ export function ChoosingYourPathSection() {
         {/* right — Android vs iPhone image */}
         <div className="relative w-full aspect-[4/3] rounded-xl sm:rounded-2xl overflow-hidden">
           <Image
-            src="/images/buy-category/mobiles/Androidvsios.png"
+            src="/images/buy-category/mobiles/AndroidvsIos.png"
             alt="Android vs iPhone comparison"
             fill
             className="object-cover"
