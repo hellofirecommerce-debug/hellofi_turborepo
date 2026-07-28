@@ -17,8 +17,6 @@ export const typeDefs = `#graphql
     MACOS
   }
 
- 
-
   enum FeaturedSection {
     NONE
     MOST_LOVED
@@ -95,11 +93,11 @@ type BuyingProduct {
   brandId: String
   manualBrand: String
   categoryId: String!
-
   featuredSection: FeaturedSection!
   isTrending: Boolean!
   isTopSelling: Boolean!
   isGaming: Boolean!
+  isMegaDhamaka: Boolean!
   brand: Brand
   category: Category
   variants: [BuyingVariant!]!
@@ -155,11 +153,11 @@ input CreateBuyingProductInput {
   brandId: String
   manualBrand: String
   categoryId: String!
-
   featuredSection: FeaturedSection
   isTrending: Boolean
   isTopSelling: Boolean
   isGaming: Boolean
+  isMegaDhamaka: Boolean
   specifications: [BuyingSpecificationInput!]
   variants: [BuyingVariantInput!]
 }
@@ -199,11 +197,11 @@ input UpdateBuyingProductInput {
   brandId: String
   manualBrand: String
   categoryId: String
-  
   featuredSection: FeaturedSection
   isTrending: Boolean
   isTopSelling: Boolean
   isGaming: Boolean
+  isMegaDhamaka: Boolean
   specifications: [BuyingSpecificationInput!]
   variants: [UpdateBuyingVariantInput!]
 }
@@ -213,11 +211,11 @@ input BuyingProductFilterInput {
   search: String
   brandId: String
   categoryId: String
- 
   featuredSection: FeaturedSection
   isTrending: Boolean
   isTopSelling: Boolean
   isGaming: Boolean
+  isMegaDhamaka: Boolean
   page: Int
   pageSize: Int
 }

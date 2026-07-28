@@ -11,11 +11,11 @@ export const GET_BUYING_PRODUCTS = gql`
         brandId
         manualBrand
         categoryId
-
         featuredSection
         isTrending
         isTopSelling
         isGaming
+        isMegaDhamaka
         brand {
           id
           name
@@ -80,6 +80,7 @@ export const GET_BUYING_PRODUCT_BY_ID = gql`
       isTrending
       isTopSelling
       isGaming
+      isMegaDhamaka
       brand {
         id
         name

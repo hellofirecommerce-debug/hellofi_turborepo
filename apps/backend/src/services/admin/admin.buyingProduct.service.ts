@@ -147,6 +147,51 @@ function buildVariantData(
   };
 }
 
+// ── Enforce: Mega Dhamaka allows max 1 Apple product + 1 non-Apple product per category ──
+async function assertMegaDhamakaCapacity(params: {
+  categoryId: string;
+  brandId: string | null | undefined;
+  isMegaDhamaka: boolean | undefined;
+  excludeProductId?: string;
+}) {
+  const { categoryId, brandId, isMegaDhamaka, excludeProductId } = params;
+
+  if (isMegaDhamaka !== true) return;
+
+  const brand = brandId
+    ? await prisma.brand.findUnique({ where: { id: brandId } })
+    : null;
+  const isApple = brand?.name?.toLowerCase() === "apple";
+
+  const existing = await prisma.buyingProduct.findMany({
+    where: {
+      categoryId,
+      isMegaDhamaka: true,
+      ...(excludeProductId ? { id: { not: excludeProductId } } : {}),
+    },
+    include: { brand: true },
+  });
+
+  const appleSlotTaken = existing.some(
+    (p) => p.brand?.name?.toLowerCase() === "apple",
+  );
+  const otherSlotTaken = existing.some(
+    (p) => p.brand?.name?.toLowerCase() !== "apple",
+  );
+
+  if (isApple && appleSlotTaken) {
+    throwInputError(
+      "Mega Dhamaka already has an Apple product for this category. Remove it before adding another.",
+    );
+  }
+
+  if (!isApple && otherSlotTaken) {
+    throwInputError(
+      "Mega Dhamaka already has a non-Apple product for this category. Remove it before adding another.",
+    );
+  }
+}
+
 // ── Enforce: only ONE of {featuredSection, isTopSelling, isGaming} can be active ──
 function assertPlacementCompatibility(
   featuredSection: string | undefined,
@@ -172,7 +217,7 @@ async function assertSectionCapacity(params: {
   featuredSection?: string;
   isTopSelling?: boolean;
   isGaming?: boolean;
-  excludeProductId?: string; // ← used on update, to not count itself
+  excludeProductId?: string;
 }) {
   const {
     categoryId,
@@ -241,6 +286,7 @@ class AdminBuyingProductService {
     isTrending?: boolean;
     isTopSelling?: boolean;
     isGaming?: boolean;
+    isMegaDhamaka?: boolean;
     page?: number;
     pageSize?: number;
   }) {
@@ -269,6 +315,9 @@ class AdminBuyingProductService {
         }),
         ...(filter?.isGaming !== undefined && {
           isGaming: filter.isGaming,
+        }),
+        ...(filter?.isMegaDhamaka !== undefined && {
+          isMegaDhamaka: filter.isMegaDhamaka,
         }),
       };
 
@@ -340,6 +389,11 @@ class AdminBuyingProductService {
         isTopSelling: validated.isTopSelling,
         isGaming: validated.isGaming,
       });
+      await assertMegaDhamakaCapacity({
+        categoryId: validated.categoryId,
+        brandId: validated.brandId,
+        isMegaDhamaka: validated.isMegaDhamaka,
+      });
 
       for (const variant of validated.variants ?? []) {
         if (!variant.variantKey) continue;
@@ -364,6 +418,7 @@ class AdminBuyingProductService {
           isTrending: validated.isTrending,
           isTopSelling: validated.isTopSelling ?? false,
           isGaming: validated.isGaming ?? false,
+          isMegaDhamaka: validated.isMegaDhamaka ?? false,
           specifications: {
             create: (validated.specifications ?? []).map((s) => ({
               key: s.key,
@@ -457,12 +512,15 @@ class AdminBuyingProductService {
 
       // ── Resolve effective values (fall back to existing product's current value) ──
       const effectiveCategoryId = updateData.categoryId ?? product.categoryId;
+      const effectiveBrandId = updateData.brandId ?? product.brandId;
       const effectiveFeaturedSection =
         updateData.featuredSection ?? (product as any).featuredSection;
       const effectiveIsTopSelling =
         updateData.isTopSelling ?? (product as any).isTopSelling;
       const effectiveIsGaming =
         updateData.isGaming ?? (product as any).isGaming;
+      const effectiveIsMegaDhamaka =
+        updateData.isMegaDhamaka ?? (product as any).isMegaDhamaka;
 
       // ── Mutual exclusivity check ──
       assertPlacementCompatibility(
@@ -481,6 +539,9 @@ class AdminBuyingProductService {
       const isGamingChanging =
         updateData.isGaming !== undefined &&
         updateData.isGaming !== (product as any).isGaming;
+      const isMegaDhamakaChanging =
+        updateData.isMegaDhamaka !== undefined &&
+        updateData.isMegaDhamaka !== (product as any).isMegaDhamaka;
 
       if (featuredSectionChanging || isTopSellingChanging || isGamingChanging) {
         await assertSectionCapacity({
@@ -492,6 +553,15 @@ class AdminBuyingProductService {
             ? effectiveIsTopSelling
             : undefined,
           isGaming: isGamingChanging ? effectiveIsGaming : undefined,
+          excludeProductId: id,
+        });
+      }
+
+      if (isMegaDhamakaChanging) {
+        await assertMegaDhamakaCapacity({
+          categoryId: effectiveCategoryId,
+          brandId: effectiveBrandId,
+          isMegaDhamaka: effectiveIsMegaDhamaka,
           excludeProductId: id,
         });
       }
@@ -638,6 +708,7 @@ class AdminBuyingProductService {
           isTrending: updateData.isTrending,
           isTopSelling: updateData.isTopSelling,
           isGaming: updateData.isGaming,
+          isMegaDhamaka: updateData.isMegaDhamaka,
         },
         include: buyingProductInclude,
       });

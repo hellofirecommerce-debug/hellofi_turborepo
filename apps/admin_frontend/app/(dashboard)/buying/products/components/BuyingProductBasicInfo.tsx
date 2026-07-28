@@ -35,6 +35,10 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
   const currentFeaturedSection = (form as any).featuredSection ?? "NONE";
   const currentIsTopSelling = (form as any).isTopSelling ?? false;
   const currentIsGaming = (form as any).isGaming ?? false;
+  const currentIsMegaDhamaka = (form as any).isMegaDhamaka ?? false;
+
+  const selectedBrand = brands.find((b) => b.id === form.brandId);
+  const isApple = selectedBrand?.name?.toLowerCase() === "apple";
 
   // ── Only one placement active at a time: Featured Section, Top Selling, Gaming ──
   const handleFeaturedSectionChange = (value: string) => {
@@ -312,6 +316,41 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
             </label>
           </div>
         )}
+
+        {/* Mega Dhamaka — independent, but capped to 1 Apple + 1 non-Apple per category */}
+        <div className="flex flex-col gap-1 sm:col-span-2">
+          <div className="flex items-center gap-3">
+            <input
+              type="checkbox"
+              id="isMegaDhamaka"
+              checked={currentIsMegaDhamaka}
+              disabled={!form.brandId && !isOtherAccessories}
+              onChange={(e) =>
+                onChange("isMegaDhamaka" as any, e.target.checked)
+              }
+              className="w-4 h-4 rounded"
+            />
+            <label
+              htmlFor="isMegaDhamaka"
+              className={`text-sm text-gray-700 ${
+                !form.brandId && !isOtherAccessories
+                  ? "cursor-not-allowed opacity-50"
+                  : "cursor-pointer"
+              }`}
+            >
+              Mark as Mega Dhamaka
+            </label>
+          </div>
+          <p className="text-xs text-gray-400 ml-7">
+            Only 1 Apple product and 1 non-Apple product can be Mega Dhamaka per
+            category.{" "}
+            {form.brandId && (
+              <span className="font-medium">
+                This product is {isApple ? "Apple" : "non-Apple"}.
+              </span>
+            )}
+          </p>
+        </div>
 
         {anyPlacementActive && (
           <p className="text-xs text-gray-400 sm:col-span-2 -mt-2">

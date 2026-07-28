@@ -215,6 +215,7 @@ model BuyingProduct {
   isTrending      Boolean         @default(false)
   isTopSelling    Boolean         @default(false)
   isGaming        Boolean         @default(false)
+  isMegaDhamaka   Boolean         @default(false)
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -226,6 +227,7 @@ model BuyingProduct {
   @@index([categoryId, featuredSection])
   @@index([categoryId, isTopSelling])
   @@index([categoryId, isTrending])
+  @@index([categoryId, isMegaDhamaka])
 }
 
 model BuyingVariant {

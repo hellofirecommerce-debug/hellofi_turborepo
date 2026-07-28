@@ -9,11 +9,11 @@ export const CREATE_BUYING_PRODUCT = gql`
       id
       productName
       slug
-
       featuredSection
       isTrending
       isTopSelling
       isGaming
+      isMegaDhamaka
       brand {
         id
         name
@@ -61,6 +61,7 @@ export const UPDATE_BUYING_PRODUCT = gql`
       isTrending
       isTopSelling
       isGaming
+      isMegaDhamaka
       brand {
         id
         name

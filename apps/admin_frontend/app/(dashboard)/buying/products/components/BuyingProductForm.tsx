@@ -57,6 +57,7 @@ export const BuyingProductForm: React.FC<Props> = ({
     isTrending: false,
     isTopSelling: false,
     isGaming: false,
+    isMegaDhamaka: false,
     specifications: [],
     variants: [],
   });
@@ -103,6 +104,7 @@ export const BuyingProductForm: React.FC<Props> = ({
         isTrending: editData.isTrending,
         isTopSelling: editData.isTopSelling ?? false,
         isGaming: editData.isGaming ?? false,
+        isMegaDhamaka: editData.isMegaDhamaka ?? false,
         specifications: editData.specifications.map((s) => ({
           key: s.key,
           value: s.value,
