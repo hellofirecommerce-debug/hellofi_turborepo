@@ -287,6 +287,7 @@ class AdminBuyingProductService {
     isTopSelling?: boolean;
     isGaming?: boolean;
     isMegaDhamaka?: boolean;
+    availability?: "IN_STOCK" | "OUT_OF_STOCK"; // ← new
     page?: number;
     pageSize?: number;
   }) {
@@ -318,6 +319,13 @@ class AdminBuyingProductService {
         }),
         ...(filter?.isMegaDhamaka !== undefined && {
           isMegaDhamaka: filter.isMegaDhamaka,
+        }),
+        // ── Stock status: derived from variant quantity, reservedQuantity is irrelevant ──
+        ...(filter?.availability === "IN_STOCK" && {
+          variants: { some: { quantity: { gt: 0 } } },
+        }),
+        ...(filter?.availability === "OUT_OF_STOCK" && {
+          variants: { none: { quantity: { gt: 0 } } },
         }),
       };
 

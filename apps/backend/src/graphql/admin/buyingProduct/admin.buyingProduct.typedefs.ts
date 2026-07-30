@@ -216,6 +216,7 @@ input BuyingProductFilterInput {
   isTopSelling: Boolean
   isGaming: Boolean
   isMegaDhamaka: Boolean
+  availability: BuyingAvailability   // ← new
   page: Int
   pageSize: Int
 }

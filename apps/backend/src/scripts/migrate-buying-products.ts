@@ -1,11 +1,14 @@
+import dns from "dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
+
 import mongoose from "mongoose";
+import prisma from "@repo/db";
 import dotenv from "dotenv";
 dotenv.config();
-import prisma from "@repo/db";
 
 const BATCH_SIZE = 10;
 
-// ── Mongoose Schemas (mirroring your legacy collections) ──
+// ── Mongoose Schemas ──
 const BuyingProductSchema = new mongoose.Schema(
   {
     productName: String,
@@ -153,7 +156,6 @@ async function migrate() {
   console.log("✅ Connected to PostgreSQL");
 
   try {
-    // ── Preload lookup data ──
     console.log("Preloading lookup data into memory...");
 
     const allBrands = await prisma.brand.findMany();
@@ -250,7 +252,6 @@ async function migrate() {
               manualBrand: !brand && product.brand ? product.brand : null,
               categoryId: category.id,
               isTrending: product.isTrending ?? false,
-              // featuredSection, isTopSelling, isGaming, isMegaDhamaka default in schema
             },
           });
           console.log(`  [${index}] ✅ ${product.productName}`);
@@ -268,7 +269,6 @@ async function migrate() {
       `\nProduct migration — ✅ ${productSuccess} success, ⏭️ ${productExists} exists, ⚠️ ${productSkipped} skipped`,
     );
 
-    // Refresh product id set for FK checks in later steps
     const validProductIds = new Set(
       (await prisma.buyingProduct.findMany({ select: { id: true } })).map(
         (p) => p.id,
@@ -335,7 +335,6 @@ async function migrate() {
           continue;
         }
 
-        // resolve inventory link via imeiOrSerial, guarding against the unique constraint
         let inventoryProductId: string | null = null;
         if (variant.imeiOrSerial) {
           const matchedId = inventoryByImei.get(variant.imeiOrSerial) ?? null;
@@ -475,11 +474,46 @@ async function migrate() {
 
     // ═══════════════════════════════════════
     // STEP 4 — Migrate BuyingProductImage
+    //
+    // Rule 1: variantId present (regardless of productId) → attach ONLY to that
+    //         variant, isDefault forced to false.
+    // Rule 2: variantId is null AND isDefault: true → true product-level default.
+    //         Only ONE per product is used (lowest priority, else first found),
+    //         fanned out to every variant of that product.
+    // Rule 3: productId === variantId (data bug) → invalid, skip entirely.
     // ═══════════════════════════════════════
     console.log("\n════ STEP 4: Migrating BuyingProductImage ════");
 
     const images = await BuyingProductImagesModel.find({}).lean();
     console.log(`Found ${images.length} images`);
+
+    const allMigratedVariants = await prisma.buyingVariant.findMany({
+      select: { id: true, productId: true },
+    });
+    const variantsByProduct = new Map<string, string[]>();
+    for (const v of allMigratedVariants) {
+      const list = variantsByProduct.get(v.productId) ?? [];
+      list.push(v.id);
+      variantsByProduct.set(v.productId, list);
+    }
+
+    // ── Pre-scan: pick exactly ONE true default image per product ──
+    const chosenDefaultByProduct = new Map<string, any>();
+    for (const image of images as any[]) {
+      const productId = image.productId?.toString();
+      const variantId = image.variantId?.toString();
+
+      const isBuggyMatch = productId && variantId && productId === variantId;
+      const isTrueDefault =
+        !variantId && (image.isDefault ?? false) && !isBuggyMatch;
+
+      if (!isTrueDefault || !productId) continue;
+
+      const existing = chosenDefaultByProduct.get(productId);
+      if (!existing || (image.priority ?? 0) < (existing.priority ?? 0)) {
+        chosenDefaultByProduct.set(productId, image);
+      }
+    }
 
     const existingImageIds = new Set(
       (await prisma.buyingProductImage.findMany({ select: { id: true } })).map(
@@ -502,42 +536,142 @@ async function migrate() {
       for (let j = 0; j < batch.length; j++) {
         const image = batch[j] as any;
         const index = startIndex + j;
-        const id = image._id.toString();
+        const sourceId = image._id.toString();
 
-        if (existingImageIds.has(id)) {
-          console.log(`  [${index}] ⏭️ Already exists: ${id}`);
-          imageExists++;
-          continue;
-        }
+        const sourceProductId: string | undefined = image.productId?.toString();
+        const sourceVariantId: string | undefined = image.variantId?.toString();
 
-        const variantId = image.variantId?.toString();
-        if (!variantId || !validVariantIds.has(variantId)) {
+        // ── Rule 3 — buggy record where variantId equals productId ──
+        if (
+          sourceProductId &&
+          sourceVariantId &&
+          sourceProductId === sourceVariantId
+        ) {
           console.log(
-            `  [${index}] ⚠️ Skipped — parent variant not found: ${id}`,
+            `  [${index}] ⚠️ Skipped — variantId equals productId (bad data): ${sourceId}`,
           );
           imageSkipped++;
           continue;
         }
 
-        try {
-          await prisma.buyingProductImage.create({
-            data: {
-              id,
-              variantId,
-              xs: image.xs ?? null,
-              sm: image.sm ?? null,
-              md: image.md ?? null,
-              lg: image.lg ?? null,
-              alt: image.alt ?? null,
-              priority: image.priority ?? 0,
-              isDefault: image.isDefault ?? false,
-            },
-          });
-          console.log(`  [${index}] ✅ image ${id}`);
-          imageSuccess++;
-        } catch (err: any) {
-          console.error(`  [${index}] ❌ Error: ${id} — ${err.message}`);
-          imageSkipped++;
+        const isTrueDefaultCandidate =
+          !sourceVariantId && (image.isDefault ?? false);
+
+        if (isTrueDefaultCandidate) {
+          // ── Rule 2 — true product-level default ──
+          if (!sourceProductId || !validProductIds.has(sourceProductId)) {
+            console.log(
+              `  [${index}] ⚠️ Skipped (default) — parent product not found: ${sourceId}`,
+            );
+            imageSkipped++;
+            continue;
+          }
+
+          const chosen = chosenDefaultByProduct.get(sourceProductId);
+          if (!chosen || chosen._id.toString() !== sourceId) {
+            console.log(
+              `  [${index}] ⏭️ Skipped extra default (product already has one chosen): ${sourceId}`,
+            );
+            imageSkipped++;
+            continue;
+          }
+
+          const variantIdsForProduct =
+            variantsByProduct.get(sourceProductId) ?? [];
+          if (variantIdsForProduct.length === 0) {
+            console.log(
+              `  [${index}] ⚠️ Skipped (default) — no variants exist for product: ${sourceProductId}`,
+            );
+            imageSkipped++;
+            continue;
+          }
+
+          for (const targetVariantId of variantIdsForProduct) {
+            const targetId = `${sourceId}-${targetVariantId}`;
+
+            if (existingImageIds.has(targetId)) {
+              console.log(
+                `  [${index}] ⏭️ Already exists (default): ${targetId}`,
+              );
+              imageExists++;
+              continue;
+            }
+
+            try {
+              await prisma.buyingProductImage.create({
+                data: {
+                  id: targetId,
+                  variantId: targetVariantId,
+                  xs: image.xs ?? null,
+                  sm: image.sm ?? null,
+                  md: image.md ?? null,
+                  lg: image.lg ?? null,
+                  alt: image.alt ?? null,
+                  priority: image.priority ?? 0,
+                  isDefault: true,
+                },
+              });
+              existingImageIds.add(targetId);
+              console.log(
+                `  [${index}] ✅ default image ${sourceId} → variant ${targetVariantId}`,
+              );
+              imageSuccess++;
+            } catch (err: any) {
+              console.error(
+                `  [${index}] ❌ Error (default): ${targetId} — ${err.message}`,
+              );
+              imageSkipped++;
+            }
+          }
+        } else {
+          // ── Rule 1 — has its own variantId → belongs only to that variant, isDefault forced false ──
+          if (existingImageIds.has(sourceId)) {
+            console.log(`  [${index}] ⏭️ Already exists: ${sourceId}`);
+            imageExists++;
+            continue;
+          }
+
+          if (!sourceVariantId) {
+            console.log(
+              `  [${index}] ⚠️ Skipped — no variantId and not a valid default: ${sourceId}`,
+            );
+            imageSkipped++;
+            continue;
+          }
+
+          if (!validVariantIds.has(sourceVariantId)) {
+            console.log(
+              `  [${index}] ⚠️ Skipped — variantId ${sourceVariantId} does not exist in migrated variants: ${sourceId}`,
+            );
+            imageSkipped++;
+            continue;
+          }
+
+          try {
+            await prisma.buyingProductImage.create({
+              data: {
+                id: sourceId,
+                variantId: sourceVariantId,
+                xs: image.xs ?? null,
+                sm: image.sm ?? null,
+                md: image.md ?? null,
+                lg: image.lg ?? null,
+                alt: image.alt ?? null,
+                priority: image.priority ?? 0,
+                isDefault: false,
+              },
+            });
+            existingImageIds.add(sourceId);
+            console.log(
+              `  [${index}] ✅ image ${sourceId} → variant ${sourceVariantId}`,
+            );
+            imageSuccess++;
+          } catch (err: any) {
+            console.error(
+              `  [${index}] ❌ Error: ${sourceId} — ${err.message}`,
+            );
+            imageSkipped++;
+          }
         }
       }
     }
@@ -546,7 +680,6 @@ async function migrate() {
       `\nImage migration — ✅ ${imageSuccess} success, ⏭️ ${imageExists} exists, ⚠️ ${imageSkipped} skipped`,
     );
 
-    // ═══════════════════════════════════════
     console.log(`\n════════════════════════════════`);
     console.log(`FULL MIGRATION COMPLETE`);
     console.log(

@@ -48,7 +48,8 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
   const hasActiveFilters = !!(
     filter.brandId ||
     filter.categoryId ||
-    filter.isTrending !== undefined
+    filter.isTrending !== undefined ||
+    filter.availability !== undefined // ← new
   );
 
   useEffect(() => {
@@ -168,6 +169,24 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
               <option value="">All</option>
               <option value="true">Trending</option>
               <option value="false">Not Trending</option>
+            </select>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>Stock</Label>
+            <select
+              title="stock"
+              value={filter.availability ?? ""}
+              onChange={(e) =>
+                onChange(
+                  "availability",
+                  e.target.value === "" ? undefined : e.target.value,
+                )
+              }
+              className={selectClass}
+            >
+              <option value="">All</option>
+              <option value="IN_STOCK">In Stock</option>
+              <option value="OUT_OF_STOCK">Out of Stock</option>
             </select>
           </div>
         </div>

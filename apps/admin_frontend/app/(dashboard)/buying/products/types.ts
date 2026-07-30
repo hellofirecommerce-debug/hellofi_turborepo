@@ -99,6 +99,7 @@ export interface BuyingProductFilter {
   isTopSelling?: boolean;
   isGaming?: boolean;
   isMegaDhamaka?: boolean;
+  availability?: "IN_STOCK" | "OUT_OF_STOCK";
   page?: number;
   pageSize?: number;
 }
