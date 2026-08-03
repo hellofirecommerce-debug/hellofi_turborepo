@@ -94,7 +94,7 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
 
         {image ? (
           <Image
-            src={image}
+            src={`${process.env.NEXT_PUBLIC_CDN_URL}/${image}`}
             alt={name}
             fill
             className="object-cover"
