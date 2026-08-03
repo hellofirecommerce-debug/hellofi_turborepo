@@ -32,7 +32,7 @@ import { PreownedComparisonTable } from "../seperate-category/mobiles/PreownedCo
 
 interface Props {
   placement: string;
-  category: string; // e.g. "mobile", "laptop", "tablet", "smartwatch" — used later to fetch category-specific data
+  category: string; // e.g. "mobile", "laptop", "tablet", "smartwatch"
 }
 
 export function BuyCategoryPage({ placement, category }: Props) {
@@ -49,7 +49,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 w-full">
-        <MostLovedSection />
+        <MostLovedSection categorySlug={category} />
       </div>
 
       <BestSellingPlatformBanner />

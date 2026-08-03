@@ -22,9 +22,10 @@ import { KeyFeaturesSection } from "../KeyFeaturesSection";
 
 interface Props {
   placement: string;
+  categorySlug?: string;
 }
 
-export function BuyGadgetsPage({ placement }: Props) {
+export function BuyGadgetsPage({ placement, categorySlug }: Props) {
   return (
     <div className="min-h-dvh flex flex-col gap-6 py-10">
       <div className="max-w-7xl mx-auto px-4 w-full">
@@ -37,7 +38,7 @@ export function BuyGadgetsPage({ placement }: Props) {
         <CategoryGrid />
       </div>
       <div className="max-w-7xl mx-auto px-4 w-full">
-        <MostLovedSection />
+        <MostLovedSection categorySlug={categorySlug} />
       </div>
       <ShopByBudget />
       <div className="max-w-7xl mx-auto px-4 w-full">

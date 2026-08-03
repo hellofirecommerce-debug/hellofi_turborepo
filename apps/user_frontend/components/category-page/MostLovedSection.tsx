@@ -1,89 +1,88 @@
-// components/category-page/MostLovedSection.tsx
+"use client";
+import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
+import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
+import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
 
-const MOST_LOVED_PRODUCTS: Product[] = [
-  {
-    id: "1",
-    brand: "Motorola",
-    name: "Motorola Edge 70",
-    storage: "256GB",
-    condition: "Like New",
-    price: 29999,
-    originalPrice: 35000,
-    discountPercent: 34,
-    emiFrom: 1500,
-    badge: "Brand Warranty",
-  },
-  {
-    id: "2",
-    brand: "Apple",
-    name: "iPad Pro 4th Gen",
-    storage: "128GB",
-    condition: "Good",
-    price: 79999,
-    originalPrice: 134000,
-    discountPercent: 41,
-    emiFrom: 1500,
-    badge: "Seller Warranty",
-  },
-  {
-    id: "3",
-    brand: "Apple",
-    name: "MacBook Air M4",
-    storage: "256GB",
-    condition: "Like New",
-    price: 74999,
-    originalPrice: 129999,
-    discountPercent: 42,
-    emiFrom: 1500,
-    badge: "Brand Warranty",
-  },
-  {
-    id: "4",
-    brand: "Google",
-    name: "Google Pixel 8 Pro",
-    storage: "128GB",
-    condition: "Good",
-    price: 59999,
-    originalPrice: 106999,
-    discountPercent: 44,
-    emiFrom: 1500,
-    badge: "Just In",
-  },
-  {
-    id: "5",
-    brand: "Apple",
-    name: "iPhone 14 Plus",
-    storage: "128GB",
-    condition: "Fair",
-    price: 48999,
-    originalPrice: 89999,
-    discountPercent: 45,
-    emiFrom: 2000,
-    badge: "Just In",
-  },
-  {
-    id: "6",
-    brand: "Samsung",
-    name: "Galaxy S20 Ultra",
-    storage: "128GB",
-    condition: "Fair",
-    price: 48999,
-    originalPrice: 89999,
-    discountPercent: 45,
-    emiFrom: 2000,
-    badge: "Just In",
-  },
-];
+const CONDITION_LABELS: Record<string, string> = {
+  UNBOXED: "Unboxed",
+  SUPERB: "Like New",
+  GOOD: "Good",
+  FAIR: "Fair",
+  PARTIALLY_FAIR: "Fair",
+};
 
-export function MostLovedSection() {
+const BADGE_BY_WARRANTY: Partial<
+  Record<string, NonNullable<Product["badge"]>>
+> = {
+  BRAND_WARRANTY: "Brand Warranty",
+};
+
+interface BuyingProductCard {
+  id: string;
+  productName: string;
+  brand?: { name: string } | null;
+  manualBrand?: string | null;
+  storage?: string | null;
+  condition: string;
+  warrantyType: string;
+  price: number;
+  mrp: number;
+  emiBasePrice?: number | null;
+  image?: {
+    md?: string | null;
+    lg?: string | null;
+    alt?: string | null;
+  } | null;
+}
+
+interface GetBuyingProductsBySectionData {
+  getBuyingProductsBySection: BuyingProductCard[];
+}
+
+interface GetBuyingProductsBySectionVars {
+  section: string;
+  categorySlug?: string;
+}
+
+interface Props {
+  categorySlug?: string;
+}
+
+export function MostLovedSection({ categorySlug }: Props) {
+  const { data, loading } = useQuery<
+    GetBuyingProductsBySectionData,
+    GetBuyingProductsBySectionVars
+  >(GET_BUYING_PRODUCTS_BY_SECTION, {
+    variables: { section: "MOST_LOVED", categorySlug },
+  });
+
+  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+
+  const products: Product[] = data.getBuyingProductsBySection.map((c) => {
+    const { discountPercent } = calculateDiscount(c.mrp, c.price);
+    return {
+      id: c.id,
+      brand: c.brand?.name ?? c.manualBrand ?? "",
+      name: c.productName,
+      storage: c.storage ?? "",
+      condition: CONDITION_LABELS[c.condition] ?? c.condition,
+      price: c.price,
+      originalPrice: c.mrp,
+      discountPercent,
+      emiFrom: c.emiBasePrice ?? 0,
+      badge: BADGE_BY_WARRANTY[c.warrantyType],
+      image: c.image?.lg ?? c.image?.md ?? undefined,
+    };
+  });
+
   return (
     <ProductCarousel
       title="Most Loved This Week"
       badgeText="Best Sellers"
       seeAllHref="/buy-used-gadgets"
-      products={MOST_LOVED_PRODUCTS}
+      products={products}
     />
   );
 }

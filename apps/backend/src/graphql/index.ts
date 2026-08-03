@@ -12,10 +12,13 @@ import { AdminBuyingProduct } from "./admin/buyingProduct";
 import { AdminVideoReviews } from "./admin/video-review";
 import { CommonCategory } from "./common/category";
 import { CommonBrand } from "./common/brand";
+import { CommonBuyingProduct } from "./common/buyingProduct";
 import { GraphQLUpload } from "graphql-upload-ts";
 import { AdminInvoice } from "./admin/invoice";
 import { ApolloServerPluginLandingPageDisabled } from "@apollo/server/plugin/disabled";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
+
+import { UserBuyingProduct } from "./user/buyingProduct";
 
 async function createApolloGraphqlServer() {
   const allTypeDefs = `
@@ -39,6 +42,9 @@ async function createApolloGraphqlServer() {
     ${AdminSellingProduct.queries}
     ${AdminBuyingProduct.queries}
     ${AdminVideoReviews.queries}
+
+    #user
+    ${UserBuyingProduct.queries}
    } 
 
    type Mutation {
@@ -69,10 +75,13 @@ async function createApolloGraphqlServer() {
     ${AdminBuyingProduct.typeDefs}
     ${AdminVideoReviews.typeDefs}
 
+    # user
+    ${UserBuyingProduct.typeDefs}
 
     # Common Category Typedefs
     ${CommonCategory.typedefs}
     ${CommonBrand.typedefs}
+    ${CommonBuyingProduct.typeDefs}
  
   `;
 
@@ -91,6 +100,8 @@ async function createApolloGraphqlServer() {
 
       ...CommonCategory.resolvers.Query,
       ...CommonBrand.resolvers.Query,
+
+      ...UserBuyingProduct.resolvers.Query,
     },
 
     Mutation: {

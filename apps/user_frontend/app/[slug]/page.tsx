@@ -7,7 +7,7 @@ const BUY_MAP: Record<
   string,
   { title: string; category: string | null; placement: string }
 > = {
-  gadgets: { title: "Buy Used Gadgets", category: "all", placement: "BUY_ALL" },
+  gadgets: { title: "Buy Used Gadgets", category: null, placement: "BUY_ALL" },
   "mobile-phones": {
     title: "Buy Used Mobile Phones",
     category: "mobile",
@@ -74,7 +74,12 @@ export default async function DynamicPage({
     if (!info) notFound();
 
     if (key === "gadgets") {
-      return <BuyGadgetsPage placement={info.placement} />;
+      return (
+        <BuyGadgetsPage
+          placement={info.placement}
+          categorySlug={info.category ?? undefined}
+        />
+      );
     }
 
     return (
