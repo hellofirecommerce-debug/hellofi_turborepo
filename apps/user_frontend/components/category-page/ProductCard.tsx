@@ -58,7 +58,7 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
       }
     >
       <div
-        className={`relative h-[140px] sm:h-[160px] lg:h-[180px] flex items-center justify-center ${
+        className={`relative aspect-square flex items-center justify-center ${
           isDark ? "" : isFlash ? "bg-white" : "bg-gray-200"
         }`}
         style={isDark ? { backgroundColor: "#1A1610" } : undefined}
@@ -93,13 +93,15 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
         </button>
 
         {image ? (
-          <Image
-            src={`${process.env.NEXT_PUBLIC_CDN_URL}/${image}`}
-            alt={name}
-            fill
-            className="object-contain p-3"
-            sizes="(max-width: 640px) 220px, (max-width: 1024px) 250px, 280px"
-          />
+          <div className="relative w-[65%] h-[65%] mt-6 sm:mt-7">
+            <Image
+              src={`${process.env.NEXT_PUBLIC_CDN_URL}/${image}`}
+              alt={name}
+              fill
+              className="object-contain"
+              sizes="(max-width: 640px) 150px, (max-width: 1024px) 165px, 180px"
+            />
+          </div>
         ) : (
           <span
             className="text-xs sm:text-sm font-medium"
