@@ -1,85 +1,42 @@
 // components/category-page/PhonesPeopleLoveSection.tsx
+"use client";
+import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
+import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
+import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
+import {
+  toProduct,
+  type GetBuyingProductsBySectionData,
+  type GetBuyingProductsBySectionVars,
+} from "../../lib/types/buying/buyingProduct.types";
 
-const PHONES_PEOPLE_LOVE: Product[] = [
-  {
-    id: "1",
-    brand: "Apple",
-    name: "iPhone 15 Pro Max",
-    storage: "256GB",
-    condition: "Like New",
-    price: 104999,
-    originalPrice: 159999,
-    discountPercent: 34,
-    emiFrom: 1500,
-  },
-  {
-    id: "2",
-    brand: "Apple",
-    name: "iPhone 15 Pro",
-    storage: "128GB",
-    condition: "Good",
-    price: 79999,
-    originalPrice: 134999,
-    discountPercent: 41,
-    emiFrom: 1500,
-  },
-  {
-    id: "3",
-    brand: "Samsung",
-    name: "Samsung Galaxy S24 Ultra",
-    storage: "256GB",
-    condition: "Like New",
-    price: 74999,
-    originalPrice: 129999,
-    discountPercent: 42,
-    emiFrom: 1500,
-  },
-  {
-    id: "4",
-    brand: "Google",
-    name: "Google Pixel 8 Pro",
-    storage: "128GB",
-    condition: "Good",
-    price: 59999,
-    originalPrice: 106999,
-    discountPercent: 44,
-    emiFrom: 1500,
-  },
-  {
-    id: "5",
-    brand: "Apple",
-    name: "iPhone 14 Plus",
-    storage: "128GB",
-    condition: "Fair",
-    price: 48999,
-    originalPrice: 89999,
-    discountPercent: 45,
-    emiFrom: 2000,
-    badge: "Just In",
-  },
-  {
-    id: "6",
-    brand: "Samsung",
-    name: "Galaxy S24 Ultra",
-    storage: "128GB",
-    condition: "Fair",
-    price: 48999,
-    originalPrice: 89999,
-    discountPercent: 45,
-    emiFrom: 2000,
-    badge: "Just In",
-  },
-];
+interface Props {
+  categorySlug?: string;
+}
 
-export function PhonesPeopleLoveSection() {
+export function PhonesPeopleLoveSection({
+  categorySlug = "mobile-phone",
+}: Props) {
+  const { data, loading } = useQuery<
+    GetBuyingProductsBySectionData,
+    GetBuyingProductsBySectionVars
+  >(GET_BUYING_PRODUCTS_BY_SECTION, {
+    variables: { section: "PEOPLE_LOVE", categorySlug },
+  });
+
+  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+
+  const products: Product[] = data.getBuyingProductsBySection.map((c) =>
+    toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
+  );
+
   return (
     <ProductCarousel
       title="Phones People Are Loving"
       badgeText="Best Sellers"
       seeAllHref="/buy-used-mobile-phones"
-      products={PHONES_PEOPLE_LOVE}
+      products={products}
     />
   );
 }
