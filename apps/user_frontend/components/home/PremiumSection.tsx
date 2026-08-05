@@ -6,20 +6,29 @@ import { motion } from "motion/react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay } from "swiper/modules";
 import { Button, PlaceholderCard } from "@repo/ui";
+import { useQuery } from "@apollo/client/react";
+import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
+import {
+  type GetBuyingProductsBySectionData,
+  type GetBuyingProductsBySectionVars,
+} from "../../lib/types/buying/buyingProduct.types";
 import "swiper/css";
-
-const PREMIUM_PRODUCTS = [
-  { id: 1, label: "iPhone 15 Pro Max" },
-  { id: 2, label: "MacBook Pro M3" },
-  { id: 3, label: "Samsung S24 Ultra" },
-  { id: 4, label: "iPad Pro" },
-  { id: 5, label: "OnePlus 12" },
-];
 
 const TAGS = ["Save up to 30%", "Like New Condition", "24 Hours Support"];
 
 function PremiumCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
+
+  const { data } = useQuery<
+    GetBuyingProductsBySectionData,
+    GetBuyingProductsBySectionVars
+  >(GET_BUYING_PRODUCTS_BY_SECTION, {
+    variables: { section: "LUXE" },
+  });
+
+  const luxeProducts = data?.getBuyingProductsBySection ?? [];
+
+  if (luxeProducts.length === 0) return null;
 
   return (
     <Swiper
@@ -38,7 +47,7 @@ function PremiumCarousel() {
       }}
       style={{ padding: "20px 0 40px 0" }}
     >
-      {PREMIUM_PRODUCTS.map((product, i) => (
+      {luxeProducts.map((product, i) => (
         <SwiperSlide key={product.id}>
           {({ isActive }) => (
             <div
@@ -53,7 +62,7 @@ function PremiumCarousel() {
               <PlaceholderCard
                 width="100%"
                 height={isActive ? 240 : 180}
-                label={product.label}
+                label={product.productName}
                 className="transition-all duration-300"
                 style={{ background: isActive ? "#e2e8f0" : "#94a3b8" }}
               />

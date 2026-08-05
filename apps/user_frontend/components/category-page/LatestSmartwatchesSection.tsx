@@ -1,84 +1,42 @@
 // components/category-page/LatestSmartwatchesSection.tsx
+"use client";
+import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
+import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
+import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
+import {
+  toProduct,
+  type GetBuyingProductsBySectionData,
+  type GetBuyingProductsBySectionVars,
+} from "../../lib/types/buying/buyingProduct.types";
 
-const LATEST_SMARTWATCHES: Product[] = [
-  {
-    id: "1",
-    brand: "Apple",
-    name: "Apple Watch Ultra 2",
-    storage: "49mm",
-    condition: "Like New",
-    price: 59999,
-    originalPrice: 89999,
-    discountPercent: 33,
-    emiFrom: 1200,
-  },
-  {
-    id: "2",
-    brand: "Apple",
-    name: "Apple Watch Series 9",
-    storage: "45mm",
-    condition: "Good",
-    price: 26999,
-    originalPrice: 45999,
-    discountPercent: 41,
-    emiFrom: 900,
-  },
-  {
-    id: "3",
-    brand: "Samsung",
-    name: "Samsung Galaxy Watch 6",
-    storage: "44mm",
-    condition: "Good",
-    price: 17999,
-    originalPrice: 31999,
-    discountPercent: 44,
-    emiFrom: 700,
-  },
-  {
-    id: "4",
-    brand: "Samsung",
-    name: "Samsung Galaxy Watch 4",
-    storage: "40mm",
-    condition: "Fair",
-    price: 17999,
-    originalPrice: 30999,
-    discountPercent: 42,
-    emiFrom: 700,
-  },
-  {
-    id: "5",
-    brand: "Garmin",
-    name: "Garmin Fenix 7 Pro",
-    storage: "47mm",
-    condition: "Good",
-    price: 44999,
-    originalPrice: 79999,
-    discountPercent: 44,
-    emiFrom: 1000,
-  },
-  {
-    id: "6",
-    brand: "Apple",
-    name: "Apple Watch SE Gen 2",
-    storage: "44mm",
-    condition: "Good",
-    price: 15999,
-    originalPrice: 27999,
-    discountPercent: 43,
-    emiFrom: 600,
-    badge: "Just In",
-  },
-];
+interface Props {
+  categorySlug?: string;
+}
 
-export function LatestSmartwatchesSection() {
+export function LatestSmartwatchesSection({
+  categorySlug = "smart-watch",
+}: Props) {
+  const { data, loading } = useQuery<
+    GetBuyingProductsBySectionData,
+    GetBuyingProductsBySectionVars
+  >(GET_BUYING_PRODUCTS_BY_SECTION, {
+    variables: { section: "TRENDING", categorySlug },
+  });
+
+  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+
+  const products: Product[] = data.getBuyingProductsBySection.map((c) =>
+    toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
+  );
+
   return (
     <ProductCarousel
       title="Latest Smartwatches"
       badgeText="Trending"
       seeAllHref="/buy-used-smartwatches"
-      products={LATEST_SMARTWATCHES}
+      products={products}
     />
   );
 }

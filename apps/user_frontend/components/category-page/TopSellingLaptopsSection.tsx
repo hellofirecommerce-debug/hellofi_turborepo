@@ -1,85 +1,40 @@
 // components/category-page/TopSellingLaptopsSection.tsx
+"use client";
+import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
+import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
+import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
+import {
+  toProduct,
+  type GetBuyingProductsBySectionData,
+  type GetBuyingProductsBySectionVars,
+} from "../../lib/types/buying/buyingProduct.types";
 
-const TOP_SELLING_LAPTOPS: Product[] = [
-  {
-    id: "1",
-    brand: "Apple",
-    name: "MacBook Air M2",
-    storage: "256GB SSD",
-    condition: "Like New",
-    price: 78999,
-    originalPrice: 114900,
-    discountPercent: 31,
-    emiFrom: 1500,
-  },
-  {
-    id: "2",
-    brand: "Apple",
-    name: "Dell XPS 15",
-    storage: "512GB SSD",
-    condition: "Good",
-    price: 82999,
-    originalPrice: 149999,
-    discountPercent: 44,
-    emiFrom: 1500,
-  },
-  {
-    id: "3",
-    brand: "Apple",
-    name: "MacBook Pro M3",
-    storage: "512GB SSD",
-    condition: "Like New",
-    price: 144999,
-    originalPrice: 199999,
-    discountPercent: 27,
-    emiFrom: 1500,
-  },
-  {
-    id: "4",
-    brand: "Apple",
-    name: "HP Spectre x360",
-    storage: "256GB SSD",
-    condition: "Good",
-    price: 69999,
-    originalPrice: 124999,
-    discountPercent: 44,
-    emiFrom: 1500,
-  },
-  {
-    id: "5",
-    brand: "Apple",
-    name: "Lenovo ThinkPad X1",
-    storage: "512GB SSD",
-    condition: "Good",
-    price: 72999,
-    originalPrice: 139999,
-    discountPercent: 47,
-    emiFrom: 1500,
-    badge: "Just In",
-  },
-  {
-    id: "6",
-    brand: "Apple",
-    name: "Lenovo ThinkPad X1",
-    storage: "512GB SSD",
-    condition: "Good",
-    price: 72999,
-    originalPrice: 139999,
-    discountPercent: 47,
-    emiFrom: 1500,
-    badge: "Just In",
-  },
-];
+interface Props {
+  categorySlug?: string;
+}
 
-export function TopSellingLaptopsSection() {
+export function TopSellingLaptopsSection({ categorySlug = "laptop" }: Props) {
+  const { data, loading } = useQuery<
+    GetBuyingProductsBySectionData,
+    GetBuyingProductsBySectionVars
+  >(GET_BUYING_PRODUCTS_BY_SECTION, {
+    variables: { section: "TOP_SELLING", categorySlug },
+  });
+
+  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+
+  const products: Product[] = data.getBuyingProductsBySection.map((c) =>
+    toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
+  );
+
   return (
     <ProductCarousel
       title="Top Selling Laptops"
       badgeText="Hot Deals"
       seeAllHref="/buy-used-laptops"
-      products={TOP_SELLING_LAPTOPS}
+      products={products}
     />
   );
 }
