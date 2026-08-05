@@ -47,6 +47,7 @@ export const createBuyingProductSchema = z.object({
   isTopSelling: z.boolean().default(false),
   isGaming: z.boolean().default(false),
   isMegaDhamaka: z.boolean().default(false),
+  isLuxe: z.boolean().default(false),
   specifications: z.array(createBuyingSpecificationSchema).default([]),
   variants: z.array(createBuyingVariantSchema).default([]),
 });
@@ -96,6 +97,7 @@ export const updateBuyingProductSchema = z.object({
   isTopSelling: z.boolean().optional(),
   isGaming: z.boolean().optional(),
   isMegaDhamaka: z.boolean().optional(),
+  isLuxe: z.boolean().optional(),
   specifications: z
     .array(
       z.object({

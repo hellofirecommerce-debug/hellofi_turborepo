@@ -14,6 +14,7 @@ export const CREATE_BUYING_PRODUCT = gql`
       isTopSelling
       isGaming
       isMegaDhamaka
+      isLuxe
       brand {
         id
         name
@@ -62,6 +63,7 @@ export const UPDATE_BUYING_PRODUCT = gql`
       isTopSelling
       isGaming
       isMegaDhamaka
+      isLuxe
       brand {
         id
         name

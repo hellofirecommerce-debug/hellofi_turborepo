@@ -52,9 +52,11 @@ input CreateBuyingProductInput {
   isTopSelling: Boolean
   isGaming: Boolean
   isMegaDhamaka: Boolean
+  isLuxe: Boolean
   specifications: [BuyingSpecificationInput!]
   variants: [BuyingVariantInput!]
 }
+
 
 
 input UpdateBuyingVariantInput {
@@ -96,10 +98,10 @@ input UpdateBuyingProductInput {
   isTopSelling: Boolean
   isGaming: Boolean
   isMegaDhamaka: Boolean
+  isLuxe: Boolean
   specifications: [BuyingSpecificationInput!]
   variants: [UpdateBuyingVariantInput!]
 }
-
 
 input BuyingProductFilterInput {
   search: String
@@ -110,11 +112,11 @@ input BuyingProductFilterInput {
   isTopSelling: Boolean
   isGaming: Boolean
   isMegaDhamaka: Boolean
-  availability: BuyingAvailability   
+  isLuxe: Boolean
+  availability: BuyingAvailability
   page: Int
   pageSize: Int
 }
-
 
 
 input VariantImageInput {

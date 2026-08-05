@@ -193,20 +193,27 @@ async function assertMegaDhamakaCapacity(params: {
 }
 
 // ── Enforce: only ONE of {featuredSection, isTopSelling, isGaming} can be active ──
+// ── Enforce: only ONE of {featuredSection, isTopSelling, isGaming, isMegaDhamaka, isLuxe}
+//     can be active on a product at a time. isTrending is independent and can combine
+//     with whichever one of these is chosen. ──
 function assertPlacementCompatibility(
   featuredSection: string | undefined,
   isTopSelling: boolean | undefined,
   isGaming: boolean | undefined,
+  isMegaDhamaka: boolean | undefined,
+  isLuxe: boolean | undefined,
 ) {
   const activeCount = [
     featuredSection !== undefined && featuredSection !== "NONE",
     isTopSelling === true,
     isGaming === true,
+    isMegaDhamaka === true,
+    isLuxe === true,
   ].filter(Boolean).length;
 
   if (activeCount > 1) {
     throwInputError(
-      "A product can only have one placement at a time — Featured Section (Most Loved / People Love), Top Selling, or Gaming. Choose only one.",
+      "A product can only have one placement at a time — Featured Section (Most Loved / People Love), Top Selling, Gaming, Mega Dhamaka, or Luxe. Choose only one.",
     );
   }
 }
@@ -287,7 +294,8 @@ class AdminBuyingProductService {
     isTopSelling?: boolean;
     isGaming?: boolean;
     isMegaDhamaka?: boolean;
-    availability?: "IN_STOCK" | "OUT_OF_STOCK"; // ← new
+    isLuxe?: boolean;
+    availability?: "IN_STOCK" | "OUT_OF_STOCK";
     page?: number;
     pageSize?: number;
   }) {
@@ -319,6 +327,9 @@ class AdminBuyingProductService {
         }),
         ...(filter?.isMegaDhamaka !== undefined && {
           isMegaDhamaka: filter.isMegaDhamaka,
+        }),
+        ...(filter?.isLuxe !== undefined && {
+          isLuxe: filter.isLuxe,
         }),
         // ── Stock status: derived from variant quantity, reservedQuantity is irrelevant ──
         ...(filter?.availability === "IN_STOCK" && {
@@ -390,6 +401,8 @@ class AdminBuyingProductService {
         validated.featuredSection,
         validated.isTopSelling,
         validated.isGaming,
+        validated.isMegaDhamaka,
+        validated.isLuxe,
       );
       await assertSectionCapacity({
         categoryId: validated.categoryId,
@@ -427,6 +440,7 @@ class AdminBuyingProductService {
           isTopSelling: validated.isTopSelling ?? false,
           isGaming: validated.isGaming ?? false,
           isMegaDhamaka: validated.isMegaDhamaka ?? false,
+          isLuxe: validated.isLuxe ?? false,
           specifications: {
             create: (validated.specifications ?? []).map((s) => ({
               key: s.key,
@@ -529,12 +543,15 @@ class AdminBuyingProductService {
         updateData.isGaming ?? (product as any).isGaming;
       const effectiveIsMegaDhamaka =
         updateData.isMegaDhamaka ?? (product as any).isMegaDhamaka;
+      const effectiveIsLuxe = updateData.isLuxe ?? (product as any).isLuxe;
 
       // ── Mutual exclusivity check ──
       assertPlacementCompatibility(
         effectiveFeaturedSection,
         effectiveIsTopSelling,
         effectiveIsGaming,
+        effectiveIsMegaDhamaka,
+        effectiveIsLuxe,
       );
 
       // ── Capacity check — only re-check the flags that are actually changing ──
@@ -717,6 +734,7 @@ class AdminBuyingProductService {
           isTopSelling: updateData.isTopSelling,
           isGaming: updateData.isGaming,
           isMegaDhamaka: updateData.isMegaDhamaka,
+          isLuxe: updateData.isLuxe,
         },
         include: buyingProductInclude,
       });

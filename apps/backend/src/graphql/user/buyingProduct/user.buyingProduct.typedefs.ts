@@ -8,6 +8,7 @@ enum BuyingProductSection {
   MOST_LOVED
   PEOPLE_LOVE
   MEGA_DHAMAKA
+  LUXE
 }
 
 type BuyingProductCard {

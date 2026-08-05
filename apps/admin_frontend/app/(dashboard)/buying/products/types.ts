@@ -74,6 +74,7 @@ export interface BuyingProduct {
   isTopSelling: boolean;
   isGaming: boolean;
   isMegaDhamaka: boolean;
+  isLuxe: boolean;
   brand?: { id: string; name: string };
   category: { id: string; name: string };
   variants: BuyingVariant[];
@@ -99,6 +100,7 @@ export interface BuyingProductFilter {
   isTopSelling?: boolean;
   isGaming?: boolean;
   isMegaDhamaka?: boolean;
+  isLuxe?: boolean;
   availability?: "IN_STOCK" | "OUT_OF_STOCK";
   page?: number;
   pageSize?: number;

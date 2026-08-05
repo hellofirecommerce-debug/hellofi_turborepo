@@ -98,6 +98,7 @@ type BuyingProduct {
   isTopSelling: Boolean!
   isGaming: Boolean!
   isMegaDhamaka: Boolean!
+  isLuxe: Boolean!
   brand: Brand
   category: Category
   variants: [BuyingVariant!]!
@@ -105,4 +106,6 @@ type BuyingProduct {
   createdAt: DateTime!
   updatedAt: DateTime!
 }
+
+
 `;

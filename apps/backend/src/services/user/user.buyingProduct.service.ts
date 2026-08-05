@@ -15,7 +15,8 @@ export type BuyingProductSection =
   | "TRENDING"
   | "MOST_LOVED"
   | "PEOPLE_LOVE"
-  | "MEGA_DHAMAKA";
+  | "MEGA_DHAMAKA"
+  | "LUXE";
 
 const buyingProductInclude = {
   brand: true,
@@ -59,6 +60,8 @@ function buildSectionWhere(section: BuyingProductSection) {
       return { featuredSection: "MOST_LOVED" };
     case "PEOPLE_LOVE":
       return { featuredSection: "PEOPLE_LOVE" };
+    case "LUXE":
+      return { isLuxe: true };
     default:
       throwInputError(`Unknown section: ${section}`);
       return {};

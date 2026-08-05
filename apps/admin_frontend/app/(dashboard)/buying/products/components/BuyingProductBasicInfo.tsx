@@ -36,48 +36,96 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
   const currentIsTopSelling = (form as any).isTopSelling ?? false;
   const currentIsGaming = (form as any).isGaming ?? false;
   const currentIsMegaDhamaka = (form as any).isMegaDhamaka ?? false;
+  const currentIsLuxe = (form as any).isLuxe ?? false;
 
   const selectedBrand = brands.find((b) => b.id === form.brandId);
   const isApple = selectedBrand?.name?.toLowerCase() === "apple";
 
-  // ── Only one placement active at a time: Featured Section, Top Selling, Gaming ──
+  // ── Clears every OTHER placement, leaving only the one being turned on ──
+  const clearOtherPlacements = (
+    keep:
+      | "featuredSection"
+      | "isTopSelling"
+      | "isGaming"
+      | "isMegaDhamaka"
+      | "isLuxe",
+  ) => {
+    if (keep !== "featuredSection" && currentFeaturedSection !== "NONE") {
+      onChange("featuredSection" as any, "NONE");
+    }
+    if (keep !== "isTopSelling" && currentIsTopSelling) {
+      onChange("isTopSelling" as any, false);
+    }
+    if (keep !== "isGaming" && currentIsGaming) {
+      onChange("isGaming" as any, false);
+    }
+    if (keep !== "isMegaDhamaka" && currentIsMegaDhamaka) {
+      onChange("isMegaDhamaka" as any, false);
+    }
+    if (keep !== "isLuxe" && currentIsLuxe) {
+      onChange("isLuxe" as any, false);
+    }
+  };
+
   const handleFeaturedSectionChange = (value: string) => {
     onChange("featuredSection" as any, value);
-    if (value !== "NONE") {
-      if (currentIsTopSelling) onChange("isTopSelling" as any, false);
-      if (currentIsGaming) onChange("isGaming" as any, false);
-    }
+    if (value !== "NONE") clearOtherPlacements("featuredSection");
   };
 
   const handleTopSellingChange = (checked: boolean) => {
     onChange("isTopSelling" as any, checked);
-    if (checked) {
-      if (currentFeaturedSection !== "NONE") {
-        onChange("featuredSection" as any, "NONE");
-      }
-      if (currentIsGaming) onChange("isGaming" as any, false);
-    }
+    if (checked) clearOtherPlacements("isTopSelling");
   };
 
   const handleGamingChange = (checked: boolean) => {
     onChange("isGaming" as any, checked);
-    if (checked) {
-      if (currentFeaturedSection !== "NONE") {
-        onChange("featuredSection" as any, "NONE");
-      }
-      if (currentIsTopSelling) onChange("isTopSelling" as any, false);
-    }
+    if (checked) clearOtherPlacements("isGaming");
   };
 
-  // ── Any placement already taken blocks the others ──
-  const anyPlacementActive =
-    currentFeaturedSection !== "NONE" || currentIsTopSelling || currentIsGaming;
+  const handleMegaDhamakaChange = (checked: boolean) => {
+    onChange("isMegaDhamaka" as any, checked);
+    if (checked) clearOtherPlacements("isMegaDhamaka");
+  };
 
-  const featuredSectionDisabled = currentIsTopSelling || currentIsGaming;
+  const handleLuxeChange = (checked: boolean) => {
+    onChange("isLuxe" as any, checked);
+    if (checked) clearOtherPlacements("isLuxe");
+  };
+
+  // ── Five-way exclusive group: Featured Section, Top Selling, Gaming, Mega Dhamaka, Luxe ──
+  const anyPlacementActive =
+    currentFeaturedSection !== "NONE" ||
+    currentIsTopSelling ||
+    currentIsGaming ||
+    currentIsMegaDhamaka ||
+    currentIsLuxe;
+
+  const featuredSectionDisabled =
+    currentIsTopSelling ||
+    currentIsGaming ||
+    currentIsMegaDhamaka ||
+    currentIsLuxe;
   const topSellingDisabled =
-    currentFeaturedSection !== "NONE" || currentIsGaming;
+    currentFeaturedSection !== "NONE" ||
+    currentIsGaming ||
+    currentIsMegaDhamaka ||
+    currentIsLuxe;
   const gamingDisabled =
-    currentFeaturedSection !== "NONE" || currentIsTopSelling;
+    currentFeaturedSection !== "NONE" ||
+    currentIsTopSelling ||
+    currentIsMegaDhamaka ||
+    currentIsLuxe;
+  const megaDhamakaDisabled =
+    (!form.brandId && !isOtherAccessories) ||
+    currentFeaturedSection !== "NONE" ||
+    currentIsTopSelling ||
+    currentIsGaming ||
+    currentIsLuxe;
+  const luxeDisabled =
+    currentFeaturedSection !== "NONE" ||
+    currentIsTopSelling ||
+    currentIsGaming ||
+    currentIsMegaDhamaka;
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 flex flex-col gap-4">
@@ -186,12 +234,12 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
           />
         </div>
 
-        {/* Featured Section — mutually exclusive with Top Selling and Gaming */}
+        {/* Featured Section — part of the 5-way exclusive placement group */}
         <div className="flex flex-col gap-2 sm:col-span-2">
           <Label>Featured Section</Label>
           <p className="text-xs text-gray-400 -mt-1">
             A product can only have one placement — Featured Section, Top
-            Selling, or Gaming, not more than one.
+            Selling, Gaming, Mega Dhamaka, or Luxe, not more than one.
           </p>
           <div
             className={`flex flex-wrap gap-5 ${
@@ -254,7 +302,7 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Trending — independent, optional, unaffected by placement rules */}
+        {/* Trending — independent, unaffected by placement rules */}
         <div className="flex items-center gap-3">
           <input
             type="checkbox"
@@ -271,7 +319,7 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
           </label>
         </div>
 
-        {/* Top Selling — mutually exclusive with Featured Section and Gaming */}
+        {/* Top Selling — part of the 5-way exclusive placement group */}
         <div className="flex items-center gap-3">
           <input
             type="checkbox"
@@ -293,7 +341,7 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
           </label>
         </div>
 
-        {/* Gaming — only for laptop category, mutually exclusive with Featured Section and Top Selling */}
+        {/* Gaming — only for laptop category, part of the 5-way exclusive group */}
         {isLaptopCategory && (
           <div className="flex items-center gap-3">
             <input
@@ -317,23 +365,21 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
           </div>
         )}
 
-        {/* Mega Dhamaka — independent, but capped to 1 Apple + 1 non-Apple per category */}
+        {/* Mega Dhamaka — part of the 5-way exclusive group, plus its own Apple/non-Apple capacity rule */}
         <div className="flex flex-col gap-1 sm:col-span-2">
           <div className="flex items-center gap-3">
             <input
               type="checkbox"
               id="isMegaDhamaka"
               checked={currentIsMegaDhamaka}
-              disabled={!form.brandId && !isOtherAccessories}
-              onChange={(e) =>
-                onChange("isMegaDhamaka" as any, e.target.checked)
-              }
+              disabled={megaDhamakaDisabled}
+              onChange={(e) => handleMegaDhamakaChange(e.target.checked)}
               className="w-4 h-4 rounded"
             />
             <label
               htmlFor="isMegaDhamaka"
               className={`text-sm text-gray-700 ${
-                !form.brandId && !isOtherAccessories
+                megaDhamakaDisabled
                   ? "cursor-not-allowed opacity-50"
                   : "cursor-pointer"
               }`}
@@ -350,6 +396,26 @@ export const BuyingProductBasicInfo: React.FC<Props> = ({
               </span>
             )}
           </p>
+        </div>
+
+        {/* Luxe — part of the 5-way exclusive group */}
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="isLuxe"
+            checked={currentIsLuxe}
+            disabled={luxeDisabled}
+            onChange={(e) => handleLuxeChange(e.target.checked)}
+            className="w-4 h-4 rounded"
+          />
+          <label
+            htmlFor="isLuxe"
+            className={`text-sm text-gray-700 ${
+              luxeDisabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+            }`}
+          >
+            Mark as HelloFi Luxe
+          </label>
         </div>
 
         {anyPlacementActive && (
