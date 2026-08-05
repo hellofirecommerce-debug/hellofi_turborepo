@@ -1,7 +1,17 @@
 // components/category-page/PremiumLuxSection.tsx
+"use client";
 import Link from "next/link";
+import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
+import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
+import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
+
+import {
+  toProduct,
+  type GetBuyingProductsBySectionData,
+  type GetBuyingProductsBySectionVars,
+} from "../../lib/types/buying/buyingProduct.types";
 
 const TAGS = [
   "Save up to 30%",
@@ -11,81 +21,20 @@ const TAGS = [
   "24 Hours Support",
 ];
 
-const PREMIUM_LUX_PRODUCTS: Product[] = [
-  {
-    id: "1",
-    brand: "Apple",
-    name: "iPhone 15 Pro Max",
-    storage: "256GB",
-    condition: "Like New",
-    price: 109999,
-    originalPrice: 159999,
-    discountPercent: 31,
-    emiFrom: 2000,
-    badge: "Brand Warranty",
-  },
-  {
-    id: "2",
-    brand: "Apple",
-    name: "MacBook Pro M3",
-    storage: "512GB",
-    condition: "Like New",
-    price: 154999,
-    originalPrice: 219999,
-    discountPercent: 30,
-    emiFrom: 2500,
-    badge: "Brand Warranty",
-  },
-  {
-    id: "3",
-    brand: "Samsung",
-    name: "Galaxy Z Fold 5",
-    storage: "256GB",
-    condition: "Good",
-    price: 99999,
-    originalPrice: 154999,
-    discountPercent: 36,
-    emiFrom: 1800,
-    badge: "Seller Warranty",
-  },
-  {
-    id: "4",
-    brand: "Apple",
-    name: "iPad Pro M2 12.9",
-    storage: "256GB",
-    condition: "Like New",
-    price: 84999,
-    originalPrice: 129999,
-    discountPercent: 35,
-    emiFrom: 1500,
-    badge: "Just In",
-  },
-  {
-    id: "5",
-    brand: "Apple",
-    name: "Apple Watch Ultra 2",
-    storage: "49mm",
-    condition: "Like New",
-    price: 62999,
-    originalPrice: 89999,
-    discountPercent: 30,
-    emiFrom: 1200,
-    badge: "Just In",
-  },
-  {
-    id: "6",
-    brand: "Sony",
-    name: "Sony WH-1000XM5",
-    storage: "-",
-    condition: "Like New",
-    price: 21999,
-    originalPrice: 34999,
-    discountPercent: 37,
-    emiFrom: 900,
-  },
-];
-
 export function PremiumLuxSection() {
+  const { data, loading } = useQuery<
+    GetBuyingProductsBySectionData,
+    GetBuyingProductsBySectionVars
+  >(GET_BUYING_PRODUCTS_BY_SECTION, {
+    variables: { section: "LUXE" },
+  });
+
+  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+
+  const products: Product[] = data.getBuyingProductsBySection.map((c) =>
+    toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
+  );
+
   return (
     <section className="w-full relative overflow-hidden bg-black">
       {/* decorative circle — top left */}
@@ -140,12 +89,12 @@ export function PremiumLuxSection() {
 
         {/* mobile browse button */}
 
-        {/* product carousel — dark variant, placeholder images (no external image URLs) */}
+        {/* product carousel — dark variant, real Luxe products */}
         <ProductCarousel
           title="Premium Picks"
           // badgeText="HelloFi Lux"
           seeAllHref="/premium"
-          products={PREMIUM_LUX_PRODUCTS}
+          products={products}
           variant="dark"
         />
 
