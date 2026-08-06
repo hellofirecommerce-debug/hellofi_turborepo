@@ -17,6 +17,26 @@ interface Props {
   onReset: () => void;
 }
 
+// ── Encodes the mutually-exclusive placement fields as one value ──
+type PlacementValue =
+  | ""
+  | "MOST_LOVED"
+  | "PEOPLE_LOVE"
+  | "TOP_SELLING"
+  | "GAMING"
+  | "MEGA_DHAMAKA"
+  | "LUXE";
+
+function getPlacementValue(filter: BuyingProductFilter): PlacementValue {
+  if (filter.featuredSection === "MOST_LOVED") return "MOST_LOVED";
+  if (filter.featuredSection === "PEOPLE_LOVE") return "PEOPLE_LOVE";
+  if (filter.isTopSelling === true) return "TOP_SELLING";
+  if (filter.isGaming === true) return "GAMING";
+  if (filter.isMegaDhamaka === true) return "MEGA_DHAMAKA";
+  if (filter.isLuxe === true) return "LUXE";
+  return "";
+}
+
 export const BuyingProductFilterBar: React.FC<Props> = ({
   filter,
   onChange,
@@ -45,11 +65,13 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
       )
     : allBrands;
 
+  const placementValue = getPlacementValue(filter);
+
   const hasActiveFilters = !!(
     filter.brandId ||
     filter.categoryId ||
-    filter.isTrending !== undefined ||
-    filter.availability !== undefined // ← new
+    placementValue !== "" ||
+    filter.availability !== undefined
   );
 
   useEffect(() => {
@@ -63,6 +85,32 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
   const handleCategoryChange = (categoryId: string) => {
     onChange("categoryId", categoryId || undefined);
     onChange("brandId", undefined);
+  };
+
+  // ── Selecting one placement clears every other placement field ──
+  const handlePlacementChange = (value: PlacementValue) => {
+    onChange("featuredSection", undefined);
+    onChange("isTopSelling", undefined);
+    onChange("isGaming", undefined);
+    onChange("isMegaDhamaka", undefined);
+    onChange("isLuxe", undefined);
+
+    if (value === "MOST_LOVED" || value === "PEOPLE_LOVE") {
+      onChange("featuredSection", value);
+    } else if (value === "TOP_SELLING") {
+      onChange("isTopSelling", true);
+    } else if (value === "GAMING") {
+      onChange("isGaming", true);
+    } else if (value === "MEGA_DHAMAKA") {
+      onChange("isMegaDhamaka", true);
+    } else if (value === "LUXE") {
+      onChange("isLuxe", true);
+    }
+  };
+
+  const handleReset = () => {
+    setSearchInput("");
+    onReset();
   };
 
   return (
@@ -85,10 +133,7 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
             <Button
               variant="ghost"
               size="md"
-              onClick={() => {
-                setSearchInput("");
-                onReset();
-              }}
+              onClick={handleReset}
               className="gap-1.5 text-red-500 border border-red-200 hover:bg-red-50 hover:text-red-500"
             >
               <X size={14} />
@@ -111,7 +156,7 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
       </div>
 
       {showFilters && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-xl border border-gray-200">
           <div className="flex flex-col gap-1.5">
             <Label>Category</Label>
             <select
@@ -148,27 +193,22 @@ export const BuyingProductFilterBar: React.FC<Props> = ({
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Trending</Label>
+            <Label>Placement</Label>
             <select
-              title="trending"
-              value={
-                filter.isTrending === undefined
-                  ? ""
-                  : filter.isTrending
-                    ? "true"
-                    : "false"
-              }
+              title="placement"
+              value={placementValue}
               onChange={(e) =>
-                onChange(
-                  "isTrending",
-                  e.target.value === "" ? undefined : e.target.value === "true",
-                )
+                handlePlacementChange(e.target.value as PlacementValue)
               }
               className={selectClass}
             >
               <option value="">All</option>
-              <option value="true">Trending</option>
-              <option value="false">Not Trending</option>
+              <option value="MOST_LOVED">Most Loved This Week</option>
+              <option value="PEOPLE_LOVE">Phones People Are Loving</option>
+              <option value="TOP_SELLING">Top Selling</option>
+              <option value="GAMING">Gaming</option>
+              <option value="MEGA_DHAMAKA">Mega Dhamaka</option>
+              <option value="LUXE">Luxe</option>
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
