@@ -5,7 +5,9 @@ import {
   throwInputError,
 } from "../../lib/utils/error";
 
-const SECTION_LIMIT = 7;
+const SECTION_LIMIT = 10;
+const PER_CATEGORY_LIMIT = 2;
+const EXCLUDED_CATEGORY_SLUGS = ["mac"];
 
 export type BuyingProductSection =
   | "TOP_SELLING"
@@ -102,7 +104,7 @@ class UserBuyingProductService {
       const { section, categorySlug } = params;
       const sectionWhere: any = buildSectionWhere(section);
 
-      // ── Category scoped: single category, top 7 ──
+      // ── Category scoped: single category, capped to SECTION_LIMIT ──
       if (categorySlug) {
         const category = await prisma.category.findUnique({
           where: { seoName: categorySlug },
@@ -125,9 +127,13 @@ class UserBuyingProductService {
         return products.filter((p) => p.variants.length > 0).map(toCard);
       }
 
-      // ── No category: fetch top 7 for EACH active category, then combine ──
+      // ── No category: PER_CATEGORY_LIMIT per active category (excluding EXCLUDED_CATEGORY_SLUGS),
+      //     combined result capped to SECTION_LIMIT overall ──
       const categories = await prisma.category.findMany({
-        where: { status: "ACTIVE" },
+        where: {
+          status: "ACTIVE",
+          seoName: { notIn: EXCLUDED_CATEGORY_SLUGS },
+        },
         select: { id: true },
       });
 
@@ -141,7 +147,7 @@ class UserBuyingProductService {
             },
             include: buyingProductInclude,
             orderBy: { createdAt: "desc" },
-            take: SECTION_LIMIT,
+            take: PER_CATEGORY_LIMIT,
           }),
         ),
       );
@@ -149,7 +155,8 @@ class UserBuyingProductService {
       return perCategoryResults
         .flat()
         .filter((p) => p.variants.length > 0)
-        .map(toCard);
+        .map(toCard)
+        .slice(0, SECTION_LIMIT);
     } catch (error) {
       handleServiceError(error);
     }
