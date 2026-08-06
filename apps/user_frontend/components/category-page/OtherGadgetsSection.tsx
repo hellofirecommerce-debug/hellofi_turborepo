@@ -22,7 +22,7 @@ export function OtherGadgetsSection({
     GetBuyingProductsBySectionData,
     GetBuyingProductsBySectionVars
   >(GET_BUYING_PRODUCTS_BY_SECTION, {
-    variables: { section: "TRENDING", categorySlug },
+    variables: { section: "MOST_LOVED", categorySlug },
   });
 
   if (loading || !data?.getBuyingProductsBySection?.length) return null;
