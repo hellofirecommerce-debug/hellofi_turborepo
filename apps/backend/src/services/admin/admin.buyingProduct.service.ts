@@ -55,16 +55,15 @@ async function processAndUploadVariantImages(
 
       const uniqueId = generateRandomString(8);
 
-      const baseKey = generateImageKey(
-        `buying-product-images/${productId}/${variantId}`,
-        uniqueId,
-      );
+      // ── Same key naming pattern as the old resizeAndSaveImage ──
+      const buildKey = (sizeName: string) =>
+        `images/product-images/${productId}/hellofi-${uniqueId}_${sizeName}.webp`;
 
       const [xsUrl, smUrl, mdUrl, lgUrl] = await Promise.all([
-        S3Service.uploadImage(xs, `${baseKey}-xs`),
-        S3Service.uploadImage(sm, `${baseKey}-sm`),
-        S3Service.uploadImage(md, `${baseKey}-md`),
-        S3Service.uploadImage(lg, `${baseKey}-lg`),
+        S3Service.uploadImage(xs, buildKey("xs")),
+        S3Service.uploadImage(sm, buildKey("sm")),
+        S3Service.uploadImage(md, buildKey("md")),
+        S3Service.uploadImage(lg, buildKey("lg")),
       ]);
 
       const existingCount = await prisma.buyingProductImage.count({

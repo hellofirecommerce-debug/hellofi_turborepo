@@ -8,6 +8,18 @@ interface ResizeOptions {
   background?: string; // padding color, e.g. "#ffffff" or "transparent"
 }
 
+const compressionOptions = {
+  quality: 70,
+  format: "webp",
+};
+
+const sizes = {
+  xs: { width: 150, height: 200 },
+  sm: { width: 320, height: 400 },
+  md: { width: 640, height: 800 },
+  lg: { width: 1024, height: 1280 },
+};
+
 interface MultiSizeOutput {
   xs: Buffer; // 100x100
   sm: Buffer; // 300x300
@@ -30,28 +42,34 @@ class ImageService {
     }
   }
 
-  async compressMultiSize(buffer: Buffer): Promise<MultiSizeOutput> {
-    const sizes = [
-      { key: "xs", size: 100 },
-      { key: "sm", size: 300 },
-      { key: "md", size: 600 },
-      { key: "lg", size: 1200 },
-    ];
+  async compressMultiSize(
+    buffer: Buffer,
+  ): Promise<{ xs: Buffer; sm: Buffer; md: Buffer; lg: Buffer }> {
+    const entries = await Promise.all(
+      Object.entries(sizes).map(async ([sizeName, dimensions]) => {
+        const resizedBuffer = await sharp(buffer)
+          .rotate() // Auto-rotate based on EXIF
+          .resize(dimensions.width, dimensions.height, {
+            fit: "inside", // preserves the entire image without cropping
+            withoutEnlargement: true, // prevents upscaling smaller images
+            background: { r: 255, g: 255, b: 255, alpha: 1 },
+          })
+          .webp({
+            quality: compressionOptions.quality,
+            effort: 6,
+            smartSubsample: true,
+          })
+          .toBuffer();
 
-    const results = await Promise.all(
-      sizes.map(({ size }) =>
-        sharp(buffer)
-          .resize(size, size, { fit: "cover" })
-          .webp({ quality: 80 })
-          .toBuffer(),
-      ),
+        return [sizeName, resizedBuffer] as const;
+      }),
     );
 
-    return {
-      xs: results[0]!,
-      sm: results[1]!,
-      md: results[2]!,
-      lg: results[3]!,
+    return Object.fromEntries(entries) as {
+      xs: Buffer;
+      sm: Buffer;
+      md: Buffer;
+      lg: Buffer;
     };
   }
 

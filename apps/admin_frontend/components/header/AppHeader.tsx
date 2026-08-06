@@ -30,7 +30,6 @@ const AppHeader: React.FC<AppHeaderProps> = ({ admin }) => {
       toast.success("Logged out successfully");
       router.push("/signin");
     },
-    onError: (err) => toast.error(err.message),
   });
 
   const handleToggle = () => {

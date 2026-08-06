@@ -67,7 +67,6 @@ export function InvoiceTopBar({
         );
         onReset();
       },
-      onError: (err) => toast.error(err.message),
     },
   );
 

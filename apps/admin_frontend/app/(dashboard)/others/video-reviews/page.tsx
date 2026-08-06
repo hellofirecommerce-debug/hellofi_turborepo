@@ -39,9 +39,6 @@ export default function VideoReviewsPage() {
       toast.success("Video review created successfully");
       setShowModal(false);
     },
-    onError(error) {
-      toast.error(error.message);
-    },
   });
 
   const [updateReview, { loading: updating }] = useMutation<{
@@ -57,9 +54,6 @@ export default function VideoReviewsPage() {
       setShowModal(false);
       setEditReview(null);
     },
-    onError(error) {
-      toast.error(error.message);
-    },
   });
 
   const [deleteReview, { loading: deleting }] = useMutation<{
@@ -69,9 +63,6 @@ export default function VideoReviewsPage() {
       setReviews((prev) => prev.filter((r) => r.id !== deleteId));
       toast.success("Video review deleted successfully");
       setDeleteId(null);
-    },
-    onError(error) {
-      toast.error(error.message);
     },
   });
 

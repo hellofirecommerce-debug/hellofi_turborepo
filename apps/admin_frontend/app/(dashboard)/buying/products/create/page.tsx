@@ -19,9 +19,6 @@ export default function CreateBuyingProductPage() {
       );
       router.push("/buying/products");
     },
-    onError(error) {
-      toast.error(error.message);
-    },
   });
 
   const handleSubmit = async (

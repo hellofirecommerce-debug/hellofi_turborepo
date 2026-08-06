@@ -28,9 +28,6 @@ export default function EditBuyingProductPage() {
         toast.success("Product updated successfully");
         router.push("/buying/products");
       },
-      onError(error) {
-        toast.error(error.message);
-      },
     },
   );
 
