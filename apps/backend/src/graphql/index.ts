@@ -19,6 +19,7 @@ import { ApolloServerPluginLandingPageDisabled } from "@apollo/server/plugin/dis
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 
 import { UserBuyingProduct } from "./user/buyingProduct";
+import { UserBrand } from "./user/brand";
 
 async function createApolloGraphqlServer() {
   const allTypeDefs = `
@@ -45,6 +46,7 @@ async function createApolloGraphqlServer() {
 
     #user
     ${UserBuyingProduct.queries}
+    ${UserBrand.queries}
    } 
 
    type Mutation {
@@ -102,6 +104,7 @@ async function createApolloGraphqlServer() {
       ...CommonBrand.resolvers.Query,
 
       ...UserBuyingProduct.resolvers.Query,
+      ...UserBrand.resolvers.Query,
     },
 
     Mutation: {

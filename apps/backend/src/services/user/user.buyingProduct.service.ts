@@ -161,6 +161,31 @@ class UserBuyingProductService {
       handleServiceError(error);
     }
   }
+
+  async getInStockBrandIds(): Promise<string[]> {
+    try {
+      const result = await prisma.buyingProduct.findMany({
+        where: {
+          variants: {
+            some: {
+              quantity: { gt: 1 },
+            },
+          },
+        },
+        select: {
+          brandId: true,
+        },
+        distinct: ["brandId"],
+      });
+
+      return result
+        .map((r) => r.brandId)
+        .filter((id): id is string => id !== null);
+    } catch (error) {
+      console.log("Error fetching in-stock brand ids:", error);
+      throw error;
+    }
+  }
 }
 
 export default new UserBuyingProductService();
