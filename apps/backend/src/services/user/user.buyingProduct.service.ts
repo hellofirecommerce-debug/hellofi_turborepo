@@ -168,7 +168,7 @@ class UserBuyingProductService {
         where: {
           variants: {
             some: {
-              quantity: { gt: 1 },
+              quantity: { gt: 0 },
             },
           },
         },
