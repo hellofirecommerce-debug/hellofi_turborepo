@@ -47,7 +47,7 @@ function BrandCard({
         {brand.image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={brand.image}
+            src={`${process.env.NEXT_PUBLIC_CDN_URL}/${brand.image}`}
             alt={brand.name}
             className="w-full h-full object-contain"
           />
