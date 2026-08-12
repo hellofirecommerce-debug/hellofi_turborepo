@@ -1,3 +1,14 @@
+export type BuyingProductSection =
+  | "TOP_SELLING"
+  | "TOP_SELLING_APPLE"
+  | "TOP_SELLING_NON_APPLE"
+  | "GAMING_LAPTOPS"
+  | "TRENDING"
+  | "MOST_LOVED"
+  | "PEOPLE_LOVE"
+  | "MEGA_DHAMAKA"
+  | "LUXE";
+
 export interface BuyingProductCard {
   id: string;
   productName: string;
@@ -21,7 +32,7 @@ export interface GetBuyingProductsBySectionData {
 }
 
 export interface GetBuyingProductsBySectionVars {
-  section: string;
+  section: BuyingProductSection;
   categorySlug?: string;
 }
 

@@ -70,6 +70,7 @@ export default async function DynamicPage({
 
   if (slug.startsWith("buy-used-")) {
     const key = slug.replace("buy-used-", "");
+    console.log("This is the key:", key);
     const info = BUY_MAP[key];
     if (!info) notFound();
 

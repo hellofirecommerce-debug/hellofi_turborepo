@@ -1,17 +1,10 @@
 // components/category-page/PremiumLuxSection.tsx
-"use client";
 import Link from "next/link";
-import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
-import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
 import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
-
-import {
-  toProduct,
-  type GetBuyingProductsBySectionData,
-  type GetBuyingProductsBySectionVars,
-} from "../../lib/types/buying/buyingProduct.types";
+import { toProduct } from "../../lib/types/buying/buyingProduct.types";
+import { getLuxeProducts } from "../../lib/data/buyingProduct.data";
 
 const TAGS = [
   "Save up to 30%",
@@ -21,35 +14,27 @@ const TAGS = [
   "24 Hours Support",
 ];
 
-export function PremiumLuxSection() {
-  const { data, loading } = useQuery<
-    GetBuyingProductsBySectionData,
-    GetBuyingProductsBySectionVars
-  >(GET_BUYING_PRODUCTS_BY_SECTION, {
-    variables: { section: "LUXE" },
-  });
+export async function PremiumLuxSection() {
+  const items = await getLuxeProducts();
 
-  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+  if (!items.length) return null;
 
-  const products: Product[] = data.getBuyingProductsBySection.map((c) =>
+  const products: Product[] = items.map((c) =>
     toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
   );
 
   return (
     <section className="w-full relative overflow-hidden bg-black">
-      {/* decorative circle — top left */}
       <div
         className="absolute -top-24 -left-24 sm:-top-32 sm:-left-32 w-64 h-64 sm:w-80 sm:h-80 rounded-full blur-3xl pointer-events-none"
         style={{ backgroundColor: "#D97706", opacity: 0.25 }}
       />
-      {/* decorative circle — bottom right */}
       <div
         className="absolute -bottom-24 -right-24 sm:-bottom-32 sm:-right-32 w-64 h-64 sm:w-80 sm:h-80 rounded-full blur-3xl pointer-events-none"
         style={{ backgroundColor: "#D97706", opacity: 0.25 }}
       />
 
       <div className="relative max-w-7xl mx-auto px-4 py-8 sm:py-10 lg:py-12">
-        {/* header */}
         <div className="flex items-start justify-between gap-4 mb-6 sm:mb-8">
           <div>
             <div className="flex items-center gap-2 mb-2 sm:mb-3">
@@ -87,12 +72,8 @@ export function PremiumLuxSection() {
           </Link>
         </div>
 
-        {/* mobile browse button */}
-
-        {/* product carousel — dark variant, real Luxe products */}
         <ProductCarousel
           title="Premium Picks"
-          // badgeText="HelloFi Lux"
           seeAllHref="/premium"
           products={products}
           variant="dark"
@@ -109,7 +90,6 @@ export function PremiumLuxSection() {
           Browse Premium
         </Link>
 
-        {/* tags — centered, below products */}
         <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mt-8 sm:mt-10">
           {TAGS.map((tag, i) => (
             <span

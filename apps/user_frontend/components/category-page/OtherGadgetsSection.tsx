@@ -1,33 +1,22 @@
 // components/category-page/OtherGadgetsSection.tsx
-"use client";
-import { useQuery } from "@apollo/client/react";
 import { ProductCarousel } from "./ProductCarousel";
 import type { Product } from "./ProductCard";
-import { GET_BUYING_PRODUCTS_BY_SECTION } from "../../lib/graphql/queires/buyingProduct.queries";
 import { calculateDiscount } from "../../lib/utlils/calculateDiscount";
-import {
-  toProduct,
-  type GetBuyingProductsBySectionData,
-  type GetBuyingProductsBySectionVars,
-} from "../../lib/types/buying/buyingProduct.types";
+import { toProduct } from "../../lib/types/buying/buyingProduct.types";
+import { getMostLovedProducts } from "../../lib/data/buyingProduct.data";
 
 interface Props {
   categorySlug?: string;
 }
 
-export function OtherGadgetsSection({
+export async function OtherGadgetsSection({
   categorySlug = "other-accessories",
 }: Props) {
-  const { data, loading } = useQuery<
-    GetBuyingProductsBySectionData,
-    GetBuyingProductsBySectionVars
-  >(GET_BUYING_PRODUCTS_BY_SECTION, {
-    variables: { section: "MOST_LOVED", categorySlug },
-  });
+  const items = await getMostLovedProducts(categorySlug);
 
-  if (loading || !data?.getBuyingProductsBySection?.length) return null;
+  if (!items.length) return null;
 
-  const products: Product[] = data.getBuyingProductsBySection.map((c) =>
+  const products: Product[] = items.map((c) =>
     toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
   );
 
