@@ -72,7 +72,7 @@ export function ShopByBrandClient({ brands }: { brands: Brand[] }) {
 
         <button
           onClick={() => setShowModal(true)}
-          className="text-xs sm:text-sm font-medium text-primary hover:underline whitespace-nowrap"
+          className="text-xs sm:text-sm font-medium text-primary hover:underline whitespace-nowrap cursor-pointer"
         >
           Browse All →
         </button>

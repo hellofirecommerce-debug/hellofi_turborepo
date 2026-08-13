@@ -32,8 +32,8 @@ class ImageService {
     try {
       return await sharp(buffer)
         .resize(options.width, options.height, {
-          fit: "contain",
-          background: options.background ?? "#ffffff",
+          fit: "cover",
+          position: "center",
         })
         .webp({ quality: options.quality ?? 80 })
         .toBuffer();

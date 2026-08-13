@@ -18,10 +18,10 @@ import { validateImage } from "../../lib/utils/validateImage";
 import { streamToBuffer } from "../../lib/utils/streamToBuffer";
 
 // desktop (lg) and mobile (sm) target sizes
-const BANNER_LG_WIDTH = 1600;
-const BANNER_LG_HEIGHT = 680;
-const BANNER_SM_WIDTH = 800;
-const BANNER_SM_HEIGHT = 400;
+const BANNER_LG_WIDTH = 1280;
+const BANNER_LG_HEIGHT = 400;
+const BANNER_SM_WIDTH = 720;
+const BANNER_SM_HEIGHT = 360;
 
 interface CreateBannerPayload extends CreateBannerInput {
   lgBuffer: Buffer;
