@@ -22,7 +22,7 @@ export async function getInStockBrands(): Promise<Brand[]> {
       body: JSON.stringify({
         query: GET_IN_STOCK_BRANDS.loc?.source.body,
       }),
-      next: { revalidate: 300 },
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) {
