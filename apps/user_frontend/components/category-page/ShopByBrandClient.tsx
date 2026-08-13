@@ -3,8 +3,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { X } from "lucide-react";
 import type { Brand } from "../../lib/data/brand.data";
+import { AllBrandsModal } from "./modals/AllBrandsModal";
 
 const BORDER_COLORS = [
   "border-orange-400",
@@ -54,51 +54,6 @@ function BrandCard({
   );
 }
 
-function AllBrandsModal({
-  brands,
-  onClose,
-}: {
-  brands: Brand[];
-  onClose: () => void;
-}) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h3 className="text-lg font-bold text-black">All Brands</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-black transition-colors"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto px-5 py-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-3">
-            {brands.map((brand, i) => (
-              <BrandCard
-                key={brand.id}
-                brand={brand}
-                borderColor={
-                  BORDER_COLORS[i % BORDER_COLORS.length] ??
-                  DEFAULT_BORDER_COLOR
-                }
-              />
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function ShopByBrandClient({ brands }: { brands: Brand[] }) {
   const [showModal, setShowModal] = useState(false);
   const previewBrands = brands.slice(0, 6);
@@ -135,9 +90,11 @@ export function ShopByBrandClient({ brands }: { brands: Brand[] }) {
         ))}
       </div>
 
-      {showModal && (
-        <AllBrandsModal brands={brands} onClose={() => setShowModal(false)} />
-      )}
+      <AllBrandsModal
+        brands={brands}
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+      />
     </div>
   );
 }

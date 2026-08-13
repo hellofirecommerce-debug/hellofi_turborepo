@@ -10,7 +10,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { AnimatePresence } from "motion/react";
-import { ChecklistModal } from "./ChecklistModal";
+import { ChecklistModal } from "./modals/ChecklistModal";
 
 interface ProcessStep {
   number: string;
