@@ -1,86 +1,35 @@
-"use client";
-
+// components/category-page/shared/Banner.tsx
 import Image from "next/image";
 import Link from "next/link";
-import { useQuery } from "@apollo/client/react";
-import { GET_ACTIVE_BANNER } from "../../../lib/graphql/queires/banner.queries";
+import { getActiveBanner } from "../../../lib/data/banner.data";
 
 interface BannerProps {
   placement: string;
 }
 
-interface ActiveBannerData {
-  activeBanner: {
-    id: string;
-    alt: string;
-    lg: string;
-    sm: string;
-    redirectUrl: string | null;
-    placement: string;
-  } | null;
-}
+export async function Banner({ placement }: BannerProps) {
+  const banner = await getActiveBanner(placement);
 
-interface ActiveBannerVars {
-  placement: string;
-}
+  if (!banner) return null;
 
-export function Banner({ placement }: BannerProps) {
-  const { data, loading, error } = useQuery<ActiveBannerData, ActiveBannerVars>(
-    GET_ACTIVE_BANNER,
-    {
-      variables: { placement },
-    },
-  );
-
-  console.log("[Banner] render", {
-    placement,
-    loading,
-    error: error?.message,
-    data,
-  });
-
-  if (loading) {
-    console.log("[Banner] still loading for placement:", placement);
-    return null;
-  }
-
-  if (error) {
-    console.error("[Banner] query error for placement:", placement, error);
-    return null;
-  }
-
-  if (!data?.activeBanner) {
-    console.warn(
-      "[Banner] no active banner returned for placement:",
-      placement,
-    );
-    return null;
-  }
-
-  const { alt, lg, sm, redirectUrl } = data.activeBanner;
-
-  console.log("[Banner] rendering with URLs:", {
-    cdnUrl: process.env.NEXT_PUBLIC_CDN_URL,
-    lgFullUrl: `${process.env.NEXT_PUBLIC_CDN_URL}/${lg}`,
-    smFullUrl: `${process.env.NEXT_PUBLIC_CDN_URL}/${sm}`,
-  });
+  const { alt, lg, sm, redirectUrl } = banner;
 
   const content = (
     <>
       <Image
         src={`${process.env.NEXT_PUBLIC_CDN_URL}/${sm}`}
         alt={alt}
-        width={800}
-        height={400}
-        className="block sm:hidden w-full h-[200px] object-contain rounded-2xl"
+        width={720}
+        height={360}
+        className="block sm:hidden w-full h-auto rounded-2xl"
         priority
       />
       <Image
         src={`${process.env.NEXT_PUBLIC_CDN_URL}/${lg}`}
         alt={alt}
-        width={1600}
-        height={300}
-        className="hidden sm:block w-full h-[400px] rounded-2xl"
+        width={1280}
+        height={400}
+        className="hidden sm:block w-full h-auto rounded-2xl"
         priority
       />
     </>

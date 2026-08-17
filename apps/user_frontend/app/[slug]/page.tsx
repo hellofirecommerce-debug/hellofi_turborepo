@@ -10,7 +10,7 @@ const BUY_MAP: Record<
   gadgets: { title: "Buy Used Gadgets", category: null, placement: "BUY_ALL" },
   "mobile-phones": {
     title: "Buy Used Mobile Phones",
-    category: "mobile",
+    category: "mobile-phone",
     placement: "BUY_MOBILE",
   },
   // laptops: {

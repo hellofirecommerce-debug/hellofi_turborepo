@@ -9,7 +9,7 @@ interface ResizeOptions {
 }
 
 const compressionOptions = {
-  quality: 70,
+  quality: 30,
   format: "webp",
 };
 
@@ -35,7 +35,7 @@ class ImageService {
           fit: "cover",
           position: "center",
         })
-        .webp({ quality: options.quality ?? 80 })
+        .webp({ quality: options.quality ?? 30 })
         .toBuffer();
     } catch (error) {
       return throwServerError("Image compression failed");
