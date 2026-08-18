@@ -13,21 +13,21 @@ const BUY_MAP: Record<
     category: "mobile-phone",
     placement: "BUY_MOBILE",
   },
-  // laptops: {
-  //   title: "Buy Used Laptops",
-  //   category: "laptop",
-  //   placement: "BUY_LAPTOP",
-  // },
-  // tablets: {
-  //   title: "Buy Used Tablets",
-  //   category: "tablet",
-  //   placement: "BUY_TABLET",
-  // },
-  // smartwatches: {
-  //   title: "Buy Used Smartwatches",
-  //   category: "smartwatch",
-  //   placement: "BUY_SMARTWATCH",
-  // },
+  laptops: {
+    title: "Buy Used Laptops",
+    category: "laptop",
+    placement: "BUY_LAPTOP",
+  },
+  tablets: {
+    title: "Buy Used Tablets",
+    category: "tablet",
+    placement: "BUY_TABLET",
+  },
+  smartwatches: {
+    title: "Buy Used Smartwatches",
+    category: "smart-watch",
+    placement: "BUY_SMARTWATCH",
+  },
 };
 
 const SELL_MAP: Record<
