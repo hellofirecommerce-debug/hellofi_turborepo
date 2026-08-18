@@ -179,7 +179,7 @@ class UserBuyingProductService {
           ...(categoryId && { categoryId }),
           variants: {
             some: {
-              quantity: { gt: 1 },
+              quantity: { gt: 0 },
             },
           },
         },
