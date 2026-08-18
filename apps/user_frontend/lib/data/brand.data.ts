@@ -1,4 +1,3 @@
-// lib/data/brand.data.ts
 import { GET_IN_STOCK_BRANDS } from "../graphql/queires/brand.queries";
 
 export interface Brand {
@@ -14,15 +13,18 @@ interface GetInStockBrandsData {
 
 const GRAPHQL_ENDPOINT = `${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`;
 
-export async function getInStockBrands(): Promise<Brand[]> {
+export async function getInStockBrands(
+  categorySlug?: string,
+): Promise<Brand[]> {
   try {
     const res = await fetch(GRAPHQL_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         query: GET_IN_STOCK_BRANDS.loc?.source.body,
+        variables: { categorySlug },
       }),
-      next: { revalidate: 3600 },
+      next: { revalidate: 300 },
     });
 
     if (!res.ok) {

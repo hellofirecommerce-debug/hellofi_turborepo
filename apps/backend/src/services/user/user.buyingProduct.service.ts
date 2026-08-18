@@ -162,13 +162,24 @@ class UserBuyingProductService {
     }
   }
 
-  async getInStockBrandIds(): Promise<string[]> {
+  async getInStockBrandIds(categorySlug?: string): Promise<string[]> {
     try {
+      let categoryId: string | undefined;
+
+      if (categorySlug) {
+        const category = await prisma.category.findUnique({
+          where: { seoName: categorySlug },
+        });
+        if (!category) return [];
+        categoryId = category.id;
+      }
+
       const result = await prisma.buyingProduct.findMany({
         where: {
+          ...(categoryId && { categoryId }),
           variants: {
             some: {
-              quantity: { gt: 0 },
+              quantity: { gt: 1 },
             },
           },
         },

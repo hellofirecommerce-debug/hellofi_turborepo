@@ -2,10 +2,14 @@ import prisma from "@repo/db";
 import UserBuyingProductService from "./user.buyingProduct.service";
 
 class UserBrandService {
-  async getInStockBrands() {
+  async getInStockBrands(categorySlug?: string) {
     try {
-      console.log("getInStockBrands: fetching in-stock brand ids...");
-      const brandIds = await UserBuyingProductService.getInStockBrandIds();
+      console.log(
+        "getInStockBrands: fetching in-stock brand ids...",
+        categorySlug ? `for category ${categorySlug}` : "for all categories",
+      );
+      const brandIds =
+        await UserBuyingProductService.getInStockBrandIds(categorySlug);
       console.log("getInStockBrands: brandIds =", brandIds);
 
       const brands = await prisma.brand.findMany({

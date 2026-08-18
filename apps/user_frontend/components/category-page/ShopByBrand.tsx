@@ -1,9 +1,12 @@
-// components/category-page/ShopByBrand.tsx
 import { getInStockBrands } from "../../lib/data/brand.data";
 import { ShopByBrandClient } from "./ShopByBrandClient";
 
-export async function ShopByBrand() {
-  const brands = await getInStockBrands();
+interface Props {
+  categorySlug?: string;
+}
+
+export async function ShopByBrand({ categorySlug }: Props) {
+  const brands = await getInStockBrands(categorySlug);
 
   if (brands.length === 0) return null;
 

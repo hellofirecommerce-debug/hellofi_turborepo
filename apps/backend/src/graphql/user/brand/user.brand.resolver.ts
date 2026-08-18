@@ -3,8 +3,8 @@ import UserBrandService from "../../../services/user/user.brand.service";
 
 export const resolvers = {
   Query: {
-    getInStockBrands: async () => {
-      return UserBrandService.getInStockBrands();
+    getInStockBrands: async (_: any, args: { categorySlug?: string }) => {
+      return UserBrandService.getInStockBrands(args.categorySlug);
     },
   },
 };

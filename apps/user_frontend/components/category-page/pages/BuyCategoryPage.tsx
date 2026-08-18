@@ -64,20 +64,9 @@ export function BuyCategoryPage({ placement, category }: Props) {
         <TopSellingNonAppleDevices categorySlug={category} />
       </div>
 
-      <BrandLogoStrip
-        brands={[
-          { name: "Google" },
-          { name: "OnePlus" },
-          { name: "Motorola" },
-          { name: "Oppo" },
-          { name: "Vivo" },
-          { name: "Xiaomi" },
-          { name: "Samsung" },
-          { name: "Apple" },
-          { name: "Realme" },
-        ]}
-        seeAllHref="/buy-used-mobile-phones"
-      />
+      <div className="max-w-7xl mx-auto px-4 w-full">
+        <ShopByBrand categorySlug={category} />
+      </div>
 
       <NotSureWhatToBuySection />
       <div className="max-w-7xl mx-auto px-4 w-full">
