@@ -1,5 +1,9 @@
 import prisma from "@repo/db";
-import { handleServiceError, throwNotFoundError } from "../../lib/utils/error";
+import {
+  handleServiceError,
+  throwInputError,
+  throwNotFoundError,
+} from "../../lib/utils/error";
 import {
   createSeriesSchema,
   updateSeriesSchema,
@@ -113,6 +117,16 @@ class AdminSeriesService {
     try {
       const existing = await prisma.series.findUnique({ where: { id } });
       if (!existing) return throwNotFoundError("Series not found");
+
+      const productCount = await prisma.sellingProduct.count({
+        where: { seriesId: id },
+      });
+
+      if (productCount > 0) {
+        return throwInputError(
+          `Cannot delete this series — ${productCount} product(s) are attached to it. Please delete or reassign those products first.`,
+        );
+      }
 
       await prisma.series.delete({ where: { id } });
       return { id, message: "Series deleted successfully" };

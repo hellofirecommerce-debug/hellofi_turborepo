@@ -35,7 +35,7 @@ class ImageService {
           fit: "cover",
           position: "center",
         })
-        .webp({ quality: options.quality ?? 30 })
+        .webp({ quality: options.quality ?? 70 })
         .toBuffer();
     } catch (error) {
       return throwServerError("Image compression failed");
