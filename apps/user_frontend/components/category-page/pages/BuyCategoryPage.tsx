@@ -20,7 +20,8 @@ import { TopSellingNonAppleDevices } from "../seperate-category/TopSellingNonApp
 import { BrandLogoStrip } from "../seperate-category/BrandLogoStrip";
 import { NotSureWhatToBuySection } from "../seperate-category/mobiles/NotSureWhatToBuySection";
 import { InstagramChatBanner } from "../seperate-category/InstagramChatBanner";
-import { MobileMegaDhamakaSection } from "../seperate-category/mobiles/MobileMegaDhamakaSection";
+
+import { CategoryMegaDhamakaSection } from "../seperate-category/CategoryMegaDhamakaSection";
 import { ChoosingYourPathSection } from "../seperate-category/mobiles/ChoosingYourPathSection";
 import { HowToChooseSection } from "../shared/HowToChooseSection";
 import { VisitStoreSection } from "../shared/VisitStoreSection";
@@ -73,7 +74,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
         <InstagramChatBanner />
       </div>
 
-      <MobileMegaDhamakaSection />
+      <CategoryMegaDhamakaSection categorySlug={category} />
       <div className="max-w-7xl mx-auto px-4 w-full">
         <QualityGradeSection />
       </div>
