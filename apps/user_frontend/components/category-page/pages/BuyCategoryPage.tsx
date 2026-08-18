@@ -14,9 +14,9 @@ import { KeyFeaturesSection } from "../KeyFeaturesSection";
 import { ServiceHighlightsBar } from "../seperate-category/ServiceHighlightsBar";
 import { CategoryGrid } from "../shared/CategoryGrid";
 import { BestSellingPlatformBanner } from "../seperate-category/BestSellingPlatformBanner";
-import { TopSellingIphonesSection } from "../seperate-category/mobiles/TopSellingIphonesSection";
+import { TopSellingAppleDevices } from "../seperate-category/TopSellingAppleDevices";
 import { MobilePriceRangeSection } from "../seperate-category/mobiles/MobilePriceRangeSection";
-import { TopSellingAndroidSection } from "../seperate-category/mobiles/TopSellingAndroidSection";
+import { TopSellingNonAppleDevices } from "../seperate-category/TopSellingNonAppleDevices";
 import { BrandLogoStrip } from "../seperate-category/BrandLogoStrip";
 import { NotSureWhatToBuySection } from "../seperate-category/mobiles/NotSureWhatToBuySection";
 import { InstagramChatBanner } from "../seperate-category/InstagramChatBanner";
@@ -55,13 +55,13 @@ export function BuyCategoryPage({ placement, category }: Props) {
       <BestSellingPlatformBanner />
 
       <div className="max-w-7xl mx-auto px-4 w-full">
-        <TopSellingIphonesSection />
+        <TopSellingAppleDevices categorySlug={category} />
       </div>
 
       <MobilePriceRangeSection />
 
       <div className="max-w-7xl mx-auto px-4 w-full">
-        <TopSellingAndroidSection />
+        <TopSellingNonAppleDevices categorySlug={category} />
       </div>
 
       <BrandLogoStrip

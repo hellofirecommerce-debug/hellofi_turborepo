@@ -18,6 +18,7 @@ import {
 import { generateRandomString } from "../../lib/utils/generateRandomString";
 
 const MAX_ITEMS_PER_SECTION = 7;
+const MAX_TOP_SELLING_PER_BRAND_GROUP = 10;
 
 const buyingProductInclude = {
   brand: true,
@@ -218,8 +219,11 @@ function assertPlacementCompatibility(
 }
 
 // ── Enforce: max MAX_ITEMS_PER_SECTION products per category for a given flag ──
+
+// ── Enforce: max MAX_ITEMS_PER_SECTION products per category for a given flag ──
 async function assertSectionCapacity(params: {
   categoryId: string;
+  brandId?: string | null;
   featuredSection?: string;
   isTopSelling?: boolean;
   isGaming?: boolean;
@@ -227,6 +231,7 @@ async function assertSectionCapacity(params: {
 }) {
   const {
     categoryId,
+    brandId,
     featuredSection,
     isTopSelling,
     isGaming,
@@ -252,17 +257,30 @@ async function assertSectionCapacity(params: {
     }
   }
 
+  // ── Top Selling: 10 Apple + 10 non-Apple per category, checked separately ──
   if (isTopSelling === true) {
+    const brand = brandId
+      ? await prisma.brand.findUnique({ where: { id: brandId } })
+      : null;
+    const isApple = brand?.name?.toLowerCase() === "apple";
+
     const count = await prisma.buyingProduct.count({
       where: {
         categoryId,
         isTopSelling: true,
+        brand: isApple
+          ? { name: { equals: "Apple", mode: "insensitive" } }
+          : { NOT: { name: { equals: "Apple", mode: "insensitive" } } },
         ...(excludeProductId ? { id: { not: excludeProductId } } : {}),
       },
     });
-    if (count >= MAX_ITEMS_PER_SECTION) {
+
+    if (count >= MAX_TOP_SELLING_PER_BRAND_GROUP) {
+      const label = isApple
+        ? "Top Selling Apple devices"
+        : "Top Selling non-Apple devices";
       throwInputError(
-        `"Top Selling" already has ${MAX_ITEMS_PER_SECTION} products for this category. Remove one before adding another.`,
+        `"${label}" already has ${MAX_TOP_SELLING_PER_BRAND_GROUP} products for this category. Remove one before adding another.`,
       );
     }
   }
@@ -405,6 +423,7 @@ class AdminBuyingProductService {
       );
       await assertSectionCapacity({
         categoryId: validated.categoryId,
+        brandId: validated.brandId,
         featuredSection: validated.featuredSection,
         isTopSelling: validated.isTopSelling,
         isGaming: validated.isGaming,
@@ -570,6 +589,7 @@ class AdminBuyingProductService {
       if (featuredSectionChanging || isTopSellingChanging || isGamingChanging) {
         await assertSectionCapacity({
           categoryId: effectiveCategoryId,
+          brandId: effectiveBrandId,
           featuredSection: featuredSectionChanging
             ? effectiveFeaturedSection
             : undefined,
