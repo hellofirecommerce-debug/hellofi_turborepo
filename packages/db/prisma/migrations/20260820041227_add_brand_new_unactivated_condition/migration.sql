@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "BuyingCondition" ADD VALUE 'BRAND_NEW_UNACTIVATED';

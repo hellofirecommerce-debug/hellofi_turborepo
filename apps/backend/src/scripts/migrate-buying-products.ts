@@ -97,17 +97,28 @@ const BuyingProductImagesModel = mongoose.model(
 // ── Enum mapping helpers ──
 function mapCondition(
   value?: string,
-): "UNBOXED" | "SUPERB" | "GOOD" | "FAIR" | "PARTIALLY_FAIR" {
+):
+  | "UNBOXED"
+  | "SUPERB"
+  | "GOOD"
+  | "FAIR"
+  | "PARTIALLY_FAIR"
+  | "BRAND_NEW_UNACTIVATED" {
   const map: Record<
     string,
-    "UNBOXED" | "SUPERB" | "GOOD" | "FAIR" | "PARTIALLY_FAIR"
+    | "UNBOXED"
+    | "SUPERB"
+    | "GOOD"
+    | "FAIR"
+    | "PARTIALLY_FAIR"
+    | "BRAND_NEW_UNACTIVATED"
   > = {
     unboxed: "UNBOXED",
     superb: "SUPERB",
     good: "GOOD",
     fair: "FAIR",
     "partially fair": "PARTIALLY_FAIR",
-    "brand new (unactivated)": "UNBOXED",
+    "brand new (unactivated)": "BRAND_NEW_UNACTIVATED",
   };
   return map[(value ?? "").toLowerCase()] ?? "GOOD";
 }
@@ -475,12 +486,13 @@ async function migrate() {
     // ═══════════════════════════════════════
     // STEP 4 — Migrate BuyingProductImage
     //
-    // Rule 1: variantId present (regardless of productId) → attach ONLY to that
-    //         variant, isDefault forced to false.
-    // Rule 2: variantId is null AND isDefault: true → true product-level default.
-    //         Only ONE per product is used (lowest priority, else first found),
-    //         fanned out to every variant of that product.
-    // Rule 3: productId === variantId (data bug) → invalid, skip entirely.
+    // Rule A: productId present, variantId absent, isDefault true
+    //         → fan out to EVERY variant of that product, each becomes
+    //         that variant's own image with isDefault: true.
+    // Rule B: productId present, variantId present, isDefault false
+    //         → migrate as-is to that variant, isDefault: false.
+    // Rule C: productId present, variantId present, isDefault true
+    //         → migrate to that variant, isDefault forced to false.
     // ═══════════════════════════════════════
     console.log("\n════ STEP 4: Migrating BuyingProductImage ════");
 
@@ -495,24 +507,6 @@ async function migrate() {
       const list = variantsByProduct.get(v.productId) ?? [];
       list.push(v.id);
       variantsByProduct.set(v.productId, list);
-    }
-
-    // ── Pre-scan: pick exactly ONE true default image per product ──
-    const chosenDefaultByProduct = new Map<string, any>();
-    for (const image of images as any[]) {
-      const productId = image.productId?.toString();
-      const variantId = image.variantId?.toString();
-
-      const isBuggyMatch = productId && variantId && productId === variantId;
-      const isTrueDefault =
-        !variantId && (image.isDefault ?? false) && !isBuggyMatch;
-
-      if (!isTrueDefault || !productId) continue;
-
-      const existing = chosenDefaultByProduct.get(productId);
-      if (!existing || (image.priority ?? 0) < (existing.priority ?? 0)) {
-        chosenDefaultByProduct.set(productId, image);
-      }
     }
 
     const existingImageIds = new Set(
@@ -540,37 +534,13 @@ async function migrate() {
 
         const sourceProductId: string | undefined = image.productId?.toString();
         const sourceVariantId: string | undefined = image.variantId?.toString();
+        const sourceIsDefault: boolean = image.isDefault ?? false;
 
-        // ── Rule 3 — buggy record where variantId equals productId ──
-        if (
-          sourceProductId &&
-          sourceVariantId &&
-          sourceProductId === sourceVariantId
-        ) {
-          console.log(
-            `  [${index}] ⚠️ Skipped — variantId equals productId (bad data): ${sourceId}`,
-          );
-          imageSkipped++;
-          continue;
-        }
-
-        const isTrueDefaultCandidate =
-          !sourceVariantId && (image.isDefault ?? false);
-
-        if (isTrueDefaultCandidate) {
-          // ── Rule 2 — true product-level default ──
-          if (!sourceProductId || !validProductIds.has(sourceProductId)) {
+        // ── Rule A — productId present, variantId absent, isDefault true ──
+        if (sourceProductId && !sourceVariantId && sourceIsDefault) {
+          if (!validProductIds.has(sourceProductId)) {
             console.log(
-              `  [${index}] ⚠️ Skipped (default) — parent product not found: ${sourceId}`,
-            );
-            imageSkipped++;
-            continue;
-          }
-
-          const chosen = chosenDefaultByProduct.get(sourceProductId);
-          if (!chosen || chosen._id.toString() !== sourceId) {
-            console.log(
-              `  [${index}] ⏭️ Skipped extra default (product already has one chosen): ${sourceId}`,
+              `  [${index}] ⚠️ Skipped (Rule A) — parent product not found: ${sourceId}`,
             );
             imageSkipped++;
             continue;
@@ -580,7 +550,7 @@ async function migrate() {
             variantsByProduct.get(sourceProductId) ?? [];
           if (variantIdsForProduct.length === 0) {
             console.log(
-              `  [${index}] ⚠️ Skipped (default) — no variants exist for product: ${sourceProductId}`,
+              `  [${index}] ⚠️ Skipped (Rule A) — no variants exist for product: ${sourceProductId}`,
             );
             imageSkipped++;
             continue;
@@ -591,7 +561,7 @@ async function migrate() {
 
             if (existingImageIds.has(targetId)) {
               console.log(
-                `  [${index}] ⏭️ Already exists (default): ${targetId}`,
+                `  [${index}] ⏭️ Already exists (Rule A): ${targetId}`,
               );
               imageExists++;
               continue;
@@ -613,29 +583,25 @@ async function migrate() {
               });
               existingImageIds.add(targetId);
               console.log(
-                `  [${index}] ✅ default image ${sourceId} → variant ${targetVariantId}`,
+                `  [${index}] ✅ Rule A: ${sourceId} → variant ${targetVariantId} (default)`,
               );
               imageSuccess++;
             } catch (err: any) {
               console.error(
-                `  [${index}] ❌ Error (default): ${targetId} — ${err.message}`,
+                `  [${index}] ❌ Error (Rule A): ${targetId} — ${err.message}`,
               );
               imageSkipped++;
             }
           }
-        } else {
-          // ── Rule 1 — has its own variantId → belongs only to that variant, isDefault forced false ──
+          continue;
+        }
+
+        // ── Rule B — productId present, variantId present, isDefault false ──
+        // ── Rule C — productId present, variantId present, isDefault true (forced to false) ──
+        if (sourceProductId && sourceVariantId) {
           if (existingImageIds.has(sourceId)) {
             console.log(`  [${index}] ⏭️ Already exists: ${sourceId}`);
             imageExists++;
-            continue;
-          }
-
-          if (!sourceVariantId) {
-            console.log(
-              `  [${index}] ⚠️ Skipped — no variantId and not a valid default: ${sourceId}`,
-            );
-            imageSkipped++;
             continue;
           }
 
@@ -658,12 +624,13 @@ async function migrate() {
                 lg: image.lg ?? null,
                 alt: image.alt ?? null,
                 priority: image.priority ?? 0,
-                isDefault: false,
+                isDefault: false, // Rule B keeps false, Rule C forces false — same outcome
               },
             });
             existingImageIds.add(sourceId);
+            const ruleUsed = sourceIsDefault ? "Rule C" : "Rule B";
             console.log(
-              `  [${index}] ✅ image ${sourceId} → variant ${sourceVariantId}`,
+              `  [${index}] ✅ ${ruleUsed}: ${sourceId} → variant ${sourceVariantId}`,
             );
             imageSuccess++;
           } catch (err: any) {
@@ -672,14 +639,20 @@ async function migrate() {
             );
             imageSkipped++;
           }
+          continue;
         }
+
+        // ── Fallback — doesn't match any of the 3 rules (e.g. no productId at all) ──
+        console.log(
+          `  [${index}] ⚠️ Skipped — no matching rule (productId: ${sourceProductId ?? "none"}, variantId: ${sourceVariantId ?? "none"}, isDefault: ${sourceIsDefault}): ${sourceId}`,
+        );
+        imageSkipped++;
       }
     }
 
     console.log(
       `\nImage migration — ✅ ${imageSuccess} success, ⏭️ ${imageExists} exists, ⚠️ ${imageSkipped} skipped`,
     );
-
     console.log(`\n════════════════════════════════`);
     console.log(`FULL MIGRATION COMPLETE`);
     console.log(

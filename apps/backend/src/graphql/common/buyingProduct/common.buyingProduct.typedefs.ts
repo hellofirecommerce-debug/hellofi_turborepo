@@ -5,6 +5,7 @@ export const typeDefs = `#graphql
     GOOD
     FAIR
     PARTIALLY_FAIR
+    BRAND_NEW_UNACTIVATED
   }
 
   enum BuyingAvailability {
