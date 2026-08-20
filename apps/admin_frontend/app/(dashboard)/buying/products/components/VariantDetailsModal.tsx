@@ -15,6 +15,7 @@ const conditionColors: Record<string, string> = {
   GOOD: "bg-blue-100 text-blue-700",
   FAIR: "bg-yellow-100 text-yellow-700",
   PARTIALLY_FAIR: "bg-orange-100 text-orange-700",
+  BRAND_NEW_UNACTIVATED: "bg-emerald-100 text-emerald-700",
 };
 
 export const VariantDetailsModal: React.FC<Props> = ({ product, onClose }) => {

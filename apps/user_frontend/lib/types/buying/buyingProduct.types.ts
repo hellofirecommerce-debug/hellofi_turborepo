@@ -43,6 +43,7 @@ export const CONDITION_LABELS: Record<string, string> = {
   GOOD: "Good",
   FAIR: "Fair",
   PARTIALLY_FAIR: "Fair",
+  BRAND_NEW_UNACTIVATED: "Brand New (Unactivated)",
 };
 
 export const WARRANTY_LABELS: Record<string, string> = {

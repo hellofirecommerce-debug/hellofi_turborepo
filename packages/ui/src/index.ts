@@ -17,3 +17,4 @@ export { AutoComplete } from "./components/AutoComplete";
 export { Accordion } from "./components/Accordion";
 export { SearchableInput } from "./components/SearchableInput";
 export { PlaceholderCard } from "./components/PlaceholderCard";
+export { RichTextEditor } from "./components/RichTextEditor";

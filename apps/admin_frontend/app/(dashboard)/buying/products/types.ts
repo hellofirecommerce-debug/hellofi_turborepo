@@ -44,7 +44,13 @@ export interface BuyingVariant {
   quantity: number;
   reservedQuantity: number;
   productSpec?: string;
-  condition: "UNBOXED" | "SUPERB" | "GOOD" | "FAIR" | "PARTIALLY_FAIR";
+  condition:
+    | "UNBOXED"
+    | "SUPERB"
+    | "GOOD"
+    | "FAIR"
+    | "PARTIALLY_FAIR"
+    | "BRAND_NEW_UNACTIVATED";
   availability: "IN_STOCK" | "OUT_OF_STOCK";
   screenSize?: string;
   os?: "WINDOWS" | "MACOS";

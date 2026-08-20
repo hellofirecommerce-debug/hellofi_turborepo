@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Input, Label, Button } from "@repo/ui";
+import { Input, Label, Button, RichTextEditor } from "@repo/ui";
 import { ChevronDown, ChevronUp, Trash2 } from "lucide-react";
 import { CreateBuyingVariantInput } from "@repo/validations";
 import { VariantImagesUpload } from "./VariantImagesUpload";
@@ -208,13 +208,18 @@ export const BuyingProductVariantCard: React.FC<Props> = ({
                 onChange={(e) => onUpdate("condition", e.target.value as any)}
                 className={selectClass}
               >
-                {["UNBOXED", "SUPERB", "GOOD", "FAIR", "PARTIALLY_FAIR"].map(
-                  (c) => (
-                    <option key={c} value={c}>
-                      {c.replace(/_/g, " ")}
-                    </option>
-                  ),
-                )}
+                {[
+                  "UNBOXED",
+                  "SUPERB",
+                  "GOOD",
+                  "FAIR",
+                  "PARTIALLY_FAIR",
+                  "BRAND_NEW_UNACTIVATED",
+                ].map((c) => (
+                  <option key={c} value={c}>
+                    {c.replace(/_/g, " ")}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -337,6 +342,28 @@ export const BuyingProductVariantCard: React.FC<Props> = ({
               />
             </div>
 
+            {/* OS */}
+            <div className="flex flex-col gap-1.5">
+              <Label>
+                OS{" "}
+                <span className="text-xs text-gray-400 font-normal">
+                  (optional)
+                </span>
+              </Label>
+              <select
+                title="os"
+                value={variant.os ?? ""}
+                onChange={(e) =>
+                  onUpdate("os", (e.target.value || null) as any)
+                }
+                className={selectClass}
+              >
+                <option value="">None</option>
+                <option value="WINDOWS">Windows</option>
+                <option value="MACOS">MacOS</option>
+              </select>
+            </div>
+
             {/* Live Link */}
             <div className="flex flex-col gap-1.5">
               <Label>
@@ -433,6 +460,20 @@ export const BuyingProductVariantCard: React.FC<Props> = ({
               onChange={(e) => onUpdate("whatsExtra", e.target.value)}
               rows={3}
               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-[3px] focus:border-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]/25 resize-none"
+            />
+          </div>
+
+          {/* Product Spec */}
+          <div className="flex flex-col gap-1.5">
+            <Label>
+              Product Specification{" "}
+              <span className="text-xs text-gray-400 font-normal">
+                (optional)
+              </span>
+            </Label>
+            <RichTextEditor
+              content={variant.productSpec ?? ""}
+              onChange={(html) => onUpdate("productSpec", html)}
             />
           </div>
 

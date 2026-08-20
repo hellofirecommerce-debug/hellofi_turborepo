@@ -20,7 +20,14 @@ export const createBuyingVariantSchema = z.object({
   emiBasePrice: z.number().min(0).optional(),
   quantity: z.number().int().min(0),
   productSpec: z.string().optional(),
-  condition: z.enum(["UNBOXED", "SUPERB", "GOOD", "FAIR", "PARTIALLY_FAIR"]),
+  condition: z.enum([
+    "UNBOXED",
+    "SUPERB",
+    "GOOD",
+    "FAIR",
+    "PARTIALLY_FAIR",
+    "BRAND_NEW_UNACTIVATED",
+  ]),
   availability: z.enum(["IN_STOCK", "OUT_OF_STOCK"]).default("IN_STOCK"),
   screenSize: z.string().optional(),
   os: z.enum(["WINDOWS", "MACOS"]).optional(),
@@ -68,7 +75,14 @@ export const updateBuyingVariantSchema = z.object({
   quantity: z.number().int().min(0).optional(),
   productSpec: z.string().optional().nullable(),
   condition: z
-    .enum(["UNBOXED", "SUPERB", "GOOD", "FAIR", "PARTIALLY_FAIR"])
+    .enum([
+      "UNBOXED",
+      "SUPERB",
+      "GOOD",
+      "FAIR",
+      "PARTIALLY_FAIR",
+      "BRAND_NEW_UNACTIVATED",
+    ])
     .optional(),
   availability: z.enum(["IN_STOCK", "OUT_OF_STOCK"]).optional(),
   screenSize: z.string().optional().nullable(),

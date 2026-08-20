@@ -130,6 +130,7 @@ export const BuyingProductForm: React.FC<Props> = ({
           warrantyDescription: v.warrantyDescription ?? "",
           whatsInTheBox: v.whatsInTheBox ?? [],
           whatsExtra: v.whatsExtra ?? "",
+          productSpec: v.productSpec ?? "",
           availability: v.availability,
           screenSize: v.screenSize ?? "",
           os: (v.os ?? "") as any,
