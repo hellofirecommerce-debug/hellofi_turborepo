@@ -53,7 +53,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
         <MostLovedSection categorySlug={category} />
       </div>
 
-      <BestSellingPlatformBanner />
+      <BestSellingPlatformBanner categorySlug={category} />
 
       <div className="max-w-7xl mx-auto px-4 w-full">
         <TopSellingAppleDevices categorySlug={category} />

@@ -28,6 +28,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-pdf": "^10.4.1",
+    "rxjs": "^7.8.2",
     "sonner": "^2.0.7",
     "swiper": "^12.1.4",
     "tailwindcss": "^4.2.2",
