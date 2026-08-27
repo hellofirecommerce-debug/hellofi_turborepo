@@ -58,19 +58,19 @@ const PRICE_TILES: Record<string, PriceRangeTile[]> = {
   ],
   "smart-watch": [
     {
-      image: "/images/buy-category/smart-watches/Smart_Watches_Under_10000.png",
+      image: "/images/buy-category/smart-watches/Smart_Watches_Under_10000.PNG",
       href: "/buy-used-smartwatches?max=10000",
     },
     {
-      image: "/images/buy-category/smart-watches/Smart_Watches_Under_20000.png",
+      image: "/images/buy-category/smart-watches/Smart_Watches_Under_20000.PNG",
       href: "/buy-used-smartwatches?max=20000",
     },
     {
-      image: "/images/buy-category/smart-watches/Smart_Watches_Under_30000.png",
+      image: "/images/buy-category/smart-watches/Smart_Watches_Under_30000.PNG",
       href: "/buy-used-smartwatches?max=30000",
     },
     {
-      image: "/images/buy-category/smart-watches/Smart_Watches_Above_30000.png",
+      image: "/images/buy-category/smart-watches/Smart_Watches_Above_30000.PNG",
       href: "/buy-used-smartwatches?min=30000",
     },
   ],
