@@ -15,7 +15,7 @@ import { ServiceHighlightsBar } from "../seperate-category/ServiceHighlightsBar"
 import { CategoryGrid } from "../shared/CategoryGrid";
 import { BestSellingPlatformBanner } from "../seperate-category/BestSellingPlatformBanner";
 import { TopSellingAppleDevices } from "../seperate-category/TopSellingAppleDevices";
-import { MobilePriceRangeSection } from "../seperate-category/mobiles/MobilePriceRangeSection";
+import { PriceRangeSection } from "../seperate-category/PriceRangeSection";
 import { TopSellingNonAppleDevices } from "../seperate-category/TopSellingNonAppleDevices";
 import { BrandLogoStrip } from "../seperate-category/BrandLogoStrip";
 import { NotSureWhatToBuySection } from "../seperate-category/mobiles/NotSureWhatToBuySection";
@@ -59,7 +59,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
         <TopSellingAppleDevices categorySlug={category} />
       </div>
 
-      <MobilePriceRangeSection />
+      <PriceRangeSection categorySlug={category} />
 
       <div className="max-w-7xl mx-auto px-4 w-full">
         <TopSellingNonAppleDevices categorySlug={category} />
@@ -69,7 +69,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
         <ShopByBrand categorySlug={category} />
       </div>
 
-      {/* <NotSureWhatToBuySection /> */}
+      <NotSureWhatToBuySection />
       <div className="max-w-7xl mx-auto px-4 w-full">
         <InstagramChatBanner />
       </div>
