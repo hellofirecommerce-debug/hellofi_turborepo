@@ -69,7 +69,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
         <ShopByBrand categorySlug={category} />
       </div>
 
-      <NotSureWhatToBuySection />
+      {/* <NotSureWhatToBuySection /> */}
       <div className="max-w-7xl mx-auto px-4 w-full">
         <InstagramChatBanner />
       </div>
