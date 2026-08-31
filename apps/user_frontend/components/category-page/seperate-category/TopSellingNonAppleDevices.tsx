@@ -5,6 +5,30 @@ import { calculateDiscount } from "../../../lib/utlils/calculateDiscount";
 import { toProduct } from "../../../lib/types/buying/buyingProduct.types";
 import { getTopSellingNonAppleProducts } from "../../../lib/data/buyingProduct.data";
 
+interface CategoryConfig {
+  title: string;
+  seeAllHref: string;
+}
+
+const NON_APPLE_CONFIG: Record<string, CategoryConfig> = {
+  "mobile-phone": {
+    title: "Buy Top Selling Preowned Android Moblie Phones",
+    seeAllHref: "/buy-used-mobile-phones?os=android",
+  },
+  laptop: {
+    title: "Buy Top Selling Preowned Windows Laptops",
+    seeAllHref: "/buy-used-laptops?os=windows",
+  },
+  tablet: {
+    title: "Buy Top Selling Preowned Android Tablets",
+    seeAllHref: "/buy-used-tablets?os=android",
+  },
+  "smart-watch": {
+    title: "Buy Top Selling Preowned Samsung Watches",
+    seeAllHref: "/buy-used-smartwatches?brand=samsung",
+  },
+};
+
 interface Props {
   categorySlug?: string;
 }
@@ -14,14 +38,16 @@ export async function TopSellingNonAppleDevices({ categorySlug }: Props) {
 
   if (!items.length) return null;
 
+  const config = categorySlug ? NON_APPLE_CONFIG[categorySlug] : undefined;
+
   const products: Product[] = items.map((c) =>
     toProduct(c, calculateDiscount(c.mrp, c.price).discountPercent),
   );
 
   return (
     <ProductCarousel
-      title="Buy Top Selling Preowned Android"
-      seeAllHref="/buy-used-mobile-phones?os=android"
+      title={config?.title ?? "Buy Top Selling Preowned Devices"}
+      seeAllHref={config?.seeAllHref ?? "/buy-used-gadgets"}
       products={products}
     />
   );
