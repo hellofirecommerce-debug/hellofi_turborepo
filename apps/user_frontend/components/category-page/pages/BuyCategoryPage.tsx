@@ -25,11 +25,11 @@ import { CategoryMegaDhamakaSection } from "../seperate-category/CategoryMegaDha
 import { ChoosingYourPathSection } from "../seperate-category/mobiles/ChoosingYourPathSection";
 import { HowToChooseSection } from "../shared/HowToChooseSection";
 import { VisitStoreSection } from "../shared/VisitStoreSection";
-import { MobileFAQSection } from "../seperate-category/mobiles/MobileFAQSection";
 import { PreownedIntroSection } from "../seperate-category/mobiles/PreownedIntroSection";
 import { WhyBuyPreownedGrid } from "../seperate-category/mobiles/WhyBuyPreownedGrid";
 import { PreownedQuoteBanner } from "../seperate-category/mobiles/PreownedQuoteBanner";
 import { PreownedComparisonTable } from "../seperate-category/mobiles/PreownedComparisonTable";
+import { CategoryFAQSection } from "../seperate-category/CategoryFAQSection";
 
 interface Props {
   placement: string;
@@ -93,7 +93,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
 
       <CustomerReviewsSection />
       <BlogSection />
-      <MobileFAQSection />
+      <CategoryFAQSection categorySlug={category} />
       <PreownedIntroSection />
       <WhyBuyPreownedGrid />
       <PreownedQuoteBanner />

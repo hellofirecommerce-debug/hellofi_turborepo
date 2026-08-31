@@ -12,11 +12,12 @@ interface CategoryConfig {
 
 const NON_APPLE_CONFIG: Record<string, CategoryConfig> = {
   "mobile-phone": {
-    title: "Buy Top Selling Preowned Android Moblie Phones",
+    title: "Buy Top Selling Preowned Android Mobile Phones",
     seeAllHref: "/buy-used-mobile-phones?os=android",
   },
   laptop: {
-    title: "Buy Top Selling Preowned Windows Laptops",
+    title:
+      "Buy Used Laptops Online India | Dell, HP, Lenovo, Asus – Preowned, Verified ",
     seeAllHref: "/buy-used-laptops?os=windows",
   },
   tablet: {

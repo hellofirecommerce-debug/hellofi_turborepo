@@ -12,11 +12,11 @@ interface CategoryConfig {
 
 const APPLE_CONFIG: Record<string, CategoryConfig> = {
   "mobile-phone": {
-    title: "Buy Top Selling Preowned iPhones",
+    title: "Top Selling Preowned iPhones —Certified, Warranty Included",
     seeAllHref: "/buy-used-mobile-phones?os=ios",
   },
   laptop: {
-    title: "Buy Top Selling Preowned MacBooks",
+    title: "Buy Used MacBook Online India | Preowned, Never Refurbished",
     seeAllHref: "/buy-used-laptops?os=macos",
   },
   tablet: {
