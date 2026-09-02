@@ -94,7 +94,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
       <CustomerReviewsSection />
       <BlogSection />
       <CategoryFAQSection categorySlug={category} />
-      <PreownedIntroSection />
+      <PreownedIntroSection categorySlug={category} />
       <WhyBuyPreownedGrid />
       <PreownedQuoteBanner />
       <PreownedComparisonTable />

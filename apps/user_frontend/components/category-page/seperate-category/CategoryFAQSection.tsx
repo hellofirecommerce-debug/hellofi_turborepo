@@ -15,7 +15,7 @@ export function CategoryFAQSection({ categorySlug }: Props) {
   if (!faqs || faqs.length === 0) return null;
 
   return (
-    <section className="max-w-3xl mx-auto px-4 py-10 sm:py-14">
+    <section className="max-w-3xl mx-auto px-4 py-10 sm:py-14 w-full">
       <p className="text-[10px] sm:text-xs font-bold tracking-widest uppercase text-primary mb-2">
         Got Questions?
       </p>

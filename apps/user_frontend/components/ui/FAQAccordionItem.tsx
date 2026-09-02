@@ -18,9 +18,8 @@ export function FAQAccordionItem({
   onToggle,
 }: FAQAccordionItemProps) {
   return (
-    <motion.div
-      layout
-      className={`w-full rounded-2xl border overflow-hidden transition-colors duration-200 ${
+    <div
+      className={`w-full max-w-full rounded-2xl border overflow-hidden transition-colors duration-200 ${
         isOpen
           ? "border-primary bg-primary-surface"
           : "border-gray-200 bg-white"
@@ -31,7 +30,7 @@ export function FAQAccordionItem({
         className="w-full flex items-center justify-between px-4 sm:px-5 py-3.5 sm:py-4 text-left gap-4"
       >
         <span
-          className={`text-xs sm:text-sm font-semibold leading-snug ${
+          className={`min-w-0 flex-1 break-words text-xs sm:text-sm font-semibold leading-snug ${
             isOpen ? "text-primary" : "text-hf-title"
           }`}
         >
@@ -66,13 +65,13 @@ export function FAQAccordionItem({
             style={{ overflow: "hidden" }}
           >
             <div className="px-4 sm:px-5 pb-4 sm:pb-5">
-              <p className="text-[11px] sm:text-xs text-gray-500 leading-relaxed">
+              <p className="text-[11px] sm:text-xs text-gray-500 leading-relaxed break-words">
                 {answer}
               </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

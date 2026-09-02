@@ -1,25 +1,41 @@
-export function PreownedIntroSection() {
+import { preownedIntroContent } from "../../../../lib/content/intro/preownedIntro";
+
+interface Props {
+  categorySlug: string;
+}
+
+export function PreownedIntroSection({ categorySlug }: Props) {
+  const content = preownedIntroContent[categorySlug];
+
+  if (!content) return null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 w-full py-8 sm:py-10">
-      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black text-center leading-tight mb-4 sm:mb-5">
-        Buy Preowned Mobile Phones and Apple iPhones at the Best Price in India.
+      <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-black leading-tight mb-4 sm:mb-5 text-left">
+        {content.title}
       </h1>
 
-      <p className="text-xs sm:text-sm text-gray-500 leading-relaxed text-center max-w-4xl mx-auto">
-        HelloFi is India's most trusted platform for buying used mobile phones,
-        Apple iPhones. HelloFi makes it easy to buy used smartphones online in
-        India — every device is IMEI verified, thoroughly tested with 40+ points
-        quality checks and listed with honest condition grading like Open Box,
-        Superb, Good and Fair with real product photos and transparent
-        descriptions. Whether you are upgrading to a premium smartphone or
-        looking for the best value under your budget, our collection offers
-        reliable used mobiles with nationwide free delivery, secure payments,
-        and expert assistance before and after your purchase. We list phones
-        across all major brands, including Apple, Samsung, OnePlus, Xiaomi,
-        Vivo, Oppo, Realme, Google, Motorola, iQOO, Nothing. Many devices
-        include the original box, charger, first owner invoice, mandatory
-        HelloFi GST Bill and remaining brand warranty.
-      </p>
+      <div className="flex flex-col gap-3 sm:gap-4">
+        {content.paragraphs.map((paragraph, i) => (
+          <p
+            key={i}
+            className="text-xs sm:text-sm text-gray-500 leading-relaxed text-justify w-full"
+          >
+            {paragraph}
+          </p>
+        ))}
+
+        {content.summary && (
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-black mb-1.5">
+              Summary
+            </h3>
+            <p className="text-xs sm:text-sm text-gray-500 leading-relaxed text-justify w-full">
+              {content.summary}
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
