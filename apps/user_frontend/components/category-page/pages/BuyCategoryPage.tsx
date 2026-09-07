@@ -95,9 +95,9 @@ export function BuyCategoryPage({ placement, category }: Props) {
       <BlogSection />
       <CategoryFAQSection categorySlug={category} />
       <PreownedIntroSection categorySlug={category} />
-      <WhyBuyPreownedGrid />
-      <PreownedQuoteBanner />
-      <PreownedComparisonTable />
+      <WhyBuyPreownedGrid categorySlug={category} />
+      <PreownedQuoteBanner categorySlug={category} />
+      <PreownedComparisonTable categorySlug={category} />
     </div>
   );
 }
