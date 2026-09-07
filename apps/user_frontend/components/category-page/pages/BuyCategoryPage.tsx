@@ -18,18 +18,21 @@ import { TopSellingAppleDevices } from "../seperate-category/TopSellingAppleDevi
 import { PriceRangeSection } from "../seperate-category/PriceRangeSection";
 import { TopSellingNonAppleDevices } from "../seperate-category/TopSellingNonAppleDevices";
 import { BrandLogoStrip } from "../seperate-category/BrandLogoStrip";
-import { NotSureWhatToBuySection } from "../seperate-category/mobiles/NotSureWhatToBuySection";
+import { NotSureWhatToBuySection } from "../seperate-category/seo/NotSureWhatToBuySection";
 import { InstagramChatBanner } from "../seperate-category/InstagramChatBanner";
 
 import { CategoryMegaDhamakaSection } from "../seperate-category/CategoryMegaDhamakaSection";
-import { ChoosingYourPathSection } from "../seperate-category/mobiles/ChoosingYourPathSection";
+import { ChoosingYourPathSection } from "../seperate-category/seo/ChoosingYourPathSection";
 import { HowToChooseSection } from "../shared/HowToChooseSection";
 import { VisitStoreSection } from "../shared/VisitStoreSection";
-import { PreownedIntroSection } from "../seperate-category/mobiles/PreownedIntroSection";
-import { WhyBuyPreownedGrid } from "../seperate-category/mobiles/WhyBuyPreownedGrid";
-import { PreownedQuoteBanner } from "../seperate-category/mobiles/PreownedQuoteBanner";
-import { PreownedComparisonTable } from "../seperate-category/mobiles/PreownedComparisonTable";
+import { PreownedIntroSection } from "../seperate-category/seo/PreownedIntroSection";
+import { WhyBuyPreownedGrid } from "../seperate-category/seo/WhyBuyPreownedGrid";
+import { PreownedQuoteBanner } from "../seperate-category/seo/PreownedQuoteBanner";
+import { PreownedComparisonTable } from "../seperate-category/seo/PreownedComparisonTable";
 import { CategoryFAQSection } from "../seperate-category/CategoryFAQSection";
+import { CategorySeoContentSection } from "../seperate-category/seo/CategorySeoContentSection";
+import { BuyingGuideSection } from "../seperate-category/seo/BuyingGuideSection";
+import { StatsSection } from "../seperate-category/seo/StatsSection";
 
 interface Props {
   placement: string;
@@ -96,6 +99,9 @@ export function BuyCategoryPage({ placement, category }: Props) {
       <CategoryFAQSection categorySlug={category} />
       <PreownedIntroSection categorySlug={category} />
       <WhyBuyPreownedGrid categorySlug={category} />
+      <CategorySeoContentSection categorySlug={category} />
+      <BuyingGuideSection categorySlug={category} />
+      <StatsSection categorySlug={category} />
       <PreownedQuoteBanner categorySlug={category} />
       <PreownedComparisonTable categorySlug={category} />
     </div>
