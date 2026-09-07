@@ -33,6 +33,7 @@ import { CategoryFAQSection } from "../seperate-category/CategoryFAQSection";
 import { CategorySeoContentSection } from "../seperate-category/seo/CategorySeoContentSection";
 import { BuyingGuideSection } from "../seperate-category/seo/BuyingGuideSection";
 import { StatsSection } from "../seperate-category/seo/StatsSection";
+import { PlatformComparisonSection } from "../seperate-category/seo/PlatformComparisonSection";
 
 interface Props {
   placement: string;
@@ -102,6 +103,7 @@ export function BuyCategoryPage({ placement, category }: Props) {
       <CategorySeoContentSection categorySlug={category} />
       <BuyingGuideSection categorySlug={category} />
       <StatsSection categorySlug={category} />
+      <PlatformComparisonSection categorySlug={category} />
       <PreownedQuoteBanner categorySlug={category} />
       <PreownedComparisonTable categorySlug={category} />
     </div>

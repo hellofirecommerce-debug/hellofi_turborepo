@@ -3,6 +3,16 @@ interface DefinitionItem {
   answer: string;
 }
 
+interface QuickGuideRow {
+  condition: string;
+  recommendation: string;
+}
+
+interface FinalResultRow {
+  question: string;
+  answer: string;
+}
+
 interface GuideStep {
   title: string;
   items: string[];
@@ -33,6 +43,9 @@ interface GuideContent {
   evaluationHeading?: string;
   evaluationIntro?: string;
   evaluationItems?: EvaluationItem[];
+  quickGuideHeading?: string;
+  quickGuideRows?: QuickGuideRow[];
+  finalResultRows?: FinalResultRow[];
 }
 
 const GUIDE_CONTENT: Record<string, GuideContent> = {
@@ -236,6 +249,69 @@ const GUIDE_CONTENT: Record<string, GuideContent> = {
         text: "Securely reset, smooth performance, successful pairing and ready for setup.",
       },
     ],
+    quickGuideHeading: "HelloFi's Quick Buying Guide",
+    quickGuideRows: [
+      { condition: "Use an iPhone", recommendation: "Preowned Apple Watch" },
+      {
+        condition: "Use a Samsung Galaxy smartphone",
+        recommendation: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        condition: "Use another Android smartphone",
+        recommendation: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        condition: "Want the best Apple ecosystem integration",
+        recommendation: "Preowned Apple Watch",
+      },
+      {
+        condition: "Prefer Google apps and services",
+        recommendation: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        condition: "Need Apple Fitness support",
+        recommendation: "Preowned Apple Watch",
+      },
+      {
+        condition: "Need Google Maps on your wrist",
+        recommendation: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        condition: "Want maximum watch face customisation",
+        recommendation: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        condition: "Want the smoothest iPhone experience",
+        recommendation: "Preowned Apple Watch",
+      },
+      {
+        condition: "Want the best Android smartwatch experience",
+        recommendation: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        condition: "Want near-to-accurate health information",
+        recommendation: "Preowned Apple Watch",
+      },
+    ],
+    finalResultRows: [
+      {
+        question: "Which smartwatch is better overall?",
+        answer: "There is no universal winner.",
+      },
+      {
+        question: "Which is best for iPhone users?",
+        answer: "Preowned Apple Watch",
+      },
+      {
+        question: "Which is best for Android users?",
+        answer: "Preowned Samsung Galaxy Watch",
+      },
+      {
+        question: "Which offers better value when bought preowned?",
+        answer:
+          "Both offer excellent value when purchased from a trusted seller like HelloFi, allowing you to enjoy premium smartwatch features, verified quality, transparent product information, and significant savings compared to buying brand new.",
+      },
+    ],
   },
   tablet: {
     choiceHeading:
@@ -382,6 +458,82 @@ export function BuyingGuideSection({ categorySlug }: Props) {
               </p>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Quick Buying Guide */}
+      {content.quickGuideHeading && content.quickGuideRows && (
+        <div>
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-black mb-3">
+            {content.quickGuideHeading}
+          </h2>
+          <div className="bg-white border border-card-border rounded-xl overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[400px]">
+              <thead>
+                <tr className="bg-primary-surface">
+                  <th className="text-left text-[10px] sm:text-xs font-bold text-black uppercase tracking-wide px-3 sm:px-4 py-2.5 sm:py-3">
+                    If You...
+                  </th>
+                  <th className="text-left text-[10px] sm:text-xs font-bold text-primary uppercase tracking-wide px-3 sm:px-4 py-2.5 sm:py-3">
+                    Recommended Smartwatch
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {content.quickGuideRows.map((row, i) => (
+                  <tr
+                    key={i}
+                    className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
+                    <td className="text-xs sm:text-sm text-black px-3 sm:px-4 py-3 sm:py-3.5">
+                      {row.condition}
+                    </td>
+                    <td className="text-xs sm:text-sm font-semibold text-primary px-3 sm:px-4 py-3 sm:py-3.5">
+                      ✅ {row.recommendation}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Final Result */}
+      {content.finalResultRows && (
+        <div>
+          <h3 className="text-sm sm:text-base font-bold text-black mb-2">
+            Final Result
+          </h3>
+          <div className="bg-white border border-card-border rounded-xl overflow-hidden overflow-x-auto">
+            <table className="w-full min-w-[400px]">
+              <thead>
+                <tr className="bg-primary-surface">
+                  <th className="text-left text-[10px] sm:text-xs font-bold text-black uppercase tracking-wide px-3 sm:px-4 py-2.5 sm:py-3">
+                    Question
+                  </th>
+                  <th className="text-left text-[10px] sm:text-xs font-bold text-black uppercase tracking-wide px-3 sm:px-4 py-2.5 sm:py-3">
+                    Answer
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {content.finalResultRows.map((row, i) => (
+                  <tr
+                    key={i}
+                    className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
+                  >
+                    <td className="text-xs sm:text-sm font-medium text-black px-3 sm:px-4 py-3 sm:py-3.5 align-top">
+                      {row.question}
+                    </td>
+                    <td className="text-xs sm:text-sm text-gray-600 px-3 sm:px-4 py-3 sm:py-3.5 align-top">
+                      {row.answer}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
