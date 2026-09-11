@@ -28,7 +28,7 @@ function BrandCard({
 }) {
   return (
     <Link
-      href={`/buy-used-gadgets?brand=${brand.seoName}`}
+      href={`/buy-used-gadgets/products?brand=${brand.seoName}`}
       className={`flex items-center gap-2.5 sm:gap-3 rounded-xl border-2 ${borderColor} bg-white px-3 py-3 sm:px-3.5 sm:py-3.5 hover:-translate-y-0.5 transition-transform`}
     >
       <div className="shrink-0 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">

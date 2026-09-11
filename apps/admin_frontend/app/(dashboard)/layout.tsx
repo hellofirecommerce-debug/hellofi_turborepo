@@ -50,7 +50,7 @@ export default function DashboardLayout({
   const { admin } = useRequireAuth(); // ← get admin here
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen ">
       <AppSidebar />
       <Backdrop />
       <DashboardContent admin={admin}>{children}</DashboardContent>

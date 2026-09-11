@@ -25,9 +25,14 @@ const BADGE_STYLES: Record<string, string> = {
 interface ProductCardProps {
   product: Product;
   variant?: "light" | "dark" | "flash";
+  fullWidth?: boolean;
 }
 
-export function ProductCard({ product, variant = "light" }: ProductCardProps) {
+export function ProductCard({
+  product,
+  variant = "light",
+  fullWidth = false,
+}: ProductCardProps) {
   const {
     brand,
     name,
@@ -46,7 +51,9 @@ export function ProductCard({ product, variant = "light" }: ProductCardProps) {
 
   return (
     <div
-      className={`shrink-0 w-[220px] sm:w-[250px] lg:w-[280px] rounded-xl cursor-pointer overflow-hidden border ${
+      className={`${
+        fullWidth ? "w-full" : "shrink-0 w-[220px] sm:w-[250px] lg:w-[280px]"
+      } rounded-xl cursor-pointer overflow-hidden border ${
         isDark || isFlash ? "" : "bg-card-surface border-card-border"
       }`}
       style={

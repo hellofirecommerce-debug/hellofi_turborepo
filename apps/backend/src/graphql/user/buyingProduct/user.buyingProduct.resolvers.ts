@@ -11,5 +11,15 @@ export const resolvers = {
         categorySlug: args.categorySlug,
       });
     },
+
+    getAvailableFilters: async (
+      _parent: unknown,
+      args: { categorySlugs?: string[] },
+    ) => {
+      return UserBuyingProductService.getAvailableFilters(args.categorySlugs);
+    },
+    getFilteredBuyingProducts: async (_: any, args: { filter?: any }) => {
+      return UserBuyingProductService.getFilteredBuyingProducts(args.filter ?? {});
+    },
   },
 };

@@ -1,10 +1,33 @@
 // lib/data/buyingProduct.data.ts
-import { GET_BUYING_PRODUCTS_BY_SECTION } from "../graphql/queires/buyingProduct.queries";
+import {
+  GET_BUYING_PRODUCTS_BY_SECTION,
+  GET_AVAILABLE_FILTERS,
+  GET_FILTERED_BUYING_PRODUCTS,
+} from "../graphql/queires/buyingProduct.queries";
+
 import type {
   GetBuyingProductsBySectionData,
   GetBuyingProductsBySectionVars,
   BuyingProductSection,
 } from "../types/buying/buyingProduct.types";
+
+export interface AvailableFilters {
+  categories: { id: string; name: string; seoName: string }[];
+  storages: string[];
+  rams: string[];
+  conditions: string[];
+  osList: string[];
+  screenSizes: string[];
+  processors: string[];
+  batteryCapacities: string[];
+  warrantyTypes: string[];
+  brands: { id: string | null; name: string }[];
+  priceRange: { min: number | null; max: number | null };
+}
+
+interface GetAvailableFiltersData {
+  getAvailableFilters: AvailableFilters;
+}
 
 const GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_BACKEND_URL!;
 
@@ -44,6 +67,101 @@ async function fetchBySection(variables: GetBuyingProductsBySectionVars) {
   } catch (error) {
     console.error(`fetchBySection [${variables.section}]: fetch failed`, error);
     return [];
+  }
+}
+
+export async function getAvailableFilters(
+  categorySlugs?: string[],
+): Promise<AvailableFilters | null> {
+  try {
+    const res = await fetch(GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: GET_AVAILABLE_FILTERS.loc?.source.body,
+        variables: { categorySlugs: categorySlugs ?? null },
+      }),
+      next: { revalidate: 300 },
+    });
+
+    if (!res.ok) {
+      console.error("getAvailableFilters: HTTP error", res.status);
+      return null;
+    }
+
+    const json: { data?: GetAvailableFiltersData; errors?: unknown } =
+      await res.json();
+
+    if (json.errors) {
+      console.error("getAvailableFilters: GraphQL errors", json.errors);
+      return null;
+    }
+
+    return json.data?.getAvailableFilters ?? null;
+  } catch (error) {
+    console.error("getAvailableFilters: fetch failed", error);
+    return null;
+  }
+}
+
+export async function getFilteredBuyingProducts(filter: any) {
+  try {
+    const res = await fetch(GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: GET_FILTERED_BUYING_PRODUCTS.loc?.source.body,
+        variables: { filter },
+      }),
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      console.error("getFilteredBuyingProducts: HTTP error", res.status);
+      return { items: [], nextCursor: null, hasMore: false };
+    }
+
+    const json = await res.json();
+
+    if (json.errors) {
+      console.error("getFilteredBuyingProducts: GraphQL errors", json.errors);
+      return { items: [], nextCursor: null, hasMore: false };
+    }
+
+    return (
+      json.data?.getFilteredBuyingProducts ?? {
+        items: [],
+        nextCursor: null,
+        hasMore: false,
+      }
+    );
+  } catch (error) {
+    console.error("getFilteredBuyingProducts: fetch failed", error);
+    return { items: [], nextCursor: null, hasMore: false };
+  }
+}
+
+export async function getFilteredBuyingProductsClient(filter: any) {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/graphql`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: GET_FILTERED_BUYING_PRODUCTS.loc?.source.body,
+        variables: { filter },
+      }),
+    });
+    const json = await res.json();
+    return (
+      json.data?.getFilteredBuyingProducts ?? {
+        items: [],
+        nextCursor: null,
+        hasMore: false,
+      }
+    );
+  } catch (error) {
+    console.error("getFilteredBuyingProductsClient: fetch failed", error);
+    return { items: [], nextCursor: null, hasMore: false };
   }
 }
 
