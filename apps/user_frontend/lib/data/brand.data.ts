@@ -1,4 +1,7 @@
-import { GET_IN_STOCK_BRANDS } from "../graphql/queires/brand.queries";
+import {
+  GET_IN_STOCK_BRANDS,
+  GET_BRANDS_BY_CATEGORY,
+} from "../graphql/queires/brand.queries";
 
 export interface Brand {
   id: string;
@@ -6,7 +9,9 @@ export interface Brand {
   seoName: string;
   image: string;
 }
-
+interface GetBrandsByCategoryData {
+  getBrandsByCategorySeoName: Brand[];
+}
 interface GetInStockBrandsData {
   getInStockBrands: Brand[];
 }
@@ -43,6 +48,40 @@ export async function getInStockBrands(
     return json.data?.getInStockBrands ?? [];
   } catch (error) {
     console.error("getInStockBrands: fetch failed", error);
+    return [];
+  }
+}
+
+export async function getBrandsByCategorySeoName(
+  categorySeoName: string,
+): Promise<Brand[]> {
+  try {
+    const res = await fetch(GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: GET_BRANDS_BY_CATEGORY.loc?.source.body,
+        variables: { categorySeoName },
+      }),
+      next: { revalidate: 86400 }, // 1 day
+    });
+
+    if (!res.ok) {
+      console.error("getBrandsByCategorySeoName: HTTP error", res.status);
+      return [];
+    }
+
+    const json: { data?: GetBrandsByCategoryData; errors?: unknown } =
+      await res.json();
+
+    if (json.errors) {
+      console.error("getBrandsByCategorySeoName: GraphQL errors", json.errors);
+      return [];
+    }
+
+    return json.data?.getBrandsByCategorySeoName ?? [];
+  } catch (error) {
+    console.error("getBrandsByCategorySeoName: fetch failed", error);
     return [];
   }
 }

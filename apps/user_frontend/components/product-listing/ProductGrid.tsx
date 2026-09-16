@@ -73,7 +73,14 @@ export function ProductGrid({
     try {
       const filter = buildFilterFromParams(searchParams, categorySlug, cursor);
       const data = await getFilteredBuyingProductsClient(filter);
-      setItems((prev) => [...prev, ...data.items]);
+
+      setItems((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newUniqueItems = data.items.filter(
+          (item: BuyingProductCard) => !existingIds.has(item.id),
+        );
+        return [...prev, ...newUniqueItems];
+      });
       setCursor(data.nextCursor);
       setHasMore(data.hasMore);
     } catch (error) {
@@ -108,7 +115,7 @@ export function ProductGrid({
 
   return (
     <div>
-      <div className="grid grid-cols-2 lg:grid-cols-3  gap-4 sm:gap-5 lg:gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
         {items.map((item) => (
           <ProductCard key={item.id} product={toProductCard(item)} fullWidth />
         ))}

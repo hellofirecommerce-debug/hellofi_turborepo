@@ -87,7 +87,7 @@ function FilterSection({
         <p className="text-sm font-bold text-black">{title}</p>
         <ChevronDown
           size={16}
-          className={`text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`text-gray-400 transition-transform mr-2 ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (

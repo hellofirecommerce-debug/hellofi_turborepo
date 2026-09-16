@@ -11,7 +11,6 @@ import {
   Laptop,
   Tablet,
   Watch,
-  Headphones,
   LayoutGrid,
 } from "lucide-react";
 
@@ -27,13 +26,12 @@ const CATEGORY_TABS: CategoryTab[] = [
   { label: "Laptops", value: "laptop", icon: Laptop },
   { label: "Tablets", value: "tablet", icon: Tablet },
   { label: "Smartwatches", value: "smart-watch", icon: Watch },
-  { label: "Audio", value: "audio", icon: Headphones },
 ];
 
 const SORT_OPTIONS = [
-  { label: "Newest First", value: "newest" },
-  { label: "Price: Low to High", value: "price_asc" },
-  { label: "Price: High to Low", value: "price_desc" },
+  { label: "Newest First", value: "NEWEST" },
+  { label: "Price: Low to High", value: "PRICE_ASC" },
+  { label: "Price: High to Low", value: "PRICE_DESC" },
 ];
 
 interface Props {

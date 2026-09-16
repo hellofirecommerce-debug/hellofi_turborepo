@@ -10,3 +10,14 @@ export const GET_IN_STOCK_BRANDS = gql`
     }
   }
 `;
+
+export const GET_BRANDS_BY_CATEGORY = gql`
+  query GetBrandsByCategorySeoName($categorySeoName: String!) {
+    getBrandsByCategorySeoName(categorySeoName: $categorySeoName) {
+      id
+      name
+      seoName
+      image
+    }
+  }
+`;

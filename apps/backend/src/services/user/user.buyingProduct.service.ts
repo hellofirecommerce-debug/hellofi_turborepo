@@ -344,6 +344,7 @@ class UserBuyingProductService {
     }
   }
 
+  // UserBuyingProductService — getFilteredBuyingProducts, updated
   async getFilteredBuyingProducts(filter: {
     categorySlugs?: string[];
     brands?: string[];
@@ -362,7 +363,7 @@ class UserBuyingProductService {
   }) {
     try {
       const limit = filter.limit ?? 10;
-  
+
       let categoryIds: string[] | undefined;
       if (filter.categorySlugs && filter.categorySlugs.length > 0) {
         const categories = await prisma.category.findMany({
@@ -371,7 +372,7 @@ class UserBuyingProductService {
         });
         categoryIds = categories.map((c) => c.id);
       }
-  
+
       let brandCondition: any = undefined;
       if (filter.brands && filter.brands.length > 0) {
         brandCondition = {
@@ -381,92 +382,145 @@ class UserBuyingProductService {
           ],
         };
       }
-  
+
       const variantFilter: any = {
         quantity: { gt: 0 },
         ...(filter.storages?.length && { storage: { in: filter.storages } }),
         ...(filter.rams?.length && { ram: { in: filter.rams } }),
-        ...(filter.battery?.length && { batteryCapacity: { in: filter.battery } }),
-        ...(filter.screenSizes?.length && { screenSize: { in: filter.screenSizes } }),
+        ...(filter.battery?.length && {
+          batteryCapacity: { in: filter.battery },
+        }),
+        ...(filter.screenSizes?.length && {
+          screenSize: { in: filter.screenSizes },
+        }),
         ...(filter.warrantyTypes?.length && {
           warrantyType: { in: filter.warrantyTypes as any },
         }),
-        ...(filter.conditions?.length && { condition: { in: filter.conditions as any } }),
+        ...(filter.conditions?.length && {
+          condition: { in: filter.conditions as any },
+        }),
         ...(filter.osList?.length && { os: { in: filter.osList as any } }),
-        ...((filter.priceMin !== undefined || filter.priceMax !== undefined) && {
+        ...((filter.priceMin !== undefined ||
+          filter.priceMax !== undefined) && {
           price: {
             ...(filter.priceMin !== undefined && { gte: filter.priceMin }),
             ...(filter.priceMax !== undefined && { lte: filter.priceMax }),
           },
         }),
       };
-  
+
       const productWhere: any = {
         ...(categoryIds && { categoryId: { in: categoryIds } }),
         ...(brandCondition ?? {}),
         variants: { some: variantFilter },
       };
-  
-      // ── Sort order at DB level (price sort uses variant relation aggregation via a join,
-      //     but Prisma doesn't support ordering a parent by a filtered child's field directly.
-      //     Simplest robust approach: sort by createdAt for NEWEST, and for price sort,
-      //     fetch a slightly larger window and sort in-memory per page. For fully correct
-      //     global price sorting across all pages, use $queryRaw — flagged below. ──
-      const orderBy: any = { createdAt: "desc" };
-  
-      const products = await prisma.buyingProduct.findMany({
-        where: productWhere,
-        include: {
-          brand: true,
-          category: true,
-          variants: {
-            where: variantFilter,
-            orderBy: { price: "asc" },
-            take: 1,
-            include: {
-              images: {
-                where: { isDefault: true },
-                orderBy: { priority: "asc" },
+
+      // ── Total count — matches all products regardless of pagination ──
+      const total = await prisma.buyingProduct.count({ where: productWhere });
+
+      const isPriceSort =
+        filter.sort === "PRICE_ASC" || filter.sort === "PRICE_DESC";
+
+      let pageItems: any[];
+      let hasMore: boolean;
+      let nextCursor: string | null;
+
+      if (isPriceSort) {
+        // ── Price sort needs the min variant price per product — cursor pagination
+        //     doesn't compose cleanly with this, so use offset derived from cursor
+        //     (cursor here is treated as an offset string for simplicity). ──
+        const offset = filter.cursor ? parseInt(filter.cursor, 10) : 0;
+
+        const products = await prisma.buyingProduct.findMany({
+          where: productWhere,
+          include: {
+            brand: true,
+            category: true,
+            variants: {
+              where: variantFilter,
+              orderBy: { price: "asc" },
+              take: 1,
+              include: {
+                images: {
+                  where: { isDefault: true },
+                  orderBy: { priority: "asc" },
+                },
               },
             },
           },
-        },
-        orderBy,
-        take: limit + 1, // fetch one extra to know if there's more
-        ...(filter.cursor && {
-          cursor: { id: filter.cursor },
-          skip: 1, // skip the cursor item itself
-        }),
-      });
-  
-      const hasMore = products.length > limit;
-      const pageItems = hasMore ? products.slice(0, limit) : products;
-  
-      const items = pageItems
-        .filter((p) => p.variants.length > 0)
-        .map((p) => {
-          const variant = p.variants[0]!;
-          return {
-            id: p.id,
-            productName: p.productName,
-            productSubtitle: p.productSubtitle,
-            slug: p.slug,
-            brand: p.brand,
-            manualBrand: p.manualBrand,
-            category: p.category,
-            price: variant.price,
-            mrp: variant.mrp,
-            emiBasePrice: variant.emiBasePrice,
-            condition: variant.condition,
-            storage: variant.storage,
-            warrantyType: variant.warrantyType,
-            image: variant.images[0] ?? null,
-          };
+          take: limit + 1,
+          skip: offset,
         });
-  
-      const nextCursor = hasMore ? pageItems[pageItems.length - 1]?.id : null;
-  
-      return { items, nextCursor, hasMore };
+
+        const sorted = products
+          .filter((p) => p.variants.length > 0)
+          .sort((a, b) => {
+            const priceA = a.variants[0]!.price.toNumber();
+            const priceB = b.variants[0]!.price.toNumber();
+            return filter.sort === "PRICE_ASC"
+              ? priceA - priceB
+              : priceB - priceA;
+          });
+
+        hasMore = sorted.length > limit;
+        pageItems = hasMore ? sorted.slice(0, limit) : sorted;
+        nextCursor = hasMore ? String(offset + limit) : null;
+      } else {
+        // ── NEWEST — real cursor-based pagination, stable ordering by createdAt+id ──
+        const products = await prisma.buyingProduct.findMany({
+          where: productWhere,
+          include: {
+            brand: true,
+            category: true,
+            variants: {
+              where: variantFilter,
+              orderBy: { price: "asc" },
+              take: 1,
+              include: {
+                images: {
+                  where: { isDefault: true },
+                  orderBy: { priority: "asc" },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: limit + 1,
+          ...(filter.cursor && {
+            cursor: { id: filter.cursor },
+            skip: 1,
+          }),
+        });
+
+        hasMore = products.length > limit;
+        pageItems = hasMore ? products.slice(0, limit) : products;
+        pageItems = pageItems.filter((p) => p.variants.length > 0);
+        nextCursor = hasMore
+          ? (pageItems[pageItems.length - 1]?.id ?? null)
+          : null;
+      }
+
+      const items = pageItems.map((p) => {
+        const variant = p.variants[0]!;
+        return {
+          id: p.id,
+          productName: p.productName,
+          productSubtitle: p.productSubtitle,
+          slug: p.slug,
+          brand: p.brand,
+          manualBrand: p.manualBrand,
+          category: p.category,
+          price: variant.price,
+          mrp: variant.mrp,
+          emiBasePrice: variant.emiBasePrice,
+          condition: variant.condition,
+          storage: variant.storage,
+          warrantyType: variant.warrantyType,
+          image: variant.images[0] ?? null,
+        };
+      });
+
+      return { items, nextCursor, hasMore, total };
     } catch (error) {
       console.error("Failed to fetch filtered buying products:", error);
       throw error;

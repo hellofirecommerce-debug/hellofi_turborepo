@@ -64,7 +64,10 @@ export const GET_FILTERED_BUYING_PRODUCTS = gql`
         productName
         productSubtitle
         slug
-        brand { id name }
+        brand {
+          id
+          name
+        }
         manualBrand
         storage
         condition
@@ -72,10 +75,15 @@ export const GET_FILTERED_BUYING_PRODUCTS = gql`
         price
         mrp
         emiBasePrice
-        image { md lg alt }
+        image {
+          md
+          lg
+          alt
+        }
       }
       nextCursor
       hasMore
+      total
     }
   }
 `;

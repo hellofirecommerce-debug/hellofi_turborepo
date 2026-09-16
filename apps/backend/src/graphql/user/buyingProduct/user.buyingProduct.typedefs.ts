@@ -43,6 +43,7 @@ type PaginatedBuyingProducts {
   items: [BuyingProductCard!]!
   nextCursor: String
   hasMore: Boolean!
+  total: Int!
 }
 
 type BuyingProductCard {

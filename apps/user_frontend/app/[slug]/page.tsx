@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { SellCategoryPage } from "../../components/sell-category-page/pages/SellCategoryPage";
 import { BuyGadgetsPage } from "../../components/category-page/pages/BuyGadgetsPage";
 import { BuyCategoryPage } from "../../components/category-page/pages/BuyCategoryPage";
 import { Banner } from "../../components/category-page/shared/Banner";
@@ -94,11 +95,7 @@ export default async function DynamicPage({
     if (!info) notFound();
 
     return (
-      <div className="min-h-dvh py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <Banner placement={info.placement} />
-        </div>
-      </div>
+      <SellCategoryPage placement={info.placement} category={info.category} />
     );
   }
 
