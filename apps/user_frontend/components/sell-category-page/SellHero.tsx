@@ -35,7 +35,7 @@ const SELL_HERO_CONTENT: Record<string, CategoryContent> = {
       "Get an Instant Quotation in 60 Seconds, Same Day Free Doorstep Pickup, Get the Best Price, Paid on the Spot, Zero Last Minute Deductions.",
     searchPrompt: "Search your laptop brand or select from the list below",
     searchPlaceholder: 'Try "MacBook Air M2" or "Dell XPS 13"...',
-    image: "/images/sell-category/sell-laptop.PNG",
+    image: "/images/sell-category/sell-laptop.png",
     imageAlt: "HelloFi staff handing cash to a customer selling their laptop",
   },
   tablet: {
@@ -46,7 +46,7 @@ const SELL_HERO_CONTENT: Record<string, CategoryContent> = {
       "Get an Instant Quotation in 60 Seconds, Same Day Free Doorstep Pickup, Get the Best Price, Paid on the Spot, Zero Last Minute Deductions.",
     searchPrompt: "Search your tablet brand or select from the list below",
     searchPlaceholder: 'Try "iPad Air" or "Galaxy Tab S9"...',
-    image: "/images/sell-category/sell-tablet.PNG",
+    image: "/images/sell-category/sell-tablet.png",
     imageAlt: "HelloFi staff handing cash to a customer selling their tablet",
   },
   "smart-watch": {

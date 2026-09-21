@@ -41,7 +41,11 @@ class UserSellingProductService {
       // Fetch one extra to know if there's a next page
       const items = await prisma.sellingProduct.findMany({
         where,
-        orderBy: [{ series: { priority: "asc" } }, { releasedYear: "desc" }],
+        orderBy: [
+          { series: { priority: "asc" } },
+          { releasedYear: "desc" },
+          { id: "asc" },
+        ],
         include: {
           series: {
             select: { id: true, seriesName: true, priority: true },
