@@ -115,7 +115,7 @@ export function ModelGrid({
             {section.products.map((product) => (
               <button
                 key={product.id}
-                className="rounded-xl border border-gray-200 hover:border-[#0066FF] transition-colors p-2 sm:p-3 text-left"
+                className="rounded-xl border cursor-pointer border-gray-200 hover:border-[#0066FF] transition-colors p-2 sm:p-3 text-left"
               >
                 <div className="relative w-full aspect-square rounded-lg bg-gray-50 overflow-hidden">
                   <Image
