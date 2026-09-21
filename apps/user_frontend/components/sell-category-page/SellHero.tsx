@@ -35,7 +35,7 @@ const SELL_HERO_CONTENT: Record<string, CategoryContent> = {
       "Get an Instant Quotation in 60 Seconds, Same Day Free Doorstep Pickup, Get the Best Price, Paid on the Spot, Zero Last Minute Deductions.",
     searchPrompt: "Search your laptop brand or select from the list below",
     searchPlaceholder: 'Try "MacBook Air M2" or "Dell XPS 13"...',
-    image: "/images/sell-category/sell-laptop.png",
+    image: "/images/sell-category/sell-laptop.PNG",
     imageAlt: "HelloFi staff handing cash to a customer selling their laptop",
   },
   tablet: {
@@ -46,7 +46,7 @@ const SELL_HERO_CONTENT: Record<string, CategoryContent> = {
       "Get an Instant Quotation in 60 Seconds, Same Day Free Doorstep Pickup, Get the Best Price, Paid on the Spot, Zero Last Minute Deductions.",
     searchPrompt: "Search your tablet brand or select from the list below",
     searchPlaceholder: 'Try "iPad Air" or "Galaxy Tab S9"...',
-    image: "/images/sell-category/sell-tablet.png",
+    image: "/images/sell-category/sell-tablet.PNG",
     imageAlt: "HelloFi staff handing cash to a customer selling their tablet",
   },
   "smart-watch": {
@@ -139,13 +139,13 @@ export function SellHero({ categorySlug }: Props) {
 
           {/* Right — photo */}
           <div className="hidden lg:block w-full max-w-[320px] xl:max-w-[420px] shrink-0">
-            <div className="relative w-full h-[320px] xl:h-[380px] rounded-lg overflow-hidden bg-gray-100">
+            <div className="relative w-full h-[320px] xl:h-[420px] rounded-lg overflow-hidden bg-gray-100">
               <Image
                 src={content.image}
                 alt={content.imageAlt}
                 fill
-                className="object-cover"
-                sizes="(max-width: 1280px) 320px, 420px"
+                className="object-contain"
+                sizes="(max-width: 1280px) 320px, 480px"
                 priority
               />
             </div>

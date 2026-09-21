@@ -17,7 +17,7 @@ export const NAV_LINKS: NavItem[] = [
       { label: "Sell Old Laptop", href: "/sell-old-laptop" },
       { label: "Sell Old MacBook", href: "/sell-old-macbook" },
       { label: "Sell Old Tablet", href: "/sell-old-tablet" },
-      { label: "Sell Old Smartwatch", href: "/sell-old-smartwatch" },
+      { label: "Sell Old Smartwatch", href: "/sell-old-smart-watch" },
     ],
   },
   {

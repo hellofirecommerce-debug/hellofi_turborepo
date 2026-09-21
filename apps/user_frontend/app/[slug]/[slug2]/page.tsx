@@ -1,6 +1,7 @@
 // app/[slug]/[slug2]/page.tsx
 import { notFound } from "next/navigation";
 import { ProductListingPage } from "../../../components/product-listing/pages/ProductListingPage";
+import { ModelSelectionPage } from "../../../components/model-selection/pages/ModelSelectionPage";
 
 const BUY_MAP: Record<
   string,
@@ -29,29 +30,76 @@ const BUY_MAP: Record<
   },
 };
 
-export default async function ProductListingRoute({
+const SELL_MAP: Record<
+  string,
+  { title: string; category: string; placement: string }
+> = {
+  "mobile-phone": {
+    title: "Sell Mobile Phone",
+    category: "mobile-phone",
+    placement: "SELL_MOBILE",
+  },
+  laptop: {
+    title: "Sell Laptop",
+    category: "laptop",
+    placement: "SELL_LAPTOP",
+  },
+  tablet: {
+    title: "Sell Tablet",
+    category: "tablet",
+    placement: "SELL_TABLET",
+  },
+  "smart-watch": {
+    title: "Sell Smartwatch",
+    category: "smart-watch",
+    placement: "SELL_SMARTWATCH",
+  },
+  accessories: {
+    title: "Sell Accessories",
+    category: "accessories",
+    placement: "SELL_ACCESSORIES",
+  },
+};
+
+export default async function DynamicSecondLevelRoute({
   params,
   searchParams,
 }: {
   params: Promise<{ slug: string; slug2: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { slug } = await params;
+  const { slug, slug2 } = await params;
   const resolvedSearchParams = await searchParams;
 
-  if (!slug.startsWith("buy-used-")) {
-    notFound();
+  // ── Buy flow: /buy-used-<category>/<something> → product listing ──
+  if (slug.startsWith("buy-used-")) {
+    const key = slug.replace("buy-used-", "");
+    const info = BUY_MAP[key];
+    if (!info) notFound();
+
+    return (
+      <ProductListingPage
+        categorySlug={info.category ?? undefined}
+        title={info.title}
+        searchParams={resolvedSearchParams}
+      />
+    );
   }
 
-  const key = slug.replace("buy-used-", "");
-  const info = BUY_MAP[key];
-  if (!info) notFound();
+  // ── Sell flow: /sell-old-<category>/<brand> → model selection ──
+  if (slug.startsWith("sell-old-")) {
+    const key = slug.replace("sell-old-", "");
+    const info = SELL_MAP[key];
+    if (!info) notFound();
 
-  return (
-    <ProductListingPage
-      categorySlug={info.category ?? undefined}
-      title={info.title}
-      searchParams={resolvedSearchParams}
-    />
-  );
+    return (
+      <ModelSelectionPage
+        categorySlug={info.category}
+        brandSlug={slug2}
+        title={info.title}
+      />
+    );
+  }
+
+  notFound();
 }

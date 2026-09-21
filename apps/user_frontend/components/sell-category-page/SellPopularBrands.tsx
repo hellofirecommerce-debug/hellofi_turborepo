@@ -23,7 +23,7 @@ export async function SellPopularBrands({ categorySlug }: Props) {
           {brands.map((brand) => (
             <Link
               key={brand.id}
-              href={`/sell/${categorySlug}/${brand.seoName}`}
+              href={`/sell-old-${categorySlug}/${brand.seoName}`}
               className="flex items-center justify-center h-20 sm:h-24 rounded-xl border border-gray-200 hover:border-[#0066FF] transition-colors p-3"
             >
               <div className="relative w-full h-full">
@@ -44,7 +44,7 @@ export async function SellPopularBrands({ categorySlug }: Props) {
             Don&apos;t see your brand? Don&apos;t Worry we accept 70+ models.
           </p>
           <Link
-            href={`/sell/${categorySlug}/other-brand`}
+            href={`/sell-old-${categorySlug}/other-brand`}
             className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-[#0066FF] text-white text-sm font-semibold hover:bg-[#0052cc] transition-colors"
           >
             Click Here to get Price for Other Company device
