@@ -1,4 +1,7 @@
 import prisma from "@repo/db";
+import RedisService from "../common/redis.service"; // adjust path to your actual file
+
+const SELLING_PRODUCTS_CACHE_TTL = 60 * 60 * 6; // 6 hours, in seconds
 
 class UserSellingProductService {
   async getSellingProductsByBrand(
@@ -7,6 +10,16 @@ class UserSellingProductService {
     skip: number = 0,
     take: number = 10,
   ) {
+    const cacheKey = `selling-products:${brandSeoName}:${categorySeoName}:${skip}:${take}`;
+
+    const cached = await RedisService.get<{ items: any[]; hasMore: boolean }>(
+      cacheKey,
+    );
+    if (cached) {
+      console.log("getSellingProductsByBrand: cache hit for", cacheKey);
+      return cached;
+    }
+
     try {
       console.log("getSellingProductsByBrand: fetching page", {
         brandSeoName,
@@ -28,7 +41,9 @@ class UserSellingProductService {
 
       if (!brand || !category) {
         console.log("getSellingProductsByBrand: brand or category not found");
-        return { items: [], hasMore: false };
+        const empty = { items: [], hasMore: false };
+        await RedisService.set(cacheKey, empty, SELLING_PRODUCTS_CACHE_TTL);
+        return empty;
       }
 
       const where = {
@@ -38,7 +53,6 @@ class UserSellingProductService {
         series: { status: "ACTIVE" as const },
       };
 
-      // Fetch one extra to know if there's a next page
       const items = await prisma.sellingProduct.findMany({
         where,
         orderBy: [
@@ -57,6 +71,7 @@ class UserSellingProductService {
 
       const hasMore = items.length > take;
       const page = hasMore ? items.slice(0, take) : items;
+      const result = { items: page, hasMore };
 
       console.log(
         "getSellingProductsByBrand: returning",
@@ -65,7 +80,8 @@ class UserSellingProductService {
         hasMore,
       );
 
-      return { items: page, hasMore };
+      await RedisService.set(cacheKey, result, SELLING_PRODUCTS_CACHE_TTL);
+      return result;
     } catch (error) {
       console.log("Error fetching selling products by brand:", error);
       throw error;
