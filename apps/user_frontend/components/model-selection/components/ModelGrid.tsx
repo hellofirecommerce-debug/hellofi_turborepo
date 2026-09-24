@@ -78,18 +78,30 @@ export function ModelGrid({
     filtered = filtered.filter((p) => p.series.id === activeSeriesId);
   }
 
-  const sections: { seriesName: string; products: SellingProduct[] }[] = [];
+  // Group by series.id across the WHOLE filtered list (not just consecutive
+  // items), then sort sections by series priority for display order.
+  const sectionMap = new Map<
+    string,
+    { seriesName: string; priority: number; products: SellingProduct[] }
+  >();
+
   for (const product of filtered) {
-    const last = sections[sections.length - 1];
-    if (last && last.seriesName === product.series.seriesName) {
-      last.products.push(product);
+    const key = product.series.id;
+    const existing = sectionMap.get(key);
+    if (existing) {
+      existing.products.push(product);
     } else {
-      sections.push({
+      sectionMap.set(key, {
         seriesName: product.series.seriesName,
+        priority: product.series.priority,
         products: [product],
       });
     }
   }
+
+  const sections = Array.from(sectionMap.values()).sort(
+    (a, b) => a.priority - b.priority,
+  );
 
   return (
     <div className="w-full">
