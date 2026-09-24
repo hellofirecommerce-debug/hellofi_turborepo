@@ -57,7 +57,7 @@ class UserSellingProductService {
         where,
         orderBy: [
           { series: { priority: "asc" } },
-          { releasedYear: "desc" },
+          { launchedDate: "desc" },
           { id: "asc" },
         ],
         include: {
