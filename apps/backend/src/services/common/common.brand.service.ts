@@ -60,21 +60,20 @@ class CommonBrandService {
         return cached;
       }
 
-      const brands = await prisma.brand.findMany({
+      const brandCategories = await prisma.brandCategory.findMany({
         where: {
-          brandCategories: {
-            some: {
-              categoryId: category!.id,
-              status: "ACTIVE",
-            },
-          },
+          categoryId: category!.id,
+          status: "ACTIVE",
         },
         orderBy: {
-          brandCategories: {
-            _count: "asc",
-          },
+          priority: "asc",
+        },
+        include: {
+          brand: true,
         },
       });
+
+      const brands = brandCategories.map((bc) => bc.brand);
 
       if (!brands || brands.length === 0) {
         throwNotFoundError("No brands found for this category");
