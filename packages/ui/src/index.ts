@@ -1,5 +1,3 @@
-import { PlaceholderCard } from "./components/PlaceholderCard";
-
 export { Button, buttonVariants } from "./components/button";
 export { Input } from "./components/input";
 export { cn } from "./lib/utils";
@@ -18,3 +16,4 @@ export { Accordion } from "./components/Accordion";
 export { SearchableInput } from "./components/SearchableInput";
 export { PlaceholderCard } from "./components/PlaceholderCard";
 export { RichTextEditor } from "./components/RichTextEditor";
+export { DateInput } from "./components/date-input";

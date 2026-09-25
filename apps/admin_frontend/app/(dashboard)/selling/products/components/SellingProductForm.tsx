@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { Input, Label, Button, ImageUpload } from "@repo/ui";
+import { Input, Label, Button, ImageUpload, DateInput } from "@repo/ui";
 import { Plus, Trash2 } from "lucide-react";
 import { useQuery, useLazyQuery } from "@apollo/client/react";
 import { GET_CATEGORIES } from "../../../../../lib/graphql/queries/category.queries";
@@ -42,6 +42,7 @@ export const SellingProductForm: React.FC<Props> = ({
     categoryId: "",
     seriesId: "",
     releasedYear: undefined,
+    launchedDate: undefined,
     productPrice: undefined,
     status: "ACTIVE",
     hasVariants: false,
@@ -93,6 +94,9 @@ export const SellingProductForm: React.FC<Props> = ({
         categoryId: editData.categoryId,
         seriesId: editData.seriesId,
         releasedYear: editData.releasedYear,
+        launchedDate: editData.launchedDate
+          ? new Date(editData.launchedDate).toISOString().split("T")[0]
+          : undefined,
         productPrice: editData.productPrice,
         status: editData.status,
         hasVariants: editData.hasVariants,
@@ -303,6 +307,25 @@ export const SellingProductForm: React.FC<Props> = ({
                 releasedYear: e.target.value
                   ? Number(e.target.value)
                   : undefined,
+              }))
+            }
+          />
+        </div>
+
+        {/* Launched Date */}
+        <div className="flex flex-col gap-1.5">
+          <Label>
+            Launched Date{" "}
+            <span className="text-xs text-gray-400 font-normal">
+              (optional)
+            </span>
+          </Label>
+          <DateInput
+            value={form.launchedDate ?? ""}
+            onChange={(value) =>
+              setForm((prev) => ({
+                ...prev,
+                launchedDate: value || undefined,
               }))
             }
           />
