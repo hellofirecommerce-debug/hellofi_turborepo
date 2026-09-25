@@ -28,7 +28,9 @@ async function init() {
         "http://localhost:3001",
         "http://localhost:3000",
         "https://admin.hellofi.in",
-        "https://test.hellofi.in/",
+        "https://test.hellofi.in",
+        "http://64.227.185.254", // ← frontend served directly on this server's IP
+        "http://64.227.185.254:3000",
       ],
       credentials: true,
       allowedHeaders: [
