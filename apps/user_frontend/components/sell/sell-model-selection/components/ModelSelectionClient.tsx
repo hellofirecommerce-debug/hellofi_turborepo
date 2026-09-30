@@ -4,8 +4,8 @@
 import { useState } from "react";
 import { SeriesFilter } from "./SeriesFilter";
 import { ModelGrid } from "./ModelGrid";
-import type { Series } from "../../../lib/data/series.data";
-import type { SellingProduct } from "../../../lib/data/sellingProduct.data";
+import type { Series } from "../../../../lib/data/series.data";
+import type { SellingProduct } from "../../../../lib/data/sellingProduct.data";
 
 interface Props {
   brandSlug: string;

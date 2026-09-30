@@ -1,7 +1,7 @@
 // components/sell-category-page/SellPopularBrands.tsx
 import Image from "next/image";
 import Link from "next/link";
-import { getBrandsByCategorySeoName } from "../../lib/data/brand.data";
+import { getBrandsByCategorySeoName } from "../../../../lib/data/brand.data";
 
 interface Props {
   categorySlug: string;

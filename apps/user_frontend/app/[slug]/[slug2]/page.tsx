@@ -1,7 +1,7 @@
 // app/[slug]/[slug2]/page.tsx
 import { notFound } from "next/navigation";
 import { ProductListingPage } from "../../../components/product-listing/pages/ProductListingPage";
-import { ModelSelectionPage } from "../../../components/model-selection/pages/ModelSelectionPage";
+import { ModelSelectionPage } from "../../../components/sell/sell-model-selection/ModelSelectionPage";
 
 const BUY_MAP: Record<
   string,

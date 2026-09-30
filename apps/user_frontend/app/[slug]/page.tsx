@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { SellCategoryPage } from "../../components/sell-category-page/pages/SellCategoryPage";
+import { SellCategoryPage } from "../../components/sell/sell-category-page/SellCategoryPage";
 import { BuyGadgetsPage } from "../../components/category-page/pages/BuyGadgetsPage";
 import { BuyCategoryPage } from "../../components/category-page/pages/BuyCategoryPage";
 import { Banner } from "../../components/category-page/shared/Banner";

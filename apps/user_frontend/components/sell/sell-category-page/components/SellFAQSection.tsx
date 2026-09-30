@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { FAQAccordionItem } from "../ui/FAQAccordionItem";
-import { sellingFAQs } from "../../lib/content/faqs/selling";
+import { FAQAccordionItem } from "../../../ui/FAQAccordionItem";
+import { sellingFAQs } from "../../../../lib/content/faqs/selling";
 
 const INITIAL_VISIBLE = 5;
 

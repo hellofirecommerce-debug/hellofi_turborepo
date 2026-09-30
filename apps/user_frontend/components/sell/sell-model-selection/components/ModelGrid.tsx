@@ -3,11 +3,12 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import {
   getSellingProductsByBrand,
   type SellingProduct,
-} from "../../../lib/data/sellingProduct.data";
+} from "../../../../lib/data/sellingProduct.data";
 
 interface Props {
   brandSlug: string;
@@ -125,9 +126,10 @@ export function ModelGrid({
           </p>
           <div className="grid grid-cols-3 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
             {section.products.map((product) => (
-              <button
+              <Link
                 key={product.id}
-                className="rounded-xl border cursor-pointer border-gray-200 hover:border-[#0066FF] transition-colors p-2 sm:p-3 text-left"
+                href={`/sell-old-${categorySlug}/${brandSlug}/${product.productSeoName}`}
+                className="block rounded-xl border cursor-pointer border-gray-200 hover:border-[#0066FF] transition-colors p-2 sm:p-3 text-left"
               >
                 <div className="relative w-full aspect-square rounded-lg bg-gray-50 overflow-hidden">
                   <Image
@@ -141,7 +143,7 @@ export function ModelGrid({
                 <p className="mt-2 text-[11px] sm:text-sm font-medium text-gray-800 text-center leading-snug">
                   {product.productName}
                 </p>
-              </button>
+              </Link>
             ))}
           </div>
         </div>

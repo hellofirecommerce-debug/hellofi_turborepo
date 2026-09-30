@@ -5,4 +5,6 @@ export const queries = `#graphql
     skip: Int
     take: Int
   ): SellingProductPage!
+
+  getSellingProductBySeoName(seoName: String!): SellingProduct!
 `;

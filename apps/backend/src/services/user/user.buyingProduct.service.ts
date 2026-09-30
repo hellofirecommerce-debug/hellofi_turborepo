@@ -162,7 +162,7 @@ class UserBuyingProductService {
     }
   }
 
-  async getInStockBrandIds(categorySlug?: string): Promise<string[]> {
+  async getInStockBrandIds(categorySlug?: string) {
     try {
       let categoryId: string | undefined;
 
@@ -194,7 +194,7 @@ class UserBuyingProductService {
         .filter((id): id is string => id !== null);
     } catch (error) {
       console.log("Error fetching in-stock brand ids:", error);
-      throw error;
+      handleServiceError(error);
     }
   }
 
@@ -523,7 +523,7 @@ class UserBuyingProductService {
       return { items, nextCursor, hasMore, total };
     } catch (error) {
       console.error("Failed to fetch filtered buying products:", error);
-      throw error;
+      handleServiceError(error);
     }
   }
 }

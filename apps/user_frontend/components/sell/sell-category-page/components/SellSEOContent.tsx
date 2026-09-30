@@ -1,5 +1,5 @@
 // components/sell-category-page/SellSEOContent.tsx
-import { sellSEOContent } from "../../lib/content/sell-seo/sell-seo";
+import { sellSEOContent } from "../../../../lib/content/sell-seo/sell-seo";
 
 interface Props {
   categorySlug: string;

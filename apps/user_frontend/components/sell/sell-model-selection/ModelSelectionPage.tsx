@@ -1,6 +1,6 @@
 // components/model-selection/pages/ModelSelectionPage.tsx
-import { TrustBadgeStrip } from "../TrustBadgeStrip";
-import { ModelSelectionClient } from "../components/ModelSelectionClient";
+import { TrustBadgeStrip } from "./components/TrustBadgeStrip";
+import { ModelSelectionClient } from "./components/ModelSelectionClient";
 import { getSeriesByBrandSeoName } from "../../../lib/data/series.data";
 import { getSellingProductsByBrand } from "../../../lib/data/sellingProduct.data";
 

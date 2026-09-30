@@ -29,3 +29,28 @@ export const GET_SELLING_PRODUCTS_BY_BRAND = gql`
     }
   }
 `;
+
+export const GET_SELLING_PRODUCT_BY_SEO_NAME = gql`
+  query GetSellingProductBySeoName($seoName: String!) {
+    getSellingProductBySeoName(seoName: $seoName) {
+      id
+      productName
+      productSeoName
+      image
+      releasedYear
+      productPrice
+      hasVariants
+      isConstantRam
+      ram
+      brand {
+        seoName
+      }
+      variants {
+        id
+        ram
+        storage
+        productPrice
+      }
+    }
+  }
+`;

@@ -1,7 +1,12 @@
 import prisma from "@repo/db";
-import RedisService from "../common/redis.service"; // adjust path to your actual file
+import RedisService from "../common/redis.service";
+import {
+  handleServiceError,
+  throwNotFoundError,
+  throwServerError,
+} from "../../lib/utils/error";
 
-const SELLING_PRODUCTS_CACHE_TTL = 60 * 60 * 6; // 6 hours, in seconds
+const SELLING_PRODUCTS_CACHE_TTL = 60 * 60 * 6; // 6 hours
 
 class UserSellingProductService {
   async getSellingProductsByBrand(
@@ -21,13 +26,6 @@ class UserSellingProductService {
     }
 
     try {
-      console.log("getSellingProductsByBrand: fetching page", {
-        brandSeoName,
-        categorySeoName,
-        skip,
-        take,
-      });
-
       const [brand, category] = await Promise.all([
         prisma.brand.findUnique({
           where: { seoName: brandSeoName },
@@ -40,21 +38,16 @@ class UserSellingProductService {
       ]);
 
       if (!brand || !category) {
-        console.log("getSellingProductsByBrand: brand or category not found");
-        const empty = { items: [], hasMore: false };
-        await RedisService.set(cacheKey, empty, SELLING_PRODUCTS_CACHE_TTL);
-        return empty;
+        return throwNotFoundError("Brand or category not found");
       }
 
-      const where = {
-        brandId: brand.id,
-        categoryId: category.id,
-        status: "ACTIVE" as const,
-        series: { status: "ACTIVE" as const },
-      };
-
       const items = await prisma.sellingProduct.findMany({
-        where,
+        where: {
+          brandId: brand.id,
+          categoryId: category.id,
+          status: "ACTIVE",
+          series: { status: "ACTIVE" },
+        },
         orderBy: [
           { series: { priority: "asc" } },
           { launchedDate: "desc" },
@@ -73,18 +66,49 @@ class UserSellingProductService {
       const page = hasMore ? items.slice(0, take) : items;
       const result = { items: page, hasMore };
 
-      console.log(
-        "getSellingProductsByBrand: returning",
-        page.length,
-        "items, hasMore =",
-        hasMore,
-      );
-
       await RedisService.set(cacheKey, result, SELLING_PRODUCTS_CACHE_TTL);
       return result;
     } catch (error) {
-      console.log("Error fetching selling products by brand:", error);
-      throw error;
+      console.log("Error Fetching selling Products:", error);
+      return handleServiceError(error);
+    }
+  }
+
+  async getSellingProductBySeoName(seoName: string) {
+    if (!seoName) {
+      return throwServerError("Product seoName was not provided to the query");
+    }
+
+    const cacheKey = `selling-product:${seoName}`;
+    const cached = await RedisService.get<any>(cacheKey);
+    if (cached) {
+      console.log("getSellingProductBySeoName: cache hit for", cacheKey);
+      return cached;
+    }
+
+    try {
+      const product = await prisma.sellingProduct.findUnique({
+        where: { productSeoName: seoName, status: "ACTIVE" },
+        include: {
+          brand: { select: { id: true, name: true, seoName: true } },
+          variants: {
+            where: { status: "ACTIVE" },
+            orderBy: { productPrice: "asc" },
+          },
+        },
+      });
+
+      if (!product) {
+        return throwNotFoundError(
+          `Product with seoName "${seoName}" not found`,
+        );
+      }
+
+      await RedisService.set(cacheKey, product, SELLING_PRODUCTS_CACHE_TTL);
+      return product;
+    } catch (error) {
+      console.log("Error fetching Selling Product by seoname:", error);
+      return handleServiceError(error);
     }
   }
 }

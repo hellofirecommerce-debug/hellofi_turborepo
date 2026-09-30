@@ -1,15 +1,15 @@
 // components/sell-category-page/pages/SellCategoryPage.tsx
 import { Banner } from "../../category-page/shared/Banner";
-import { SellCompareTable } from "../SellCompareTable";
-import { SellHero } from "../SellHero";
-import { SellHowItWorks } from "../SellHowItWorks";
-import { SellPopularBrands } from "../SellPopularBrands";
-import { SellStats } from "../SellStats";
-import { SellSteps } from "../SellSteps";
-import { SellTopModels } from "../SellTopModels";
-import { SellWhyHelloFi } from "../SellWhyHelloFi";
-import { SellFAQSection } from "../SellFAQSection";
-import { SellSEOContent } from "../SellSEOContent";
+import { SellCompareTable } from "./components/SellCompareTable";
+import { SellHero } from "./components/SellHero";
+import { SellHowItWorks } from "./components/SellHowItWorks";
+import { SellPopularBrands } from "./components/SellPopularBrands";
+import { SellStats } from "./components/SellStats";
+import { SellSteps } from "./components/SellSteps";
+import { SellTopModels } from "./components/SellTopModels";
+import { SellWhyHelloFi } from "./components/SellWhyHelloFi";
+import { SellFAQSection } from "./components/SellFAQSection";
+import { SellSEOContent } from "./components/SellSEOContent";
 
 interface Props {
   placement: string;
