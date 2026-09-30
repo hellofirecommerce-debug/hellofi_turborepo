@@ -1,64 +1,101 @@
-interface Step {
-  label: string;
-}
+// components/sell/sell-product-pages/components/StepperHeader.tsx
+"use client";
 
-const STEPS: Step[] = [
-  { label: "Select Brand & Model" },
-  { label: "Select Variant" },
-  { label: "Device Condition" },
-  { label: "Get Your Price" },
+const STEPS = [
+  "Select Brand & Model",
+  "Select Variant",
+  "Device Condition",
+  "Get Your Price",
 ];
 
 interface Props {
-  currentStep: number; // 1-based
+  currentStep: number; // 1-indexed
 }
 
 export function StepperHeader({ currentStep }: Props) {
   return (
-    <div className="w-full bg-white border-b border-gray-100 py-5">
-      <div className="max-w-5xl mx-auto px-4 flex items-center">
-        {STEPS.map((step, index) => {
-          const stepNumber = index + 1;
-          const isDone = stepNumber < currentStep;
-          const isActive = stepNumber === currentStep;
-
-          return (
-            <div
-              key={step.label}
-              className="flex items-center flex-1 last:flex-none"
-            >
-              <div className="flex flex-col items-center gap-1.5">
-                <span
-                  className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold ${
+    <div className="border-b border-gray-100 bg-white w-full">
+      {/* Removed max-w-7xl and reduced horizontal padding to allow full-width on mobile */}
+      <div className="w-full px-2 sm:px-4 py-4">
+        {/* Mobile: Full width grid, evenly spaced */}
+        <div className="grid grid-cols-4 gap-x-0 sm:hidden w-full">
+          {STEPS.map((label, i) => {
+            const step = i + 1;
+            const isDone = step < currentStep;
+            const isActive = step === currentStep;
+            return (
+              <div
+                key={label}
+                className="flex flex-col items-center gap-1.5 w-full"
+              >
+                {/* Icon Circle */}
+                <div
+                  className={`flex items-center justify-center rounded-full font-bold text-[11px] w-6 h-6 flex-shrink-0 ${
                     isDone || isActive
                       ? "bg-[#0066FF] text-white"
-                      : "bg-gray-200 text-gray-500"
+                      : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  {isDone ? "✓" : stepNumber}
-                </span>
+                  {isDone ? "✓" : step}
+                </div>
+                {/* Text Label */}
                 <span
-                  className={`text-[11px] font-medium whitespace-nowrap ${
+                  className={`text-center text-[9px] leading-[1.2] line-clamp-2 w-full break-words px-0.5 ${
                     isActive
-                      ? "text-[#0066FF]"
+                      ? "text-[#0066FF] font-semibold"
                       : isDone
                         ? "text-gray-700"
                         : "text-gray-400"
                   }`}
                 >
-                  {step.label}
+                  {label}
                 </span>
               </div>
-              {stepNumber !== STEPS.length && (
-                <div
-                  className={`flex-1 h-0.5 mx-2 mb-5 ${
-                    isDone ? "bg-[#0066FF]" : "bg-gray-200"
-                  }`}
-                />
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Desktop / Tablet: Row with connecting lines, still limited to max-w-7xl */}
+        <div className="hidden sm:flex items-center justify-center gap-4 max-w-7xl mx-auto">
+          {STEPS.map((label, i) => {
+            const step = i + 1;
+            const isDone = step < currentStep;
+            const isActive = step === currentStep;
+            return (
+              <div key={label} className="flex items-center flex-shrink-0">
+                <div className="flex flex-col items-center gap-1 min-w-[84px]">
+                  <div
+                    className={`flex items-center justify-center rounded-full font-bold text-sm w-8 h-8 ${
+                      isDone || isActive
+                        ? "bg-[#0066FF] text-white"
+                        : "bg-gray-100 text-gray-400"
+                    }`}
+                  >
+                    {isDone ? "✓" : step}
+                  </div>
+                  <span
+                    className={`text-center text-xs leading-tight ${
+                      isActive
+                        ? "text-[#0066FF] font-semibold"
+                        : isDone
+                          ? "text-gray-700"
+                          : "text-gray-400"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                </div>
+                {step !== STEPS.length && (
+                  <div
+                    className={`h-[2px] w-10 mx-2 flex-shrink-0 ${
+                      isDone ? "bg-[#0066FF]" : "bg-gray-200"
+                    }`}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

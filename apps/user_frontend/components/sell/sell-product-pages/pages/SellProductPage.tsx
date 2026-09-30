@@ -1,3 +1,4 @@
+// components/sell/sell-product-pages/pages/SellProductPage.tsx
 import { StepperHeader } from "../components/StepperHeader";
 import { ProductBreadcrumb } from "../components/ProductBreadcrumb";
 import { ProductMediaPanel } from "../components/ProductMediaPanel";
@@ -14,7 +15,6 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
   return (
     <div className="min-h-dvh">
       <StepperHeader currentStep={2} />
-
       <div className="max-w-7xl mx-auto px-4 w-full py-6">
         <ProductBreadcrumb
           items={[
@@ -26,15 +26,18 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
           ]}
         />
 
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-6 sm:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ProductMediaPanel
-              image={product.image}
-              alt={product.productName}
-              soldBadgeText="8+ sold in last 30 days"
-            />
+        {/* Single outer card wrapping the whole thing — only a vertical
+            divider separates the two columns on desktop, no nested box. */}
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sm:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
+            <div className="md:pr-10">
+              <ProductMediaPanel
+                image={product.image}
+                alt={product.productName}
+              />
+            </div>
 
-            <div>
+            <div className="md:pl-10">
               <h1 className="text-2xl font-bold text-gray-900">
                 Sell {product.productName}
               </h1>

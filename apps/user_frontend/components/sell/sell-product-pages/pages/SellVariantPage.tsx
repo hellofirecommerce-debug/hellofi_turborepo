@@ -43,15 +43,17 @@ export function SellVariantPage({
           ]}
         />
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-6 sm:p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <ProductMediaPanel
-              image={product.image}
-              alt={`${product.productName} ${variantLabel}`}
-              soldBadgeText="8+ sold in last 30 days"
-            />
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 sm:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
+            <div className="md:pr-10">
+              <ProductMediaPanel
+                image={product.image}
+                alt={`${product.productName} ${variantLabel}`}
+                soldBadgeText="8+ sold in last 30 days"
+              />
+            </div>
 
-            <div>
+            <div className="md:pl-10">
               <h1 className="text-2xl font-bold text-gray-900">
                 Sell {product.productName}
               </h1>
