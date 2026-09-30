@@ -1,7 +1,7 @@
 // components/model-selection/SeriesSidebar.tsx
 "use client";
 
-import type { Series } from "../../../lib/data/series.data";
+import type { Series } from "../../../../lib/data/series.data";
 
 interface Props {
   series: Series[];

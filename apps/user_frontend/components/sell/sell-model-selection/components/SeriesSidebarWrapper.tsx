@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { SeriesSidebar } from "./SeriesSidebar";
-import type { Series } from "../../../lib/data/series.data";
+import type { Series } from "../../../../lib/data/series.data";
 interface Props {
   series: Series[];
 }
