@@ -40,7 +40,7 @@ export function PriceRangeCard({
           size="xl"
           onClick={onCtaClick}
           disabled={ctaDisabled}
-          className={`relative overflow-hidden mt-4 w-full sm:w-3/4 h-16 rounded-2xl text-base ${
+          className={`relative overflow-hidden mt-4 w-full sm:w-3/4 lg:w-2/4 h-16 rounded-2xl text-base ${
             ctaDisabled
               ? "bg-gray-200 text-gray-400 hover:bg-gray-200"
               : "bg-[#0066FF] text-white hover:bg-[#0052cc]"
