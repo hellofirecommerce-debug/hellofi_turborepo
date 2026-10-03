@@ -15,21 +15,22 @@ export function ProductMediaPanel({
 }: Props) {
   return (
     <div className="w-full">
-      <div className="rounded-2xl border border-gray-100 bg-transparent p-4 sm:p-6 ">
-        <div className="relative w-full h-[220px] sm:h-[320px] md:h-[380px]">
+      <div className="rounded-2xl border border-gray-100 bg-transparent p-4 sm:p-6 flex justify-center">
+        <div className="flex flex-col items-center">
           <Image
             src={`${process.env.NEXT_PUBLIC_CDN_URL}/${image}`}
             alt={alt}
-            fill
-            className="object-contain"
+            width={320}
+            height={420}
+            className="h-[220px] sm:h-[320px] md:h-[380px] w-auto object-contain"
             sizes="(max-width: 640px) 90vw, 400px"
             priority
           />
 
-          {/* Flat gray shadow on the bottom edge only — not top/left/right */}
+          {/* Flat gray shadow directly under the phone — no gap, no top/side shadow */}
           <div
             aria-hidden
-            className="pointer-events-none absolute left-4 right-4 -bottom-1 h-4 rounded-full bg-gray-400/40 blur-md"
+            className="-mt-2 h-4 w-4/5 rounded-full bg-gray-400/40 blur-md"
           />
         </div>
       </div>
