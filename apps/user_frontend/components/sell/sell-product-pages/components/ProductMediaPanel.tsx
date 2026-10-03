@@ -26,12 +26,6 @@ export function ProductMediaPanel({
             sizes="(max-width: 640px) 90vw, 400px"
             priority
           />
-
-          {/* Flat gray shadow directly under the phone — no gap, no top/side shadow */}
-          <div
-            aria-hidden
-            className="-mt-2 h-4 w-4/5 rounded-full bg-gray-400/40 blur-md"
-          />
         </div>
       </div>
 
