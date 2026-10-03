@@ -31,6 +31,8 @@ export function SellVariantPage({
       ? `${product.productName} (${[ram, variant.storage].filter(Boolean).join("/")})`
       : product.productName;
 
+  const formattedPrice = `₹${Math.round(variant.productPrice).toLocaleString("en-IN")}`;
+
   return (
     <div className="min-h-dvh">
       <StepperHeader currentStep={2} />
@@ -54,16 +56,17 @@ export function SellVariantPage({
             <div className="md:pr-10">
               <ProductMediaPanel
                 image={product.image}
-                alt={`${product.productName} ${variantLabel}`}
+                alt={`${title}`}
                 soldBadgeText="8+ sold in last 30 days"
               />
             </div>
 
             <div className="md:pl-10">
               <h1 className="text-2xl font-bold text-gray-900">Sell {title}</h1>
-              {variantLabel && (
-                <p className="mt-1 text-sm text-gray-600">{variantLabel}</p>
-              )}
+              <p className="mt-1 text-sm text-gray-500">
+                Get {formattedPrice} with Free Doorstep Pickup and Instant
+                Payment.
+              </p>
 
               <div className="mt-12">
                 <PriceRangeCard

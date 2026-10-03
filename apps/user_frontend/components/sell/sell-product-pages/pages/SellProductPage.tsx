@@ -12,6 +12,9 @@ interface Props {
 }
 
 export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
+  const maxPrice = Math.max(...product.variants.map((v) => v.productPrice));
+  const formattedMaxPrice = `₹${Math.round(maxPrice).toLocaleString("en-IN")}`;
+
   return (
     <div className="min-h-dvh">
       <StepperHeader currentStep={2} />
@@ -26,8 +29,6 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
           ]}
         />
 
-        {/* Single outer card wrapping the whole thing — only a vertical
-            divider separates the two columns on desktop, no nested box. */}
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sm:p-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
             <div className="md:pr-10">
@@ -42,7 +43,8 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
                 Sell {product.productName}
               </h1>
               <p className="mt-1 text-sm text-gray-500">
-                Select your variant to get an estimated price
+                Get Upto {formattedMaxPrice} with Free Doorstep Pickup and
+                Instant Payment.
               </p>
 
               <div className="mt-12">
