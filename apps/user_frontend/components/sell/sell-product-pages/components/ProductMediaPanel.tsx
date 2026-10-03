@@ -15,7 +15,7 @@ export function ProductMediaPanel({
 }: Props) {
   return (
     <div className="w-full">
-      <div className="rounded-2xl border border-gray-100 bg-white p-4 sm:p-6 shadow-[0_18px_28px_-14px_rgba(15,23,42,0.25)]">
+      <div className="rounded-2xl border border-gray-100 bg-transparent p-4 sm:p-6 ">
         <div className="relative w-full h-[220px] sm:h-[320px] md:h-[380px]">
           <Image
             src={`${process.env.NEXT_PUBLIC_CDN_URL}/${image}`}
@@ -24,6 +24,12 @@ export function ProductMediaPanel({
             className="object-contain"
             sizes="(max-width: 640px) 90vw, 400px"
             priority
+          />
+
+          {/* Flat gray shadow on the bottom edge only — not top/left/right */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-4 right-4 -bottom-1 h-4 rounded-full bg-gray-400/40 blur-md"
           />
         </div>
       </div>

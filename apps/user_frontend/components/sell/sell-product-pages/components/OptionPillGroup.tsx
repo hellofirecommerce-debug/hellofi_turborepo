@@ -19,7 +19,7 @@ export function OptionPillGroup({
 
   return (
     <div>
-      <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wide mb-2">
+      <p className="text-[11px] font-bold text-gray-500 capitalize tracking-wide mb-2">
         {label}
       </p>
       <div className="flex flex-wrap gap-2.5">
@@ -30,7 +30,7 @@ export function OptionPillGroup({
               key={option}
               type="button"
               onClick={() => onSelect(option)}
-              className={`relative flex items-center gap-2 px-4 h-10 rounded-lg border text-sm font-medium transition-colors cursor-pointer ${
+              className={`relative flex items-center gap-2 px-4 h-10 rounded-4xl border text-sm font-medium transition-colors cursor-pointer ${
                 isSelected
                   ? "border-[#0066FF] text-[#0066FF] bg-blue-50"
                   : "border-gray-300 text-gray-700 hover:border-gray-400"

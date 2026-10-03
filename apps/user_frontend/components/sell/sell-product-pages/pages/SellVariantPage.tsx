@@ -68,26 +68,6 @@ export function SellVariantPage({
                   // TODO: route to the device-condition step
                 />
               </div>
-
-              {product.variants.length > 1 && (
-                <div className="mt-6">
-                  <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
-                    Other variants
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {product.variants
-                      .filter((v) => v.id !== variant.id)
-                      .map((v) => (
-                        <span
-                          key={v.id}
-                          className="text-xs font-medium text-gray-600 border border-gray-200 rounded-full px-3 py-1.5"
-                        >
-                          {[v.ram, v.storage].filter(Boolean).join(" / ")}
-                        </span>
-                      ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -18,12 +18,11 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
   const router = useRouter();
   const needsRam = !product.isConstantRam;
 
-  // Combined "RAM|Storage" pill per variant when RAM varies, otherwise just Storage.
   const options = useMemo(
     () =>
       product.variants.map((v) => ({
         id: v.id,
-        label: needsRam && v.ram ? `${v.ram}|${v.storage}` : v.storage,
+        label: needsRam && v.ram ? `${v.ram} | ${v.storage}` : v.storage,
       })),
     [product.variants, needsRam],
   );
@@ -37,13 +36,12 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
   const selectedVariant = product.variants.find((v) => v.id === selectedId);
   const isComplete = !!selectedVariant;
 
-  const handleContinue = () => {
-    if (!isComplete || !selectedVariant) return;
-    const ramForSlug = needsRam ? selectedVariant.ram : product.ram;
+  const navigateToVariant = (variant: (typeof product.variants)[number]) => {
+    const ramForSlug = needsRam ? variant.ram : product.ram;
     const slugParts = [
       product.productSeoName,
       ramForSlug ? sizeToSlug(ramForSlug) : null,
-      sizeToSlug(selectedVariant.storage),
+      sizeToSlug(variant.storage),
     ].filter(Boolean);
     router.push(`/${categorySlug}/${brandSlug}/${slugParts.join("-")}`);
   };
@@ -60,24 +58,20 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
         }
         onSelect={(value) => {
           const match = options.find((o) => o.label === value);
-          setSelectedId(match ? match.id : null);
+          if (!match) return;
+          setSelectedId(match.id);
+
+          // Selecting a pill navigates immediately — no separate CTA needed.
+          const variant = product.variants.find((v) => v.id === match.id);
+          if (variant) navigateToVariant(variant);
         }}
         variant="check"
       />
 
       {isComplete && selectedVariant ? (
-        <PriceRangeCard
-          low={selectedVariant.productPrice}
-          ctaLabel="Check Final Price"
-          onCtaClick={handleContinue}
-        />
+        <PriceRangeCard low={selectedVariant.productPrice} />
       ) : (
-        <PriceRangeCard
-          low={globalLow}
-          high={globalHigh}
-          ctaLabel="Check Final Price"
-          ctaDisabled
-        />
+        <PriceRangeCard low={globalLow} high={globalHigh} />
       )}
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 pt-1">

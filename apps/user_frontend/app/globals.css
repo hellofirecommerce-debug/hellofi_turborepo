@@ -49,6 +49,19 @@ a {
   border-radius: 9999px;
 }
 
+@keyframes shine-sweep {
+  0% {
+    transform: translateX(-150%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(400%) skewX(-20deg);
+  }
+}
+
+.animate-shine-sweep {
+  animation: shine-sweep 2.8s ease-in-out infinite;
+}
+
 @theme {
   --color-primary: #1b70cd;
   --color-primary-light: #277eff;
@@ -81,4 +94,8 @@ a {
   --color-trust-subtitle: #888888;
 
   --color-sell-blue: #0066ff;
+
+  /* Selected variant pill (RAM/Storage options) */
+  --color-variant-selected-bg: #f0f2fdab;
+  --color-variant-selected-border: #1a6ef5a3;
 }

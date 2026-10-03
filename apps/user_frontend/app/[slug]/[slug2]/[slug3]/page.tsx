@@ -12,28 +12,33 @@ interface Props {
 }
 
 async function resolve(brandSlug: string, slug3: string) {
-  const product = await getSellingProductBySeoName(slug3);
-  if (product) {
-    if (product.brand.seoName !== brandSlug) return null;
-    return { type: "product" as const, product };
+  // If slug3 already encodes a ram/storage suffix, it can never be a plain
+  // product seoName — skip the wasted fetch-by-slug3 and go straight to the
+  // base product via parsed.baseSlug, one backend call instead of two.
+  const parsed = parseVariantSlug(slug3);
+
+  if (parsed) {
+    const base = await getSellingProductBySeoName(parsed.baseSlug);
+    if (!base || base.brand.seoName !== brandSlug) return null;
+
+    const variant = base.variants.find(
+      (v: any) =>
+        normalizeSize(v.storage) === parsed.storageKey &&
+        (parsed.ramKey
+          ? normalizeSize(base.isConstantRam ? base.ram : v.ram) ===
+            parsed.ramKey
+          : !v.ram && !base.isConstantRam),
+    );
+    if (!variant) return null;
+
+    return { type: "variant" as const, product: base, variant };
   }
 
-  const parsed = parseVariantSlug(slug3);
-  if (!parsed) return null;
+  // No ram/storage suffix — slug3 is a plain product seoName.
+  const product = await getSellingProductBySeoName(slug3);
+  if (!product || product.brand.seoName !== brandSlug) return null;
 
-  const base = await getSellingProductBySeoName(parsed.baseSlug);
-  if (!base || base.brand.seoName !== brandSlug) return null;
-
-  const variant = base.variants.find(
-    (v: any) =>
-      normalizeSize(v.storage) === parsed.storageKey &&
-      (parsed.ramKey
-        ? normalizeSize(base.isConstantRam ? base.ram : v.ram) === parsed.ramKey
-        : !v.ram && !base.isConstantRam),
-  );
-  if (!variant) return null;
-
-  return { type: "variant" as const, product: base, variant };
+  return { type: "product" as const, product };
 }
 
 export async function generateMetadata({ params }: Props) {
