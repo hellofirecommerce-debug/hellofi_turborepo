@@ -30,49 +30,56 @@ export function ProductMediaPanel({
       </div>
 
       {/* Sold badge — centered, blue outline pill */}
-      <div className="mt-6 flex items-center justify-center">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-[#0066FF] bg-[#F0F7FF] px-4 py-2 text-xs sm:text-sm text-[#0066FF] font-semibold shadow-sm">
-          <Users size={14} className="text-[#0066FF]" />
+      {/* Sold badge — full-width pill, left-aligned icon + text */}
+      <div className="mt-6">
+        <span className="flex w-full items-center gap-2 rounded-xl border border-[#0066FF] bg-[#F0F7FF] px-4 py-3 text-sm text-[#0066FF] font-semibold">
+          <Users size={18} className="text-[#0066FF] flex-shrink-0" />
           {soldBadgeText}
         </span>
       </div>
 
-      {/* Trust list — centered, icon-chip style */}
-      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-4">
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-emerald-50">
+      {/* Trust list — vertical stack, left-aligned, light gray icon circles */}
+      <div className="mt-6 flex flex-col gap-6">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 rounded-full bg-gray-100">
             <ShieldCheck size={20} className="text-emerald-500" />
           </div>
-          <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">
-            100% Safe
-          </p>
-          <p className="hidden sm:block text-xs text-gray-500 leading-tight">
-            Secure data wipes guaranteed
-          </p>
+          <div>
+            <p className="text-base font-bold text-gray-900 leading-tight">
+              100% Safe
+            </p>
+            <p className="text-sm text-gray-400 leading-tight">
+              Secure data wipes guaranteed
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-blue-50">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 rounded-full bg-gray-100">
             <BadgeDollarSign size={20} className="text-[#0066FF]" />
           </div>
-          <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">
-            Best Prices
-          </p>
-          <p className="hidden sm:block text-xs text-gray-500 leading-tight">
-            Algorithmic valuation engine
-          </p>
+          <div>
+            <p className="text-base font-bold text-gray-900 leading-tight">
+              Best Prices
+            </p>
+            <p className="text-sm text-gray-400 leading-tight">
+              Algorithmic valuation engine
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-col items-center text-center gap-2">
-          <div className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-amber-50">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center justify-center w-11 h-11 flex-shrink-0 rounded-full bg-gray-100">
             <Zap size={20} className="text-amber-400" />
           </div>
-          <p className="text-xs sm:text-sm font-semibold text-gray-900 leading-tight">
-            Quick Payment
-          </p>
-          <p className="hidden sm:block text-xs text-gray-500 leading-tight">
-            Instant bank transfer on pickup
-          </p>
+          <div>
+            <p className="text-base font-bold text-gray-900 leading-tight">
+              Quick Payment
+            </p>
+            <p className="text-sm text-gray-400 leading-tight">
+              Instant bank transfer on pickup
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -45,7 +45,7 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
                 Select your variant to get an estimated price
               </p>
 
-              <div className="mt-6">
+              <div className="mt-12">
                 <VariantSelector
                   product={product}
                   categorySlug={categorySlug}

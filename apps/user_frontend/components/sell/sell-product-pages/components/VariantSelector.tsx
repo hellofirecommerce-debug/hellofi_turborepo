@@ -47,32 +47,35 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <OptionPillGroup
-        label={needsRam ? "Select RAM | Storage" : "Select Storage"}
-        options={options.map((o) => o.label)}
-        selected={
-          selectedVariant
-            ? (options.find((o) => o.id === selectedVariant.id)?.label ?? null)
-            : null
-        }
-        onSelect={(value) => {
-          const match = options.find((o) => o.label === value);
-          if (!match) return;
-          setSelectedId(match.id);
+    <>
+      <div className="flex flex-col gap-12">
+        <OptionPillGroup
+          label={needsRam ? "Select RAM | Storage" : "Select Storage"}
+          options={options.map((o) => o.label)}
+          selected={
+            selectedVariant
+              ? (options.find((o) => o.id === selectedVariant.id)?.label ??
+                null)
+              : null
+          }
+          onSelect={(value) => {
+            const match = options.find((o) => o.label === value);
+            if (!match) return;
+            setSelectedId(match.id);
 
-          // Selecting a pill navigates immediately — no separate CTA needed.
-          const variant = product.variants.find((v) => v.id === match.id);
-          if (variant) navigateToVariant(variant);
-        }}
-        variant="check"
-      />
+            // Selecting a pill navigates immediately — no separate CTA needed.
+            const variant = product.variants.find((v) => v.id === match.id);
+            if (variant) navigateToVariant(variant);
+          }}
+          variant="check"
+        />
 
-      {isComplete && selectedVariant ? (
-        <PriceRangeCard low={selectedVariant.productPrice} />
-      ) : (
-        <PriceRangeCard low={globalLow} high={globalHigh} />
-      )}
+        {isComplete && selectedVariant ? (
+          <PriceRangeCard low={selectedVariant.productPrice} />
+        ) : (
+          <PriceRangeCard low={globalLow} high={globalHigh} />
+        )}
+      </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 pt-1">
         <span className="inline-flex items-center gap-1.5">
@@ -88,6 +91,6 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
           </a>
         </span>
       </div>
-    </div>
+    </>
   );
 }

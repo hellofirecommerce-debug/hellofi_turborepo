@@ -25,6 +25,12 @@ export function SellVariantPage({
     .filter(Boolean)
     .join(" / ");
 
+  // "Apple iPhone 18 Pro (12GB/256GB)" once a variant is in view.
+  const title =
+    ram || variant.storage
+      ? `${product.productName} (${[ram, variant.storage].filter(Boolean).join("/")})`
+      : product.productName;
+
   return (
     <div className="min-h-dvh">
       <StepperHeader currentStep={2} />
@@ -54,14 +60,12 @@ export function SellVariantPage({
             </div>
 
             <div className="md:pl-10">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Sell {product.productName}
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900">Sell {title}</h1>
               {variantLabel && (
                 <p className="mt-1 text-sm text-gray-600">{variantLabel}</p>
               )}
 
-              <div className="mt-6">
+              <div className="mt-12">
                 <PriceRangeCard
                   low={variant.productPrice}
                   ctaLabel="Get Your Price"
