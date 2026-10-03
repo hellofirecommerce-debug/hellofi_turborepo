@@ -3,6 +3,10 @@ import { StepperHeader } from "../components/StepperHeader";
 import { ProductBreadcrumb } from "../components/ProductBreadcrumb";
 import { ProductMediaPanel } from "../components/ProductMediaPanel";
 import { VariantSelector } from "../components/VariantSelector";
+import { QuickSummarySection } from "../components/seo/QuickSummarySection";
+import { OtherVariantsSection } from "../components/seo/OtherVariantsSection";
+import { VisitStoreSection } from "../components/seo/VisitStoreSection";
+import { sizeToSlug } from "../../../../lib/utlils/sellSlug";
 import type { SellingProductDetail } from "../../../../lib/data/sellingProduct.data";
 
 interface Props {
@@ -12,8 +16,27 @@ interface Props {
 }
 
 export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
-  const maxPrice = Math.max(...product.variants.map((v) => v.productPrice));
+  const needsRam = !product.isConstantRam;
+
+  const allPrices = product.variants.map((v) => v.productPrice);
+  const minPrice = Math.min(...allPrices);
+  const maxPrice = Math.max(...allPrices);
   const formattedMaxPrice = `₹${Math.round(maxPrice).toLocaleString("en-IN")}`;
+
+  const otherVariants = product.variants.map((v) => {
+    const ramForSlug = needsRam ? v.ram : product.ram;
+    const slugParts = [
+      product.productSeoName,
+      ramForSlug ? sizeToSlug(ramForSlug) : null,
+      sizeToSlug(v.storage),
+    ].filter(Boolean);
+    const ramLabel = needsRam ? v.ram : product.ram;
+
+    return {
+      label: `${product.productName} ${[ramLabel, v.storage].filter(Boolean).join(" / ")}`,
+      href: `/${categorySlug}/${brandSlug}/${slugParts.join("-")}`,
+    };
+  });
 
   return (
     <div className="min-h-dvh">
@@ -29,6 +52,8 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
           ]}
         />
 
+        {/* Single outer card wrapping the whole thing — only a vertical
+            divider separates the two columns on desktop, no nested box. */}
         <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sm:p-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
             <div className="md:pr-10">
@@ -56,6 +81,21 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
               </div>
             </div>
           </div>
+        </div>
+
+        <div className="mt-6 flex flex-col gap-6">
+          <QuickSummarySection
+            productName={product.productName}
+            low={minPrice}
+            high={maxPrice}
+          />
+
+          <OtherVariantsSection
+            productName={product.productName}
+            variants={otherVariants}
+          />
+
+          <VisitStoreSection />
         </div>
       </div>
     </div>

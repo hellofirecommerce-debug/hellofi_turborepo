@@ -98,4 +98,8 @@ a {
   /* Selected variant pill (RAM/Storage options) */
   --color-variant-selected-bg: #f0f2fdab;
   --color-variant-selected-border: #1a6ef5a3;
+
+  /* NEW COLORS ADDED FOR VISIT STORE SECTION */
+  --color-hf-card-bg: #eef3ff;
+  --color-hf-navy: #0a1f44;
 }
