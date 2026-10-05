@@ -25,7 +25,7 @@ export function VisitStoreSection({
   return (
     <div className="w-full flex justify-center gap-6 sm:gap-8 lg:gap-10 py-6 sm:py-8 lg:py-10">
       {/* Main Card Container - Uses new --color-hf-card-bg */}
-      <div className="w-full max-w-7xl rounded-[24px] bg-hf-card-bg p-4 sm:p-6 lg:p-8">
+      <div className="w-full max-w-7xl rounded-0 sm:rounded-[24px] bg-white sm:bg-hf-card-bg p-0 sm:p-6 lg:p-8">
         {/* Adjusted grid columns to accommodate the wider container */}
         <div className="grid grid-cols-1 md:grid-cols-[380px_1fr] lg:grid-cols-[450px_1fr] gap-8 lg:gap-12 items-stretch">
           {/* Left Side: Image */}

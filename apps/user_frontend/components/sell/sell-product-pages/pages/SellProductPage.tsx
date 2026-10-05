@@ -31,9 +31,11 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
       sizeToSlug(v.storage),
     ].filter(Boolean);
     const ramLabel = needsRam ? v.ram : product.ram;
+    const specLabel = [ramLabel, v.storage].filter(Boolean).join(" / ");
 
     return {
-      label: `${product.productName} ${[ramLabel, v.storage].filter(Boolean).join(" / ")}`,
+      label: `${product.productName} ${specLabel}`,
+      shortLabel: specLabel, // mobile: only RAM / storage
       href: `/${categorySlug}/${brandSlug}/${slugParts.join("-")}`,
     };
   });
@@ -54,25 +56,28 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
 
         {/* Single outer card wrapping the whole thing — only a vertical
             divider separates the two columns on desktop, no nested box. */}
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm p-4 sm:p-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
+        <div className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-transparent sm:bg-white shadow-none sm:shadow-sm p-0 sm:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 sm:gap-10 md:divide-x md:divide-gray-100">
             <div className="md:pr-10">
               <ProductMediaPanel
                 image={product.image}
                 alt={product.productName}
+                productName={product.productName}
               />
             </div>
 
             <div className="md:pl-10">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Sell {product.productName}
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Get Upto {formattedMaxPrice} with Free Doorstep Pickup and
-                Instant Payment.
-              </p>
+              <div className="hidden sm:block">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Sell {product.productName}
+                </h1>
+                <p className="mt-1 text-sm text-gray-500">
+                  Get Upto {formattedMaxPrice} with Free Doorstep Pickup and
+                  Instant Payment.
+                </p>
+              </div>
 
-              <div className="mt-12">
+              <div className="mt-4 sm:mt-12">
                 <VariantSelector
                   product={product}
                   categorySlug={categorySlug}

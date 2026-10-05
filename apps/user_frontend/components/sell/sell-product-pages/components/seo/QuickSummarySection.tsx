@@ -36,7 +36,7 @@ export function QuickSummarySection({
       : cities[0];
 
   return (
-    <div className="rounded-2xl  bg-white p-4 sm:p-0">
+    <div className="rounded-2xl  bg-white p-0 ">
       <h2 className="text-lg sm:text-xl font-bold text-gray-900">
         Quick Summary
       </h2>

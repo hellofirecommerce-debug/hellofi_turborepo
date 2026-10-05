@@ -49,9 +49,11 @@ export function SellVariantPage({
         sizeToSlug(v.storage),
       ].filter(Boolean);
       const ramLabel = needsRam ? v.ram : product.ram;
+      const specLabel = [ramLabel, v.storage].filter(Boolean).join(" / ");
 
       return {
-        label: `${product.productName} ${[ramLabel, v.storage].filter(Boolean).join(" / ")}`,
+        label: `${product.productName} ${specLabel}`,
+        shortLabel: specLabel, // mobile: only RAM / storage
         href: `/${categorySlug}/${brandSlug}/${slugParts.join("-")}`,
       };
     });
@@ -74,13 +76,13 @@ export function SellVariantPage({
           ]}
         />
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-10">
+        <div className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-transparent sm:bg-white p-0 sm:p-10">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
             <div className="md:pr-10">
               <ProductMediaPanel
                 image={product.image}
                 alt={`${title}`}
-                soldBadgeText="8+ sold in last 30 days"
+                productName={title}
               />
             </div>
 

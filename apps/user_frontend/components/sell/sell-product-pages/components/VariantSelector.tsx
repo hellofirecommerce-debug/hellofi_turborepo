@@ -48,7 +48,7 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
 
   return (
     <>
-      <div className="flex flex-col gap-12">
+      <div className="flex flex-col gap-4 sm:gap-12">
         <OptionPillGroup
           label={needsRam ? "Select RAM | Storage" : "Select Storage"}
           options={options.map((o) => o.label)}
