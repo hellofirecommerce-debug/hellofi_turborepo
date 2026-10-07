@@ -3,6 +3,7 @@ import { StepperHeader } from "../components/StepperHeader";
 import { ProductBreadcrumb } from "../components/ProductBreadcrumb";
 import { ProductMediaPanel } from "../components/ProductMediaPanel";
 import { VariantSelector } from "../components/VariantSelector";
+import { TrustStrip } from "../components/TrustStrip";
 import { QuickSummarySection } from "../components/seo/QuickSummarySection";
 import { OtherVariantsSection } from "../components/seo/OtherVariantsSection";
 import { VisitStoreSection } from "../components/seo/VisitStoreSection";
@@ -87,6 +88,8 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
             </div>
           </div>
         </div>
+
+        <TrustStrip />
 
         <div className="mt-6 flex flex-col gap-6">
           <QuickSummarySection

@@ -2,7 +2,8 @@
 "use client";
 
 import { useRef } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Smartphone } from "lucide-react";
+import { Reveal, RevealGroup, RevealItem } from "./Reveal";
 
 interface TopModel {
   id: string;
@@ -82,7 +83,7 @@ export function SellTopModels() {
   const scroll = (direction: "left" | "right") => {
     const container = scrollRef.current;
     if (!container) return;
-    const amount = container.clientWidth * 0.8;
+    const amount = container.clientWidth * 0.9;
     container.scrollBy({
       left: direction === "left" ? -amount : amount,
       behavior: "smooth",
@@ -90,67 +91,97 @@ export function SellTopModels() {
   };
 
   return (
-    <section className="w-full bg-white">
+    <section className="w-full py-10 sm:py-14">
       <div className="max-w-7xl mx-auto px-4">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-4">
-          Top Selling Models
-        </h2>
+        <Reveal>
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900">
+                Top Selling Models
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Tap a model to check your exact price.
+              </p>
+            </div>
 
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => scroll("left")}
-            aria-label="Scroll left"
-            className="hidden cursor-pointer lg:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <ChevronLeft size={20} className="text-black" />
-          </button>
+            {/* Arrows live in the header so they never cover a card */}
+            <div className="hidden sm:flex gap-2">
+              <button
+                type="button"
+                onClick={() => scroll("left")}
+                aria-label="Scroll left"
+                className="group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md ring-1 ring-sky-100 transition-all duration-300 hover:scale-110 hover:bg-[#0066FF]"
+              >
+                <ChevronLeft
+                  size={20}
+                  className="text-gray-800 transition-colors group-hover:text-white"
+                />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll("right")}
+                aria-label="Scroll right"
+                className="group flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-white shadow-md ring-1 ring-sky-100 transition-all duration-300 hover:scale-110 hover:bg-[#0066FF]"
+              >
+                <ChevronRight
+                  size={20}
+                  className="text-gray-800 transition-colors group-hover:text-white"
+                />
+              </button>
+            </div>
+          </div>
+        </Reveal>
 
-          <div
-            ref={scrollRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        <div
+          ref={scrollRef}
+          className="mt-6 overflow-x-auto scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+        >
+          {/* Card width is a share of the row, so exactly N cards fit:
+              mobile 2 · tablet 3 · desktop 5 (gap 32px = 4 gaps = 8rem) */}
+          <RevealGroup
+            stagger={0.07}
+            className="flex gap-4 px-1 py-4 sm:gap-6 lg:gap-8"
           >
             {TOP_MODELS.map((model) => (
-              <div
+              <RevealItem
                 key={model.id}
-                className="shrink-0 w-[160px] sm:w-[180px] rounded-xl border border-gray-200 p-3"
+                className="shrink-0 basis-[calc((100%-1rem)/2)] sm:basis-[calc((100%-3rem)/3)] lg:basis-[calc((100%-8rem)/5)]"
               >
-                <div className="relative h-24 sm:h-28 rounded-lg bg-gray-100 flex items-center justify-center">
-                  {model.badge && (
-                    <span className="absolute top-2 left-2 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#0066FF] text-white">
-                      {model.badge}
-                    </span>
-                  )}
-                  <span className="text-xs text-gray-400">No image</span>
+                <div className="group h-full rounded-2xl border border-sky-100 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-sky-500/15">
+                  <div className="relative flex h-28 items-center justify-center rounded-xl bg-gradient-to-br from-[#EEF3FF] via-[#F0F9FF] to-[#E0F2FE] sm:h-36">
+                    {model.badge && (
+                      <span className="absolute left-2 top-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 px-2.5 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                        {model.badge}
+                      </span>
+                    )}
+                    <Smartphone
+                      size={40}
+                      className="text-[#38BDF8]/60 transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110"
+                    />
+                  </div>
+
+                  <p className="mt-4 text-sm font-semibold leading-tight text-gray-900">
+                    {model.name}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500">{model.variant}</p>
+
+                  <p className="mt-3 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                    Up To
+                  </p>
+                  <p className="text-lg font-extrabold text-gray-900">
+                    ₹{model.price}
+                  </p>
+
+                  <button
+                    type="button"
+                    className="mt-3 w-full cursor-pointer rounded-xl bg-[#0066FF]/10 py-2 text-xs font-semibold text-[#0066FF] transition-colors duration-300 hover:bg-[#0066FF] hover:text-white"
+                  >
+                    Check Exact Price →
+                  </button>
                 </div>
-
-                <p className="mt-3 text-sm font-semibold text-gray-900 leading-tight">
-                  {model.name}
-                </p>
-                <p className="mt-1 text-xs text-gray-500">{model.variant}</p>
-
-                <p className="mt-2 text-[10px] font-semibold text-gray-500 uppercase">
-                  Up To
-                </p>
-                <p className="text-base font-extrabold text-gray-900">
-                  ₹{model.price}
-                </p>
-
-                <button className="mt-2 text-xs font-semibold text-[#0066FF] hover:underline">
-                  Check Exact Price →
-                </button>
-              </div>
+              </RevealItem>
             ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => scroll("right")}
-            aria-label="Scroll right"
-            className="hidden cursor-pointer lg:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-10 w-11 h-11 items-center justify-center rounded-full shadow-md bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
-          >
-            <ChevronRight size={20} className="text-black" />
-          </button>
+          </RevealGroup>
         </div>
       </div>
     </section>

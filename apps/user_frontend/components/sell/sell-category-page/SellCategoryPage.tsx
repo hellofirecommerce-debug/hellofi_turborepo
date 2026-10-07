@@ -18,11 +18,7 @@ interface Props {
 
 export function SellCategoryPage({ placement, category }: Props) {
   return (
-    <div className="min-h-dvh flex flex-col gap-8 py-10">
-      <div className="max-w-7xl mx-auto px-4 w-full">
-        <Banner placement={placement} />
-      </div>
-
+    <div className="page-bg min-h-dvh flex flex-col">
       <SellHero categorySlug={category} />
 
       <SellPopularBrands categorySlug={category} />

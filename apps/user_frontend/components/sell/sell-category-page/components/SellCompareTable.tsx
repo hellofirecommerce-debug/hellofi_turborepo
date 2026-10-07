@@ -1,5 +1,6 @@
 // components/sell-category-page/SellCompareTable.tsx
 import Link from "next/link";
+import { Reveal } from "./Reveal";
 
 interface CompareRow {
   model: string;
@@ -37,72 +38,99 @@ const COMPARE_ROWS: CompareRow[] = [
   { model: "iQOO 15 (256GB)", helloFiPrice: "₹41,000", otherPrice: "₹40,000" },
 ];
 
+const toNumber = (s: string) => Number(s.replace(/[^\d]/g, ""));
+const formatINR = (n: number) => `₹${n.toLocaleString("en-IN")}`;
+
 interface Props {
   ctaHref?: string;
 }
 
 export function SellCompareTable({ ctaHref = "#" }: Props) {
   return (
-    <section className="w-full bg-white py-12 sm:py-16">
+    <section className="w-full bg-white py-14 sm:py-20">
       <div className="max-w-5xl mx-auto px-4">
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 text-center">
-          Compare Before You Sell
-        </h2>
-        <p className="mt-2 text-xs sm:text-sm text-gray-500 text-center uppercase tracking-wide">
-          Price comparison between HelloFi &amp; other buyback platforms
-        </p>
+        <Reveal>
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-gray-900 text-center">
+            Compare Before You Sell
+          </h2>
+          <p className="mt-3 text-xs sm:text-sm text-gray-500 text-center uppercase tracking-widest">
+            Price comparison between HelloFi &amp; other buyback platforms
+          </p>
+        </Reveal>
 
-        <div className="mt-8 rounded-xl border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="text-left font-semibold text-gray-500 uppercase text-[11px] tracking-wide px-4 sm:px-6 py-3">
-                    Mobile Model
-                  </th>
-                  <th className="text-right font-semibold text-gray-500 uppercase text-[11px] tracking-wide px-4 sm:px-6 py-3">
-                    HelloFi Price
-                  </th>
-                  <th className="text-right font-semibold text-gray-500 uppercase text-[11px] tracking-wide px-4 sm:px-6 py-3">
-                    Other Companies
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARE_ROWS.map((row, i) => (
-                  <tr
-                    key={row.model}
-                    className={
-                      i !== COMPARE_ROWS.length - 1
-                        ? "border-b border-gray-100"
-                        : ""
-                    }
-                  >
-                    <td className="px-4 sm:px-6 py-3 text-gray-800 whitespace-nowrap">
-                      {row.model}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-right font-bold text-gray-900 whitespace-nowrap">
-                      {row.helloFiPrice}
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 text-right text-red-500 whitespace-nowrap">
-                      {row.otherPrice}
-                    </td>
+        <Reveal delay={0.1} className="mt-10">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_20px_60px_-25px_rgba(0,102,255,0.25)]">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-200 bg-gradient-to-r from-[#0066FF]/[0.06] to-transparent">
+                    <th className="px-4 py-4 text-left text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:px-6">
+                      Mobile Model
+                    </th>
+                    <th className="px-4 py-4 text-right text-[11px] font-bold uppercase tracking-wide text-[#0066FF] sm:px-6">
+                      <span className="inline-flex items-center gap-1.5">
+                        HelloFi Price
+                        <span className="rounded-full bg-[#0066FF] px-1.5 py-0.5 text-[9px] font-bold text-white">
+                          BEST
+                        </span>
+                      </span>
+                    </th>
+                    <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:px-6">
+                      Other Companies
+                    </th>
+                    <th className="px-4 py-4 text-right text-[11px] font-semibold uppercase tracking-wide text-emerald-600 sm:px-6">
+                      You Earn More
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {COMPARE_ROWS.map((row) => {
+                    const gain =
+                      toNumber(row.helloFiPrice) - toNumber(row.otherPrice);
+                    return (
+                      <tr
+                        key={row.model}
+                        className="border-b border-gray-100 transition-colors last:border-b-0 hover:bg-blue-50/40"
+                      >
+                        <td className="whitespace-nowrap px-4 py-4 font-medium text-gray-800 sm:px-6">
+                          {row.model}
+                        </td>
+                        <td className="whitespace-nowrap bg-[#0066FF]/[0.04] px-4 py-4 text-right font-extrabold text-[#0066FF] sm:px-6">
+                          {row.helloFiPrice}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-right text-gray-400 line-through decoration-red-300 sm:px-6">
+                          {row.otherPrice}
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-4 text-right sm:px-6">
+                          {gain > 0 && (
+                            <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-600 ring-1 ring-emerald-100">
+                              +{formatINR(gain)}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="mt-8 text-center">
+        <Reveal delay={0.15} className="mt-10 text-center">
           <Link
             href={ctaHref}
-            className="inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-[#0066FF] text-white text-sm font-semibold hover:bg-[#0052cc] transition-colors"
+            className="group inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-gradient-to-r from-[#0066FF] to-[#3B82F6] text-white text-sm font-semibold shadow-lg shadow-blue-500/30 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-blue-500/40"
           >
             Get The Best Price for Your device Now
-            <span aria-hidden>→</span>
+            <span
+              aria-hidden
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            >
+              →
+            </span>
           </Link>
-        </div>
+        </Reveal>
       </div>
     </section>
   );

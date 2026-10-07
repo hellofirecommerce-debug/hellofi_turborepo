@@ -7,6 +7,15 @@
   box-sizing: border-box;
 }
 
+.page-bg {
+  background: linear-gradient(
+    180deg,
+    var(--color-page-bg-top) 0%,
+    var(--color-page-bg-bottom) 100%
+  );
+  min-height: 100dvh;
+}
+
 html,
 body {
   overflow-x: clip;
@@ -102,4 +111,7 @@ a {
   /* NEW COLORS ADDED FOR VISIT STORE SECTION */
   --color-hf-card-bg: #eef3ff;
   --color-hf-navy: #0a1f44;
+
+  --color-page-bg-top: #eef3ff;
+  --color-page-bg-bottom: #f8faff;
 }

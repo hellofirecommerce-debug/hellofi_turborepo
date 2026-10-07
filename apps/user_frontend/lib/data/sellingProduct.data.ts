@@ -107,7 +107,7 @@ export async function getSellingProductBySeoName(seoName: string) {
 
     const json = await res.json();
     if (json.errors) return null;
-    console.log("This is the data:", json);
+    // console.log("This is the data:", json);
 
     return json.data?.getSellingProductBySeoName ?? null;
   } catch (error) {
