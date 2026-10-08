@@ -41,7 +41,7 @@ export async function SellPopularBrands({ categorySlug }: Props) {
                     src={`${process.env.NEXT_PUBLIC_CDN_URL}/${brand.image}`}
                     alt={brand.name}
                     fill
-                    className="object-contain grayscale-[40%] transition duration-300 group-hover:scale-110 group-hover:grayscale-0"
+                    className="object-contain grayscale-[0%] transition duration-300 group-hover:scale-110 group-hover:grayscale-0"
                     sizes="120px"
                   />
                 </div>

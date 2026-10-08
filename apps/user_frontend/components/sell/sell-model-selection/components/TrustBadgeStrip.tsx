@@ -1,5 +1,5 @@
-// components/model-selection/TrustBadgeStrip.tsx
 import { ShieldCheck, Truck, Banknote, Lock } from "lucide-react";
+import { RevealGroup, RevealItem } from "@repo/ui";
 
 interface Badge {
   icon: React.ElementType;
@@ -16,17 +16,24 @@ const BADGES: Badge[] = [
 
 export function TrustBadgeStrip() {
   return (
-    <section className="w-full bg-white border border-gray-200 rounded-xl">
-      <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-200">
+    <section className="w-full bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <RevealGroup
+        stagger={0.07}
+        className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-gray-200"
+      >
         {BADGES.map((badge) => {
           const Icon = badge.icon;
           return (
-            <div
+            <RevealItem
               key={badge.title}
-              className="flex flex-col items-center justify-center gap-2 py-5 px-3 text-center"
+              y={14}
+              className="group flex flex-col items-center justify-center gap-2 py-5 px-3 text-center transition-colors duration-300 hover:bg-blue-50/40"
             >
-              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-50">
-                <Icon size={18} className="text-[#0066FF]" />
+              <span className="flex items-center justify-center w-9 h-9 rounded-full bg-blue-50 transition-all duration-300 group-hover:scale-110 group-hover:bg-[#0066FF]">
+                <Icon
+                  size={18}
+                  className="text-[#0066FF] transition-colors duration-300 group-hover:text-white"
+                />
               </span>
               <div>
                 <p className="text-xs sm:text-sm font-bold text-gray-900">
@@ -36,10 +43,10 @@ export function TrustBadgeStrip() {
                   {badge.subtitle}
                 </p>
               </div>
-            </div>
+            </RevealItem>
           );
         })}
-      </div>
+      </RevealGroup>
     </section>
   );
 }

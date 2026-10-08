@@ -1,4 +1,3 @@
-// components/model-selection/ModelSelectionClient.tsx
 "use client";
 
 import { useState } from "react";

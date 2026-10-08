@@ -17,3 +17,7 @@ export { SearchableInput } from "./components/SearchableInput";
 export { PlaceholderCard } from "./components/PlaceholderCard";
 export { RichTextEditor } from "./components/RichTextEditor";
 export { DateInput } from "./components/date-input";
+
+export { MotionProvider } from "./components/MotionProvider";
+export { Reveal, RevealGroup, RevealItem } from "./components/Reveal";
+export { MotionCard } from "./components/MotionCard";
