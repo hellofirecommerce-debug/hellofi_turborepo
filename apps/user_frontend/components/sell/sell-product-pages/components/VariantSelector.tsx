@@ -3,6 +3,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Reveal } from "@repo/ui";
 import { OptionPillGroup } from "./OptionPillGroup";
 import { PriceRangeCard } from "./PriceRangeCard";
 import { sizeToSlug } from "../../../../lib/utlils/sellSlug";
@@ -48,39 +49,46 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:gap-12">
-        <OptionPillGroup
-          label={needsRam ? "Select RAM | Storage" : "Select Storage"}
-          options={options.map((o) => o.label)}
-          selected={
-            selectedVariant
-              ? (options.find((o) => o.id === selectedVariant.id)?.label ??
-                null)
-              : null
-          }
-          onSelect={(value) => {
-            const match = options.find((o) => o.label === value);
-            if (!match) return;
-            setSelectedId(match.id);
+      {/* Tightened from gap-4 sm:gap-12 → gap-3 sm:gap-6 so the pills sit
+          closer to the heading and the price card isn't miles below. */}
+      <div className="flex flex-col gap-3 sm:gap-6">
+        <Reveal y={14}>
+          <OptionPillGroup
+            label={needsRam ? "Select RAM | Storage" : "Select Storage"}
+            options={options.map((o) => o.label)}
+            selected={
+              selectedVariant
+                ? (options.find((o) => o.id === selectedVariant.id)?.label ??
+                  null)
+                : null
+            }
+            onSelect={(value) => {
+              const match = options.find((o) => o.label === value);
+              if (!match) return;
+              setSelectedId(match.id);
+              const variant = product.variants.find((v) => v.id === match.id);
+              if (variant) navigateToVariant(variant);
+            }}
+            variant="check"
+          />
+        </Reveal>
 
-            // Selecting a pill navigates immediately — no separate CTA needed.
-            const variant = product.variants.find((v) => v.id === match.id);
-            if (variant) navigateToVariant(variant);
-          }}
-          variant="check"
-        />
-
-        {isComplete && selectedVariant ? (
-          <PriceRangeCard low={selectedVariant.productPrice} />
-        ) : (
-          <PriceRangeCard low={globalLow} high={globalHigh} />
-        )}
+        <Reveal y={14} delay={0.08}>
+          {isComplete && selectedVariant ? (
+            <PriceRangeCard low={selectedVariant.productPrice} />
+          ) : (
+            <PriceRangeCard low={globalLow} high={globalHigh} />
+          )}
+        </Reveal>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500 pt-1">
+      {/* Added top padding (pt-4) that was missing, and a vertical divider
+          between the two halves instead of just a gap. */}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 pt-4 mt-4 border-t border-gray-100">
         <span className="inline-flex items-center gap-1.5">
           🔒 Privacy protected valuations
         </span>
+        <span className="h-4 w-px bg-gray-200 hidden sm:block" />
         <span>
           Can&apos;t find your variant?{" "}
           <a

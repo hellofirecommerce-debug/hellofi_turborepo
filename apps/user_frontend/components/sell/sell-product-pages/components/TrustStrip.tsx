@@ -1,8 +1,6 @@
 // components/sell/sell-product-pages/components/TrustStrip.tsx
-"use client";
-
-import { motion, type Variants } from "motion/react";
 import { ShieldCheck, Tag, Zap } from "lucide-react";
+import { RevealGroup, RevealItem } from "@repo/ui";
 
 const ITEMS = [
   {
@@ -31,30 +29,17 @@ const ITEMS = [
   },
 ];
 
-const container: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12 } },
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" } },
-};
-
 export function TrustStrip() {
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, margin: "-40px" }}
+    <RevealGroup
+      stagger={0.12}
       className="mt-6 hidden rounded-2xl bg-white px-6 py-5 shadow-[0_10px_40px_-12px_rgba(30,64,175,0.18)] ring-1 ring-gray-100 sm:grid sm:grid-cols-3 sm:divide-x sm:divide-gray-200/70"
     >
       {ITEMS.map(
         ({ icon: Icon, title, subtitle, circle, iconClass, solid }) => (
-          <motion.div
+          <RevealItem
             key={title}
-            variants={item}
+            y={12}
             className="group flex items-center gap-4 px-6 sm:first:pl-0 sm:last:pr-0"
           >
             <div
@@ -74,9 +59,9 @@ export function TrustStrip() {
                 {subtitle}
               </p>
             </div>
-          </motion.div>
+          </RevealItem>
         ),
       )}
-    </motion.div>
+    </RevealGroup>
   );
 }

@@ -1,4 +1,6 @@
-// components/sell/sell-product-pages/components/QuickSummarySection.tsx
+// components/sell/sell-product-pages/components/seo/QuickSummarySection.tsx
+import { Reveal } from "@repo/ui";
+
 const formatPrice = (value: number) =>
   `₹${Math.round(value).toLocaleString("en-IN")}`;
 
@@ -29,14 +31,13 @@ export function QuickSummarySection({
     high !== undefined && high !== low
       ? `${formatPrice(low)}–${formatPrice(high)}`
       : formatPrice(low);
-
   const cityText =
     cities.length > 1
       ? `${cities.slice(0, -1).join(", ")} and ${cities[cities.length - 1]}`
       : cities[0];
 
   return (
-    <div className="rounded-2xl  bg-white p-0 ">
+    <Reveal y={16} className="rounded-2xl p-0">
       <h2 className="text-lg sm:text-xl font-bold text-gray-900">
         Quick Summary
       </h2>
@@ -51,6 +52,6 @@ export function QuickSummarySection({
         you submitted while getting the quote, the price is guaranteed with no
         last-minute negotiation or unnecessary deductions at the time of pickup.
       </p>
-    </div>
+    </Reveal>
   );
 }

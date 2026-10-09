@@ -1,6 +1,8 @@
 // components/sell/sell-product-pages/components/StepperHeader.tsx
 "use client";
 
+import { motion } from "motion/react";
+
 const STEPS = [
   "Select Brand & Model",
   "Select Variant",
@@ -9,15 +11,15 @@ const STEPS = [
 ];
 
 interface Props {
-  currentStep: number; // 1-indexed
+  currentStep: number;
 }
 
 export function StepperHeader({ currentStep }: Props) {
+  // Per-step circle/line animation needs live `animate` props tied to
+  // currentStep, not a scroll-triggered Reveal, so this stays on raw motion.
   return (
     <div className="border-b border-gray-100 bg-white w-full">
-      {/* Removed max-w-7xl and reduced horizontal padding to allow full-width on mobile */}
       <div className="w-full px-2 sm:px-4 py-4">
-        {/* Mobile: Full width grid, evenly spaced */}
         <div className="grid grid-cols-4 gap-x-0 sm:hidden w-full">
           {STEPS.map((label, i) => {
             const step = i + 1;
@@ -28,19 +30,22 @@ export function StepperHeader({ currentStep }: Props) {
                 key={label}
                 className="flex flex-col items-center gap-1.5 w-full"
               >
-                {/* Icon Circle */}
-                <div
+                <motion.div
+                  layout
+                  initial={false}
+                  animate={{
+                    scale: isActive ? 1.08 : 1,
+                    backgroundColor: isDone || isActive ? "#0066FF" : "#F3F4F6",
+                  }}
+                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
                   className={`flex items-center justify-center rounded-full font-bold text-[11px] w-6 h-6 flex-shrink-0 ${
-                    isDone || isActive
-                      ? "bg-[#0066FF] text-white"
-                      : "bg-gray-100 text-gray-400"
+                    isDone || isActive ? "text-white" : "text-gray-400"
                   }`}
                 >
                   {isDone ? "✓" : step}
-                </div>
-                {/* Text Label */}
+                </motion.div>
                 <span
-                  className={`text-center text-[9px] leading-[1.2] line-clamp-2 w-full break-words px-0.5 ${
+                  className={`text-center text-[9px] leading-[1.2] line-clamp-2 w-full break-words px-0.5 transition-colors duration-300 ${
                     isActive
                       ? "text-[#0066FF] font-semibold"
                       : isDone
@@ -55,7 +60,6 @@ export function StepperHeader({ currentStep }: Props) {
           })}
         </div>
 
-        {/* Desktop / Tablet: Row with connecting lines, still limited to max-w-7xl */}
         <div className="hidden sm:flex items-center justify-center gap-4 max-w-7xl mx-auto">
           {STEPS.map((label, i) => {
             const step = i + 1;
@@ -64,17 +68,23 @@ export function StepperHeader({ currentStep }: Props) {
             return (
               <div key={label} className="flex items-center flex-shrink-0">
                 <div className="flex flex-col items-center gap-1 min-w-[84px]">
-                  <div
+                  <motion.div
+                    layout
+                    initial={false}
+                    animate={{
+                      scale: isActive ? 1.1 : 1,
+                      backgroundColor:
+                        isDone || isActive ? "#0066FF" : "#F3F4F6",
+                    }}
+                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
                     className={`flex items-center justify-center rounded-full font-bold text-sm w-8 h-8 ${
-                      isDone || isActive
-                        ? "bg-[#0066FF] text-white"
-                        : "bg-gray-100 text-gray-400"
+                      isDone || isActive ? "text-white" : "text-gray-400"
                     }`}
                   >
                     {isDone ? "✓" : step}
-                  </div>
+                  </motion.div>
                   <span
-                    className={`text-center text-xs leading-tight ${
+                    className={`text-center text-xs leading-tight transition-colors duration-300 ${
                       isActive
                         ? "text-[#0066FF] font-semibold"
                         : isDone
@@ -86,11 +96,14 @@ export function StepperHeader({ currentStep }: Props) {
                   </span>
                 </div>
                 {step !== STEPS.length && (
-                  <div
-                    className={`h-[2px] w-10 mx-2 flex-shrink-0 ${
-                      isDone ? "bg-[#0066FF]" : "bg-gray-200"
-                    }`}
-                  />
+                  <div className="relative h-[2px] w-10 mx-2 flex-shrink-0 bg-gray-200 overflow-hidden rounded-full">
+                    <motion.div
+                      initial={false}
+                      animate={{ width: isDone ? "100%" : "0%" }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="absolute inset-y-0 left-0 bg-[#0066FF] rounded-full"
+                    />
+                  </div>
                 )}
               </div>
             );
