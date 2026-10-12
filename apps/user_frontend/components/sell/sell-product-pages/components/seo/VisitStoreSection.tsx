@@ -32,8 +32,14 @@ export function VisitStoreSection({
       {/* bg-white → bg-[#F3F6FF] so this card reads as distinct from the
           page-bg gradient instead of blending into it. */}
       <div className="w-full max-w-7xl rounded-0 sm:rounded-[24px] bg-[#F3F6FF] sm:bg-[#F3F6FF] p-0 sm:p-4 lg:p-4">
-        <div className="grid grid-cols-1 md:grid-cols-[380px_1fr] lg:grid-cols-[450px_1fr] gap-8 lg:gap-12 items-stretch">
-          <div className="relative w-full h-[320px] md:h-auto rounded-[16px] overflow-hidden shadow-sm">
+        {/* Two-column split now starts at lg (1024px) instead of md
+            (768px). iPad Mini portrait is exactly 768px wide, so it was
+            hitting md: and getting squeezed into a 380/450px image
+            column with barely ~300px left for heading, paragraph,
+            address box and buttons. Below lg it stacks: full-width
+            image on top, content below, which has room to breathe. */}
+        <div className="grid grid-cols-1 lg:grid-cols-[450px_1fr] gap-8 lg:gap-12 items-stretch">
+          <div className="relative w-full h-[260px] sm:h-[320px] lg:h-auto rounded-[16px] overflow-hidden shadow-sm">
             <Image
               src={storeImage}
               alt="HelloFi store"
@@ -55,12 +61,12 @@ export function VisitStoreSection({
               {cityLabel}
             </span>
 
-            <h2 className="mt-4 text-3xl sm:text-4xl font-extrabold text-hf-navy leading-tight">
+            <h2 className="mt-4 text-2xl sm:text-3xl lg:text-4xl font-extrabold text-hf-navy leading-tight">
               Prefer visiting us{" "}
               <span className="text-sell-blue">instead?</span>
             </h2>
 
-            <p className="mt-4 text-base sm:text-lg leading-relaxed text-gray-600 max-w-3xl">
+            <p className="mt-4 text-sm sm:text-base lg:text-lg leading-relaxed text-gray-600 max-w-3xl">
               Drop in your device at our office as per your convenience. Our
               experts will inspect it in front of you and get{" "}
               <span className="text-sell-blue font-semibold">
@@ -69,7 +75,7 @@ export function VisitStoreSection({
               .
             </p>
 
-            <div className="mt-8 flex items-start gap-4 rounded-xl border border-card-border bg-white p-4 sm:p-5 shadow-sm max-w-3xl">
+            <div className="mt-6 sm:mt-8 flex items-start gap-4 rounded-xl border border-card-border bg-white p-4 sm:p-5 shadow-sm max-w-3xl">
               <div className="flex items-center justify-center h-10 w-10 rounded-full bg-primary-surface flex-shrink-0 mt-0.5">
                 <MapPin size={20} className="text-sell-blue" />
               </div>
@@ -84,7 +90,7 @@ export function VisitStoreSection({
             {/* Removed max-w-2xl mx-auto, which was centering a narrower
                 block and creating side padding around the buttons.
                 Now w-full so both buttons span the full column width. */}
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 w-full">
+            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row gap-4 w-full">
               <a
                 href={phoneHref}
                 className="flex flex-1 items-center justify-center sm:justify-start gap-4 rounded-xl bg-hf-navy px-6 py-4 text-white transition hover:bg-hf-navy/90 active:scale-[0.98]"

@@ -75,7 +75,7 @@ export function SellVariantPage({
 
           <Reveal y={20}>
             <div className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-transparent sm:bg-white p-0 md:p-5 lg:p-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-4 md:gap-0 lg:gap-4 md:divide-x md:divide-gray-100">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-4 md:gap-0 lg:gap-4 md:divide-x md:divide-gray-100">
                 <div className="md:pr-5 lg:pr-5">
                   <ProductMediaPanel
                     image={product.image}
