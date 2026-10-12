@@ -85,15 +85,7 @@ export function SellVariantPage({
                 </div>
 
                 <div className="md:pl-10">
-                  <h1 className="text-2xl font-bold text-gray-900">
-                    Sell {title}
-                  </h1>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Get {formattedPrice} with Free Doorstep Pickup and Instant
-                    Payment.
-                  </p>
-
-                  <div className="mt-12">
+                  <div className="">
                     <PriceRangeCard
                       low={variant.productPrice}
                       ctaLabel="Get Your Price"

@@ -22,7 +22,7 @@ export function OtherVariantsSection({ productName, variants }: Props) {
   return (
     <Reveal
       y={16}
-      className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-white p-0 sm:p-6"
+      className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-none sm:bg-white p-0 sm:p-6"
     >
       <h2 className="text-base sm:text-lg font-bold text-gray-900">
         Other {productName} variants
