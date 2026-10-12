@@ -74,9 +74,9 @@ export function SellVariantPage({
           />
 
           <Reveal y={20}>
-            <div className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-transparent sm:bg-white p-0 sm:p-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:divide-x md:divide-gray-100">
-                <div className="md:pr-10">
+            <div className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-transparent sm:bg-white p-0 md:p-5 lg:p-10">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-4 md:gap-0 lg:gap-4 md:divide-x md:divide-gray-100">
+                <div className="md:pr-5 lg:pr-5">
                   <ProductMediaPanel
                     image={product.image}
                     alt={title}
@@ -84,8 +84,18 @@ export function SellVariantPage({
                   />
                 </div>
 
-                <div className="md:pl-10">
-                  <div className="">
+                <div className="md:pl-5 lg:pr-5">
+                  <div className="hidden sm:block">
+                    <h1 className="text-2xl font-bold text-gray-900">
+                      Sell {title}
+                    </h1>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Get {formattedPrice} with Free Doorstep Pickup and Instant
+                      Payment.
+                    </p>
+                  </div>
+
+                  <div className=" mt-0 sm:mt-12">
                     <PriceRangeCard
                       low={variant.productPrice}
                       ctaLabel="Get Your Price"
