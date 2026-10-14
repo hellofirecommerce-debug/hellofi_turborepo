@@ -1,4 +1,7 @@
 // components/sell/sell-product-pages/components/ProductBreadcrumb.tsx
+"use client";
+
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { Reveal } from "@repo/ui";
 
@@ -12,25 +15,24 @@ interface Props {
 }
 
 export function ProductBreadcrumb({ items }: Props) {
+  const listRef = useRef<HTMLOListElement>(null);
+
+  useEffect(() => {
+    if (listRef.current) {
+      // Scroll to the far right to ensure the last item is fully visible
+      listRef.current.scrollLeft = listRef.current.scrollWidth;
+    }
+  }, [items]);
+
   return (
     <Reveal y={-6} className="mb-3 sm:mb-6 w-full">
-      <nav>
-        {/* flex-wrap → flex-nowrap + overflow-x-auto: scrolls horizontally
-            on mobile instead of wrapping to a second line. Scrollbar is
-            hidden via the inline style (Firefox) + the .no-scrollbar
-            class below (WebKit/Chrome/Safari) — add this once to your
-            global CSS if it isn't there already:
-              .no-scrollbar::-webkit-scrollbar { display: none; } */}
+      <nav aria-label="breadcrumb" className="w-full">
         <ol
-          className="no-scrollbar flex flex-nowrap items-center gap-1 sm:gap-1.5 overflow-x-auto text-xs sm:text-sm"
-          style={{ scrollbarWidth: "none" }}
+          ref={listRef}
+          className="scrollbar-hide scroll-smooth flex flex-nowrap items-center gap-1 sm:gap-1.5 overflow-x-auto overflow-y-hidden text-xs sm:text-sm w-full"
         >
           {items.map((item, i) => {
             const isLast = i === items.length - 1;
-            // Every earlier crumb stays short and non-wrapping so the row
-            // scrolls cleanly; the last (current) crumb is always shown
-            // in full — e.g. "Apple iPhone 16 (6GB/128GB)" — never
-            // truncated, and allowed to wrap if it's long.
             const truncateClasses = isLast
               ? "max-w-none whitespace-normal sm:whitespace-nowrap"
               : "max-w-[90px] sm:max-w-none truncate whitespace-nowrap flex-shrink-0";
@@ -38,7 +40,7 @@ export function ProductBreadcrumb({ items }: Props) {
               <li
                 key={i}
                 className={`flex items-center gap-1 sm:gap-1.5 min-w-0 ${
-                  isLast ? "flex-shrink-0" : ""
+                  isLast ? "flex-shrink-0" : "flex-shrink-0"
                 }`}
               >
                 {item.href && !isLast ? (
@@ -60,7 +62,7 @@ export function ProductBreadcrumb({ items }: Props) {
                   </span>
                 )}
                 {!isLast && (
-                  <span className="text-gray-300 flex-shrink-0">›</span>
+                  <span className="text-gray-300 flex-shrink-0 mx-0.5">›</span>
                 )}
               </li>
             );
