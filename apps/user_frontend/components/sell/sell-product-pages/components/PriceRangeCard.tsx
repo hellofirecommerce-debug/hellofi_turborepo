@@ -24,7 +24,7 @@ export function PriceRangeCard({
   const isRange = high !== undefined && high !== low;
 
   return (
-    <div className="rounded-xl bg-variant-selected-bg border border-variant-selected-border p-5 text-center">
+    <div className="rounded-xl bg-variant-selected-bg border border-variant-selected-border p-5 mt-4 md:mt-0 text-center">
       <p className="text-[11px] font-bold text-sell-blue uppercase tracking-wide">
         {isRange ? "Estimated Price Range" : "Estimated Price"}
       </p>

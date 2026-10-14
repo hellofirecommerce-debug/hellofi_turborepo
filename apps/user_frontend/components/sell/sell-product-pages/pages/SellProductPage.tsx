@@ -51,7 +51,6 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
               { label: "Sell Mobile", href: `/${categorySlug}` },
               { label: brandSlug, href: `/${categorySlug}/${brandSlug}` },
               { label: product.productName },
-              { label: "Select Variant" },
             ]}
           />
 

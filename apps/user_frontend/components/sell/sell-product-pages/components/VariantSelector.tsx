@@ -49,9 +49,7 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
 
   return (
     <>
-      {/* Tightened from gap-4 sm:gap-12 → gap-3 sm:gap-6 so the pills sit
-          closer to the heading and the price card isn't miles below. */}
-      <div className="flex flex-col gap-3 sm:gap-6">
+      <div className="flex flex-col gap-4 sm:gap-6">
         <Reveal y={14}>
           <OptionPillGroup
             label={needsRam ? "Select RAM | Storage" : "Select Storage"}
@@ -82,14 +80,15 @@ export function VariantSelector({ product, categorySlug, brandSlug }: Props) {
         </Reveal>
       </div>
 
-      {/* Added top padding (pt-4) that was missing, and a vertical divider
-          between the two halves instead of just a gap. */}
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500 pt-4 mt-4 border-t border-gray-100">
-        <span className="inline-flex items-center gap-1.5">
+      {/* Footer - Both lines centered horizontally on mobile */}
+      <div className="flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-xs text-gray-500 pt-4 mt-4 border-t border-gray-100">
+        <span className="inline-flex items-center gap-1.5 text-center">
           🔒 Privacy protected valuations
         </span>
+
         <span className="h-4 w-px bg-gray-200 hidden sm:block" />
-        <span>
+
+        <span className="text-center">
           Can&apos;t find your variant?{" "}
           <a
             href="/contact"

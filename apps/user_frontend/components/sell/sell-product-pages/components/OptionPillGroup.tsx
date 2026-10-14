@@ -30,16 +30,16 @@ export function OptionPillGroup({
               key={option}
               type="button"
               onClick={() => onSelect(option)}
-              className={`relative flex items-center gap-2 px-4 h-10 rounded-4xl border text-sm font-medium transition-colors cursor-pointer ${
+              className={`relative flex items-center gap-2 px-4 h-10 rounded-4xl border text-sm font-bold transition-all duration-200 cursor-pointer ${
                 isSelected
-                  ? "border-[#0066FF] text-[#0066FF] bg-blue-50"
-                  : "border-gray-300 text-gray-700 hover:border-gray-400"
+                  ? "border-[#0066FF] bg-blue-50 text-[#0066FF] shadow-sm"
+                  : "border-variant-selected-border bg-variant-selected-bg text-sell-blue hover:border-[#0066FF] hover:text-[#0066FF]"
               }`}
             >
               {variant === "radio" && (
                 <span
                   className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
-                    isSelected ? "border-[#0066FF]" : "border-gray-300"
+                    isSelected ? "border-[#0066FF]" : "border-sell-blue/50"
                   }`}
                 >
                   {isSelected && (
