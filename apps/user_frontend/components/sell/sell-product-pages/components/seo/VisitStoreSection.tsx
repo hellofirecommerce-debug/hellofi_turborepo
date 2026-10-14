@@ -31,7 +31,7 @@ export function VisitStoreSection({
     >
       {/* bg-white → bg-[#F3F6FF] so this card reads as distinct from the
           page-bg gradient instead of blending into it. */}
-      <div className="w-full max-w-7xl rounded-0 sm:rounded-[24px] bg-[#F3F6FF] sm:bg-[#F3F6FF] p-0 sm:p-4 lg:p-4">
+      <div className="w-full max-w-7xl rounded-0 sm:rounded-[24px] bg-[#F3F6FF] sm:bg-[#F3F6FF] p-0 md:p-4 lg:p-4">
         {/* Two-column split now starts at lg (1024px) instead of md
             (768px). iPad Mini portrait is exactly 768px wide, so it was
             hitting md: and getting squeezed into a 380/450px image

@@ -56,9 +56,9 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
           />
 
           <Reveal y={20}>
-            <div className="rounded-none sm:rounded-2xl border-0 sm:border sm:border-gray-200 bg-transparent sm:bg-white shadow-none sm:shadow-sm p-0 sm:p-10">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0 sm:gap-10 md:divide-x md:divide-gray-100">
-                <div className="md:pr-10">
+            <div className="rounded-none md:rounded-2xl border-0 md:border md:border-gray-200 bg-transparent md:bg-white shadow-none md:shadow-sm p-0 md:p-5 lg:p-10">
+              <div className="grid grid-cols-1 md:grid-cols-2  gap-4 sm:gap-4 md:gap-0 lg:gap-4 md:divide-x md:divide-gray-100">
+                <div className="md:pr-5 lg:pr-5">
                   <ProductMediaPanel
                     image={product.image}
                     alt={product.productName}
@@ -66,8 +66,11 @@ export function SellProductPage({ categorySlug, brandSlug, product }: Props) {
                   />
                 </div>
 
-                <div className="md:pl-10">
-                  <div className="hidden sm:block">
+                <div className="md:pl-5 lg:pr-5">
+                  {/* Heading/subtitle block now shows from md (768px), not
+                      sm (640px) — matches ProductMediaPanel's own mobile
+                      view, which already renders its own title below md. */}
+                  <div className="hidden md:block">
                     <h1 className="text-2xl font-bold text-gray-900">
                       Sell {product.productName}
                     </h1>

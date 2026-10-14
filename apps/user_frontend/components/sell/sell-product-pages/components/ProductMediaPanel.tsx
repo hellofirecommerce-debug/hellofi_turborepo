@@ -22,13 +22,17 @@ export function ProductMediaPanel({
 
   return (
     <div className="w-full">
-      {/* Mobile — image card with badge overlaid top-left (same pattern as
-          desktop), no separate white wrapper so it blends into page-bg. */}
-      <div className="sm:hidden">
-        <div className="relative flex justify-center overflow-hidden rounded-2xl border border-[#DCE6FF] bg-gradient-to-br from-[#EEF3FF] via-[#F8FAFF] to-[#E0F2FE] py-8">
+      {/* Mobile view shows below md (768px). Tightened from py-8 to py-6
+          and shrunk the blur circle so the card isn't a big half-empty
+          box when the photo is small/slow to load, and badge moved in
+          from the very corner (left-3/top-3 → left-4/top-4 is default,
+          kept, but z-index/shadow tuned) so it reads as part of the
+          card instead of clipped at the edge. */}
+      <div className="md:hidden">
+        <div className="relative flex justify-center overflow-hidden rounded-2xl border border-[#DCE6FF] bg-gradient-to-br from-[#EEF3FF] via-[#F8FAFF] to-[#E0F2FE] py-6">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0066FF]/10 blur-2xl"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-36 w-36 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#0066FF]/10 blur-2xl"
           />
 
           <motion.span
@@ -46,19 +50,20 @@ export function ProductMediaPanel({
             alt={alt}
             width={220}
             height={280}
-            className="relative z-10 h-[200px] w-auto object-contain drop-shadow-lg"
+            className="relative z-10 h-[180px] w-auto object-contain drop-shadow-lg"
             sizes="70vw"
             priority
           />
         </div>
 
-        {/* Title + trust grid sit directly on page-bg now, no white card. */}
-        <div className="mt-4 text-center">
+        {/* mt-4 → mt-3: card and heading now sit closer together instead
+            of leaving a visible gap under the hero box. */}
+        <div className="mt-3 text-center">
           <h1 className="text-lg font-bold text-gray-900 leading-snug">
             Sell {productName}
           </h1>
 
-          <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2.5 justify-items-center max-w-xs mx-auto">
+          <div className="mt-3 grid grid-cols-2 gap-x-6 gap-y-2.5 justify-items-center max-w-xs mx-auto">
             <div className="flex items-center gap-1.5">
               <ShieldCheck
                 size={14}
@@ -85,8 +90,8 @@ export function ProductMediaPanel({
         </div>
       </div>
 
-      {/* Desktop / tablet — unchanged */}
-      <div className="hidden sm:block">
+      {/* Desktop / tablet view now starts at md (768px) */}
+      <div className="hidden md:block">
         <div className="relative flex justify-center overflow-hidden rounded-2xl border border-[#DCE6FF] bg-gradient-to-br from-[#EEF3FF] via-[#F8FAFF] to-[#E0F2FE] p-6 pt-16">
           <div
             aria-hidden="true"

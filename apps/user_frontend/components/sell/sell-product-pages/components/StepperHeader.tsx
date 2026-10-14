@@ -15,12 +15,11 @@ interface Props {
 }
 
 export function StepperHeader({ currentStep }: Props) {
-  // Per-step circle/line animation needs live `animate` props tied to
-  // currentStep, not a scroll-triggered Reveal, so this stays on raw motion.
   return (
     <div className="border-b border-gray-100 bg-white w-full">
       <div className="w-full px-2 sm:px-4 py-4">
-        <div className="grid grid-cols-4 gap-x-0 sm:hidden w-full">
+        {/* Mobile stepper now shows below md (768px), not sm (640px) */}
+        <div className="grid grid-cols-4 gap-x-0 md:hidden w-full">
           {STEPS.map((label, i) => {
             const step = i + 1;
             const isDone = step < currentStep;
@@ -60,7 +59,8 @@ export function StepperHeader({ currentStep }: Props) {
           })}
         </div>
 
-        <div className="hidden sm:flex items-center justify-center gap-4 max-w-7xl mx-auto">
+        {/* Desktop stepper now starts at md (768px), not sm (640px) */}
+        <div className="hidden md:flex items-center justify-center gap-4 max-w-7xl mx-auto">
           {STEPS.map((label, i) => {
             const step = i + 1;
             const isDone = step < currentStep;

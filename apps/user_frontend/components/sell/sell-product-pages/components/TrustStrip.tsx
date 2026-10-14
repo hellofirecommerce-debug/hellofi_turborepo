@@ -31,16 +31,18 @@ const ITEMS = [
 
 export function TrustStrip() {
   return (
+    // Strip is hidden below md (768px) now, not sm (640px) — matches the
+    // page's other mobile/desktop switches.
     <RevealGroup
       stagger={0.12}
-      className="mt-6 hidden rounded-2xl bg-white px-6 py-5 shadow-[0_10px_40px_-12px_rgba(30,64,175,0.18)] ring-1 ring-gray-100 sm:grid sm:grid-cols-3 sm:divide-x sm:divide-gray-200/70"
+      className="mt-6 hidden rounded-2xl bg-white px-6 py-5 shadow-[0_10px_40px_-12px_rgba(30,64,175,0.18)] ring-1 ring-gray-100 md:grid md:grid-cols-3 md:divide-x md:divide-gray-200/70"
     >
       {ITEMS.map(
         ({ icon: Icon, title, subtitle, circle, iconClass, solid }) => (
           <RevealItem
             key={title}
             y={12}
-            className="group flex items-center gap-4 px-6 sm:first:pl-0 sm:last:pr-0"
+            className="group flex items-center gap-4 px-6 md:first:pl-0 md:last:pr-0"
           >
             <div
               className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-110 ${circle}`}
