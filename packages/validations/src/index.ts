@@ -8,3 +8,6 @@ export * from "./series/series.schema";
 export * from "./sellingProduct/sellingProduct.schema";
 export * from "./buyingProduct/buyingProduct.schema";
 export * from "./banner/banner.schema";
+export * from "./assessment";
+export * from "./auth/user.auth.schema";
+export * from "./checkout/checkout.schema";

@@ -22,6 +22,16 @@ import { UserBuyingProduct } from "./user/buyingProduct";
 import { UserBrand } from "./user/brand";
 import { UserSellingProduct } from "./user/sellingProduct";
 import { UserSeries } from "./user/series";
+import { UserAssessment } from "./user/assessment";
+import { UserAuth } from "./user/auth";
+import { UserSellingOrder } from "./user/sellingOrder";
+import { UserCheckout } from "./user/checkout";
+
+import { AdminAssessment } from "./admin/assessment";
+import { AdminCondition } from "./admin/condition";
+import { AdminOption } from "./admin/option";
+import { AdminPricingRule } from "./admin/pricingRule";
+import { AdminSellingOrder } from "./admin/sellingOrder";
 
 async function createApolloGraphqlServer() {
   const allTypeDefs = `
@@ -45,12 +55,22 @@ async function createApolloGraphqlServer() {
     ${AdminSellingProduct.queries}
     ${AdminBuyingProduct.queries}
     ${AdminVideoReviews.queries}
+    ${AdminAssessment.queries}
+    ${AdminCondition.queries}
+    ${AdminOption.queries}
+    ${AdminPricingRule.queries}
+    ${AdminSellingOrder.queries}
+
 
     #user
     ${UserBuyingProduct.queries}
     ${UserBrand.queries}
     ${UserSeries.queries}
     ${UserSellingProduct.queries}
+    ${UserAssessment.queries}
+    ${UserSellingOrder.queries}
+    ${UserAuth.queries}
+    ${UserCheckout.queries}
    } 
 
    type Mutation {
@@ -66,6 +86,17 @@ async function createApolloGraphqlServer() {
     ${AdminSellingProduct.mutations}
     ${AdminBuyingProduct.mutations}
     ${AdminVideoReviews.mutations}
+    ${AdminAssessment.mutations}
+    ${AdminCondition.mutations}
+    ${AdminOption.mutations}
+    ${AdminPricingRule.mutations}
+    ${AdminSellingOrder.mutations}
+
+
+    ${UserSellingOrder.mutations}
+    ${UserAuth.mutations}
+    ${UserCheckout.mutations}
+
    }
 
     # Type Definitions
@@ -80,10 +111,19 @@ async function createApolloGraphqlServer() {
     ${AdminSellingProduct.typeDefs}
     ${AdminBuyingProduct.typeDefs}
     ${AdminVideoReviews.typeDefs}
+    ${AdminAssessment.typeDefs}
+    ${AdminCondition.typeDefs}
+    ${AdminOption.typeDefs}
+    ${AdminPricingRule.typeDefs}
+    ${AdminSellingOrder.typeDefs}
 
     # user
     ${UserBuyingProduct.typeDefs}
     ${UserSellingProduct.typeDefs}
+    ${UserAssessment.typeDefs}
+    ${UserAuth.typeDefs}
+    ${UserSellingOrder.typeDefs}
+    ${UserCheckout.typeDefs}
 
     # Common Category Typedefs
     ${CommonCategory.typedefs}
@@ -104,6 +144,11 @@ async function createApolloGraphqlServer() {
       ...AdminSellingProduct.resolvers.Query,
       ...AdminBuyingProduct.resolvers.Query,
       ...AdminVideoReviews.resolvers.Query,
+      ...AdminAssessment.resolvers.Query,
+      ...AdminCondition.resolvers.Query,
+      ...AdminOption.resolvers.Query,
+      ...AdminPricingRule.resolvers.Query,
+      ...AdminSellingOrder.resolvers.Query,
 
       ...CommonCategory.resolvers.Query,
       ...CommonBrand.resolvers.Query,
@@ -112,6 +157,10 @@ async function createApolloGraphqlServer() {
       ...UserBrand.resolvers.Query,
       ...UserSeries.resolvers.Query,
       ...UserSellingProduct.resolvers.Query,
+      ...UserAssessment.resolvers.Query,
+      ...UserSellingOrder.resolvers.Query,
+      ...UserAuth.resolvers.Query,
+      ...UserCheckout.resolvers.Query,
     },
 
     Mutation: {
@@ -126,6 +175,15 @@ async function createApolloGraphqlServer() {
       ...AdminSellingProduct.resolvers.Mutation,
       ...AdminBuyingProduct.resolvers.Mutation,
       ...AdminVideoReviews.resolvers.Mutation,
+      ...AdminAssessment.resolvers.Mutation,
+      ...AdminCondition.resolvers.Mutation,
+      ...AdminOption.resolvers.Mutation,
+      ...AdminPricingRule.resolvers.Mutation,
+      ...AdminSellingOrder.resolvers.Mutation,
+
+      ...UserAuth.resolvers.Mutation,
+      ...UserSellingOrder.resolvers.Mutation,
+      ...UserCheckout.resolvers.Mutation,
     },
   };
 

@@ -65,6 +65,28 @@ class S3Service {
     }
   }
 
+  // Add this method inside your S3Service class
+  async uploadRawFile(
+    buffer: Buffer,
+    key: string,
+    contentType: string,
+  ): Promise<string> {
+    try {
+      await s3.send(
+        new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: key,
+          Body: buffer,
+          ContentType: contentType, // Keep the original content type (e.g., image/png)
+        }),
+      );
+      return key;
+    } catch (error) {
+      console.error("S3 Raw Upload Error:", error);
+      return throwServerError("File upload failed");
+    }
+  }
+
   // ── Delete by key — works for any file type ──
   async deleteFile(key: string): Promise<void> {
     try {

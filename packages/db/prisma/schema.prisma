@@ -94,7 +94,7 @@ model User {
   id       String     @id @default(cuid())
   fName    String
   lName    String
-  contact  String     @unique
+  contact  String?    @unique
   password String?
   email    String?    @unique
   userType UserType   @default(USER)
@@ -119,7 +119,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions Session[]
+  addresses     Address[]
+  sessions      Session[]
+  sellingOrders SellingOrder[]
 
   @@index([email])
   @@index([contact])
@@ -166,6 +168,8 @@ model Category {
   inventoryProducts InventoryProduct[]
   series            Series[]
   sellingProducts   SellingProduct[]
+  assessments       Assessment[]
+  sellingOrders     SellingOrder[]
 }
 
 model Brand {
@@ -181,6 +185,7 @@ model Brand {
   inventoryProducts InventoryProduct[]
   series            Series[]
   sellingProducts   SellingProduct[]
+  sellingOrders     SellingOrder[]
 }
 
 model BrandCategory {
@@ -575,10 +580,11 @@ model SellingProduct {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  brand    Brand            @relation(fields: [brandId], references: [id])
-  category Category         @relation(fields: [categoryId], references: [id])
-  series   Series           @relation(fields: [seriesId], references: [id])
-  variants SellingVariant[]
+  brand         Brand            @relation(fields: [brandId], references: [id])
+  category      Category         @relation(fields: [categoryId], references: [id])
+  series        Series           @relation(fields: [seriesId], references: [id])
+  variants      SellingVariant[]
+  sellingOrders SellingOrder[]
 
   @@map("selling_products")
 }
@@ -586,6 +592,7 @@ model SellingProduct {
 model SellingVariant {
   id               String   @id @default(cuid())
   sellingProductId String
+  slug             String?  @unique // ← new field
   ram              String?
   storage          String
   productPrice     Float
@@ -594,6 +601,7 @@ model SellingVariant {
   updatedAt        DateTime @updatedAt
 
   sellingProduct SellingProduct @relation(fields: [sellingProductId], references: [id], onDelete: Cascade)
+  sellingOrders  SellingOrder[]
 
   @@map("selling_variants")
 }
@@ -643,4 +651,546 @@ model Banner {
 
   @@index([placement, isActive, priority])
   @@map("banners")
+}
+
+// ─────────────────────────────────────────────────────────────
+// ASSESSMENT / SELLING FLOW MODELS
+// ─────────────────────────────────────────────────────────────
+
+enum StepCategory {
+  DEVICE_OVERALL_CONDITION
+  DEVICE_DEFECTS
+  COSMETIC_CONDITION
+  ACCESSORIES
+  LAPTOP_SYSTEM_CONFIG
+  PRICING
+  BASICS
+  SPECIFICATION
+}
+
+enum ConditionType {
+  BOOLEAN
+  RADIO
+  MULTI_SELECT // Check to Deduct (Defects)
+  MULTI_SELECT_INVERTED // Uncheck to Deduct (Accessories)
+  DROPDOWN
+}
+
+enum OptionAction {
+  INCREMENT
+  DECREMENT
+  REDIRECT
+  NONE
+}
+
+enum ScoreType {
+  PER
+  RUPPEE
+  MUL
+}
+
+enum RuleLogic {
+  SKIP_ALL_OPTIONS
+  APPLY_ONLY_SPECIFIC_OPTIONS
+  SKIP_SELF
+  APPLY_HIGHEST_PERCENTAGE
+}
+
+enum RedirectTarget {
+  NEXT_STEP
+  QUOTE_PAGE
+  SPECIFIC_STEP
+}
+
+enum BrandVisibilityStrategy {
+  INCLUDE
+  EXCLUDE
+  ALL
+}
+
+model Assessment {
+  id          String   @id @default(uuid())
+  categoryId  String
+  name        String
+  description String?
+  totalSteps  Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category Category         @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  steps    AssessmentStep[]
+
+  @@index([categoryId])
+  @@map("assessments")
+}
+
+model AssessmentStep {
+  id             String       @id @default(uuid())
+  assessmentId   String
+  stepCategory   StepCategory
+  stepNumber     Int
+  stepName       String
+  title          String?
+  subtitle       String?
+  finalStepTitle String?
+  description    String?
+  priority       Int          @default(0)
+
+  // Default navigation (self relation)
+  defaultNextStepId String?
+  defaultNextStep   AssessmentStep?  @relation("StepNavigation", fields: [defaultNextStepId], references: [id])
+  previousSteps     AssessmentStep[] @relation("StepNavigation")
+
+  // Brand skips
+  skipForBrands AssessmentStepBrandSkip[]
+
+  // Dependency logic — MUST match the relation names in AssessmentStepDependency
+  dependsOn              AssessmentStepDependency[] @relation("StepToDependency")
+  dependedOnByOtherSteps AssessmentStepDependency[] @relation("StepDependencyParent")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assessment Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  conditions SellingCondition[]
+
+  @@unique([assessmentId, stepNumber])
+  @@index([assessmentId])
+  @@map("assessment_steps")
+}
+
+model AssessmentStepBrandSkip {
+  id      String @id @default(uuid())
+  stepId  String
+  brandId String
+
+  step AssessmentStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([stepId, brandId])
+  @@map("assessment_step_brand_skips")
+}
+
+model AssessmentStepDependency {
+  id              String         @id @default(uuid())
+  stepId          String
+  dependsOnStepId String?
+  conditionId     String?
+  optionId        String?
+  redirectTo      RedirectTarget @default(NEXT_STEP)
+  specificStepId  String?
+
+  // ⬇️ These two relations must have unique names, matching the ones above
+  step          AssessmentStep  @relation("StepToDependency", fields: [stepId], references: [id], onDelete: Cascade)
+  dependsOnStep AssessmentStep? @relation("StepDependencyParent", fields: [dependsOnStepId], references: [id])
+
+  condition SellingCondition? @relation(fields: [conditionId], references: [id])
+  option    SellingOption?    @relation(fields: [optionId], references: [id])
+
+  @@map("assessment_step_dependencies")
+}
+
+model SellingCondition {
+  id                 String        @id @default(uuid())
+  stepId             String
+  conditionType      ConditionType @default(RADIO)
+  title              String
+  subtitle           String?
+  description        String?
+  finalConditionName String?
+  image              String?
+  icon               String?
+  priority           Int           @default(0)
+  isRequired         Boolean       @default(false)
+
+  // 👇 FIELDS FOR POPUPS (FIXED)
+  parentOptionId String?
+  parentOption   SellingOption? @relation("OptionPopup", fields: [parentOptionId], references: [id], onDelete: Cascade)
+
+  // Date-based applicability
+  applicableFromDate DateTime?
+
+  // Brand visibility
+  brandVisibilityStrategy BrandVisibilityStrategy @default(ALL)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  step AssessmentStep @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  brandVisibility BrandVisibility[]
+  options         SellingOption[]
+
+  triggerRules   ConditionRuleTrigger[]
+  targetRules    ConditionRule[]            @relation("ConditionRuleTargetCondition")
+  dependencies   AssessmentStepDependency[]
+  conditionRules ConditionRule[]            @relation("ConditionRuleCondition")
+
+  @@index([stepId])
+  @@map("selling_conditions")
+}
+
+model BrandVisibility {
+  id          String                  @id @default(uuid())
+  conditionId String
+  strategy    BrandVisibilityStrategy @default(ALL)
+  brandId     String?
+  brandName   String?
+
+  condition SellingCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+
+  @@index([conditionId])
+  @@map("brand_visibilities")
+}
+
+model SellingOption {
+  id          String       @id @default(uuid())
+  conditionId String
+  label       String
+  action      OptionAction @default(NONE)
+  score       Int          @default(0)
+  scoreType   ScoreType    @default(PER)
+  isRedirect  Boolean      @default(false)
+  redirectTo  String?
+  priority    Int          @default(0)
+  title       String?
+  description String?
+  isSelected  Boolean      @default(false)
+
+  image String?
+
+  // 👇 NEW: Link to the popup condition
+  popupConditions SellingCondition[] @relation("OptionPopup")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  condition SellingCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+
+  brandScores   OptionBrandScore[]
+  seriesScores  OptionSeriesScore[]
+  productScores OptionProductScore[]
+  triggerRules  ConditionRuleTrigger[]
+  targetRules   ConditionRule[]            @relation("ConditionRuleTargetOption")
+  dependencies  AssessmentStepDependency[]
+
+  @@index([conditionId])
+  @@map("selling_options")
+}
+
+model OptionBrandScore {
+  id        String       @id @default(uuid())
+  optionId  String
+  brandId   String
+  brandName String?
+  score     Int
+  scoreType ScoreType
+  action    OptionAction
+
+  option SellingOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, brandId])
+  @@map("option_brand_scores")
+}
+
+model OptionSeriesScore {
+  id         String       @id @default(uuid())
+  optionId   String
+  seriesId   String
+  seriesName String?
+  score      Int
+  scoreType  ScoreType
+  action     OptionAction
+
+  option SellingOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, seriesId])
+  @@map("option_series_scores")
+}
+
+model OptionProductScore {
+  id          String       @id @default(uuid())
+  optionId    String
+  productId   String
+  productName String?
+  score       Int
+  scoreType   ScoreType
+  action      OptionAction
+
+  option SellingOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@unique([optionId, productId])
+  @@map("option_product_scores")
+}
+
+model ConditionRule {
+  id          String    @id @default(uuid())
+  conditionId String
+  ruleName    String?
+  description String?
+  ruleLogic   RuleLogic
+
+  ruleBrandStrategy BrandVisibilityStrategy @default(ALL)
+
+  targetConditionId String?
+  highestScoreType  ScoreType    @default(PER)
+  highestAction     OptionAction @default(DECREMENT)
+
+  targetOptionId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  condition       SellingCondition       @relation("ConditionRuleCondition", fields: [conditionId], references: [id], onDelete: Cascade)
+  targetCondition SellingCondition?      @relation("ConditionRuleTargetCondition", fields: [targetConditionId], references: [id])
+  targetOption    SellingOption?         @relation("ConditionRuleTargetOption", fields: [targetOptionId], references: [id])
+  triggers        ConditionRuleTrigger[]
+  ruleBrands      ConditionRuleBrand[]
+
+  @@index([conditionId])
+  @@map("condition_rules")
+}
+
+model ConditionRuleTrigger {
+  id          String @id @default(uuid())
+  ruleId      String
+  conditionId String
+  optionId    String
+  logic       String @default("OR") // AND / OR
+
+  rule      ConditionRule    @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  condition SellingCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+  option    SellingOption    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@map("condition_rule_triggers")
+}
+
+model ConditionRuleBrand {
+  id        String  @id @default(uuid())
+  ruleId    String
+  brandId   String?
+  brandName String?
+
+  rule ConditionRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([ruleId])
+  @@map("condition_rule_brands")
+}
+
+// 👇 Add these Enums at the top with your other enums
+enum OrderStatus {
+  AWAITING_ADDRESS
+  AWAITING_PICKUP
+  AWAITING_PAYMENT
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  UPI
+  BANK
+  CASH
+}
+
+enum AddressType {
+  HOME
+  WORK
+  OTHER
+}
+
+// 👇 The main Order Model
+model SellingOrder {
+  id      String @id @default(uuid())
+  orderNo String @unique
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  sellingProductId String
+  sellingProduct   SellingProduct @relation(fields: [sellingProductId], references: [id])
+
+  variantId String?
+  variant   SellingVariant? @relation(fields: [variantId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id])
+
+  // Snapshots
+  productName  String
+  productImage String?
+  brandName    String
+  categoryName String
+  variantName  String?
+
+  // Pricing
+  listedPrice         Float  @default(0)
+  basePrice           Float  @default(0)
+  quotedPriceBySystem Float  @default(0)
+  quotedPrice         Float?
+  pickupCharges       Float  @default(0)
+  processingFee       Float  @default(0)
+  totalAmount         Float  @default(0)
+
+  // What the user answered
+  selectedAnswers Json
+  accessories     Json?
+  priceBreakdown  Json?
+
+  // Order state
+  orderStatus     OrderStatus @default(AWAITING_ADDRESS)
+  currentStep     Int         @default(1)
+  isFullFilled    Boolean     @default(false)
+  isLowValue      Boolean     @default(false)
+  isAgreedToTerms Boolean     @default(false)
+  invoiceLink     String?
+
+  // Timeline template, matched by NAME (e.g. "pickup via us")
+  orderTimelineName String?
+  timeline          Timeline? @relation(fields: [orderTimelineName], references: [name])
+
+  // Timeline history (what actually happened on this order)
+  timelineEvents OrderTimeline[]
+
+  // Address (snapshot at order time)
+  address          Json?
+  serviceAvailable Boolean @default(false)
+
+  // Fulfilment method
+  pickupMethod   String? // "self" | "pickup-via-us" | "pickup-via-staff"
+  isDropToOffice Boolean @default(false)
+
+  dropToOfficeDate        String?
+  dropToOfficeISODate     String?
+  dropToOfficeSlotTimings String?
+
+  selfShipDate    String?
+  selfShipISODate String?
+
+  pickupDate    String?
+  pickupISODate String?
+  pickupSlot    String?
+
+  serialOrIMEI    String?
+  additionalNotes String?
+
+  // Payment
+  paymentMethod  PaymentMethod?
+  paymentDetails Json?
+
+  // WhatsApp
+  isWhatsAppFollowUpSent     Boolean @default(false)
+  isWhatsAppFollowUpRequired Boolean @default(false)
+
+  // Followup tracking
+  followupStatus        String?
+  followupCount         Int       @default(0)
+  followupNotes         Json?
+  followupScheduledDate DateTime?
+  lastFollowupDate      DateTime?
+  contactCity           String?
+  hasContactInCity      Boolean   @default(false)
+  customerResponse      String?
+  isFollowupConverted   Boolean   @default(false)
+  followupConvertedDate DateTime?
+  addressId             String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([orderStatus])
+  @@index([orderTimelineName])
+  @@index([orderStatus, followupStatus, followupScheduledDate])
+  @@map("selling_orders")
+}
+
+// History: one row each time the order reaches a step
+model OrderTimeline {
+  id      String       @id @default(uuid())
+  orderId String
+  order   SellingOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  label       String
+  message     String?
+  description String?
+  status      String // matches TimelineStep.status
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orderId, createdAt])
+  @@map("order_timeline")
+}
+
+// Template: predefined timelines
+model Timeline {
+  id       String  @id @default(uuid())
+  name     String  @unique // "pickup via us", "self ship", "drop to office", ...
+  isActive Boolean @default(true)
+
+  steps  TimelineStep[]
+  orders SellingOrder[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("timelines")
+}
+
+model TimelineStep {
+  id         String   @id @default(uuid())
+  timelineId String
+  timeline   Timeline @relation(fields: [timelineId], references: [id], onDelete: Cascade)
+
+  status   String // "created", "pickuprequested", ...
+  label    String // text shown in the frontend
+  position Int // 1, 2, 3... controls the order
+
+  @@unique([timelineId, position])
+  @@unique([timelineId, status])
+  @@map("timeline_steps")
+}
+
+model ServiceablePincode {
+  id                      String   @id @default(uuid())
+  city                    String
+  pinCodes                String[] // Postgres array
+  isDropToOfficeAvailable Boolean  @default(false)
+  isActive                Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+  @@index([pinCodes], type: Gin) // fast "is this pincode serviceable" lookup
+  @@map("serviceable_pincodes")
+}
+
+model Address {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name               String
+  contact            String
+  alternateContactNo String?
+  email              String
+  address            String
+  pinCode            String
+  landMark           String?
+  cityDistrict       String
+  state              String
+  gst                String?
+  addressType        AddressType @default(HOME)
+  isDefault          Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("addresses")
 }

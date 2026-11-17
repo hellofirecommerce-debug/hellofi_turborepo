@@ -10,6 +10,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import createApolloGraphqlServer from "./graphql";
 import { adminAuthMiddleware } from "./middlewares/adminAuthMiddleware";
+import { userAuthMiddleware } from "./middlewares/userAuthMiddleware";
 
 async function init() {
   const app = express();
@@ -50,7 +51,7 @@ async function init() {
   app.use(
     "/graphql",
     adminAuthMiddleware, // sets req.admin if admin token exists
-    // userAuthMiddleware, // sets req.user if user token exists
+    userAuthMiddleware, // sets req.user if user token exists
     expressMiddleware(await createApolloGraphqlServer(), {
       context: async ({ req, res }: { req: Request; res: Response }) => ({
         req,

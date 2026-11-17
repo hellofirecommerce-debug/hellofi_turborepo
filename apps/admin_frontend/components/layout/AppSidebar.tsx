@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   GalleryHorizontalEnd,
   Play,
+  ClipboardList, // 👈 Added this icon
 } from "lucide-react";
 import { SidebarLogo } from "./SidebarLogo";
 import { SidebarSection } from "./SidebarSection";
@@ -41,6 +42,19 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "All Products", path: "/selling/products" },
       { name: "Add Product", path: "/selling/products/create" },
+      { name: "Orders", path: "/selling/orders" },
+    ],
+  },
+  // 👇 ADDED QUESTIONARIES SECTION HERE
+  {
+    icon: <ClipboardList size={20} />,
+    name: "Questionaries",
+    subItems: [
+      { name: "Assessments", path: "/questionaries/assessments" },
+      { name: "Steps", path: "/questionaries/steps" },
+      { name: "Conditions", path: "/questionaries/conditions" },
+      { name: "Options", path: "/questionaries/options" },
+      { name: "Pricing Rules", path: "/questionaries/pricing-rules" },
     ],
   },
   {

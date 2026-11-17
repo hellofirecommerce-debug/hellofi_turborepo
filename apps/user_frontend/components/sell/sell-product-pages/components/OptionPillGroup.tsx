@@ -19,7 +19,7 @@ export function OptionPillGroup({
 
   return (
     <div>
-      <p className="text-[11px] font-bold text-gray-500 capitalize tracking-wide mb-2">
+      <p className="text-[11px] font-bold text-sell-blue capitalize tracking-wide mb-2">
         {label}
       </p>
       <div className="flex flex-wrap gap-2.5">

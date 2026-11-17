@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "ConditionType" ADD VALUE 'MULTI_SELECT_INVERTED';

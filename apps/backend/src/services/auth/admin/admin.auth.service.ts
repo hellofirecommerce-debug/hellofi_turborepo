@@ -16,7 +16,7 @@ import commonAuthService from "../common/common.auth.service";
 
 class AdminAuthService {
   async adminLogin(payload: AdminLoginInput, res: Response) {
-    console.log("This is the pyaload", payload);
+    // console.log("This is the pyaload", payload);
     const { email, password } = validateOrThrow<AdminLoginInput>(
       adminLoginSchema,
       payload,
@@ -83,6 +83,7 @@ class AdminAuthService {
     }
   }
   requireAdmin(req: Request) {
+    // console.log("this is req:", req);
     if (!req.admin) return throwAuthError("Unauthorized. Admins only.");
     return req.admin;
   }

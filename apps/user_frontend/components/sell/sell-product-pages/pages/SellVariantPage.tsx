@@ -55,12 +55,22 @@ export function SellVariantPage({
       };
     });
 
+  // URL of the current variant page → the condition step lives under it
+  const ramForSlug = needsRam ? variant.ram : product.ram;
+  const currentSlugParts = product.hasVariants
+    ? [
+        product.productSeoName,
+        ramForSlug ? sizeToSlug(ramForSlug) : null,
+        variant.storage ? sizeToSlug(variant.storage) : null,
+      ].filter(Boolean)
+    : [product.productSeoName];
+  const conditionHref = `/${categorySlug}/${brandSlug}/${currentSlugParts.join("-")}/device-condition`;
+
   return (
     <MotionProvider>
       <div className="page-bg">
         <StepperHeader currentStep={2} />
         <div className="max-w-7xl mx-auto px-4 w-full py-6">
-          {/* // in pages/SellVariantPage.tsx — breadcrumb items array */}
           <ProductBreadcrumb
             items={[
               { label: "Home", href: "/" },
@@ -70,7 +80,7 @@ export function SellVariantPage({
                 label: product.productName,
                 href: `/${categorySlug}/${brandSlug}/${product.productSeoName}`,
               },
-              { label: title }, // "Apple iPhone 16 (6GB/128GB)" — product.productName + "(" + ram/storage + ")"
+              { label: title },
             ]}
           />
           <Reveal y={20}>
@@ -85,7 +95,6 @@ export function SellVariantPage({
                 </div>
 
                 <div className="md:pl-5 lg:pr-5">
-                  {/* Now matches md (768px), same as above */}
                   <div className="hidden md:block">
                     <h1 className="text-2xl font-bold text-gray-900">
                       Sell {title}
@@ -100,6 +109,7 @@ export function SellVariantPage({
                     <PriceRangeCard
                       low={variant.productPrice}
                       ctaLabel="Get Your Price"
+                      ctaHref={conditionHref}
                     />
                   </div>
                 </div>
