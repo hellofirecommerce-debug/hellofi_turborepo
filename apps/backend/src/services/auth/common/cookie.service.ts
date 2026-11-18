@@ -15,7 +15,12 @@ class CookieService {
     secure: process.env.NODE_ENV == "production",
     sameSite: SameSite.LAX,
     path: "/",
-    domain: process.env.NODE_ENV === "production" ? ".hellofi.in" : "localhost",
+    domain:
+      process.env.NODE_ENV === "production"
+        ? ".hellofi.in"
+        : process.env.NODE_ENV === "staging"
+          ? ""
+          : "localhost",
   };
 
   private getAccessTokenKey(userType: UserType): string {
