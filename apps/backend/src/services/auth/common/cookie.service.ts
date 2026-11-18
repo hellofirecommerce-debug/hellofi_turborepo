@@ -19,7 +19,7 @@ class CookieService {
       process.env.NODE_ENV === "production"
         ? ".hellofi.in"
         : process.env.NODE_ENV === "staging"
-          ? ""
+          ? ".hellofi.in"
           : "localhost",
   };
 
