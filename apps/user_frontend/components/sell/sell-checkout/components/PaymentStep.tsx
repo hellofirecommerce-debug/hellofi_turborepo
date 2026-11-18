@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Banknote, Landmark, Smartphone } from "lucide-react";
+import { ArrowRight, Landmark, Smartphone } from "lucide-react";
 import type { PaymentDraft, PaymentMethod } from "../types";
 
 interface Props {
@@ -13,8 +13,9 @@ interface Props {
 const UPI = /^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/;
 const IFSC = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 
+// text-base on mobile stops iPhones from zooming into the field
 const inputCls = (err?: string) =>
-  `w-full rounded-lg border bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#0066FF] ${
+  `w-full min-w-0 rounded-lg border bg-white px-3 py-3 text-base text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#0066FF] sm:py-2.5 sm:text-sm ${
     err ? "border-red-400" : "border-gray-300"
   }`;
 
@@ -28,7 +29,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="block">
+    <label className="block min-w-0">
       <span className="mb-1 block text-xs font-semibold text-gray-700">
         {label}
       </span>
@@ -115,7 +116,7 @@ export default function PaymentStep({
   };
 
   return (
-    <div>
+    <div className="min-w-0">
       <p className="mb-3 text-xs text-gray-500">
         Choose your preferred payment method
       </p>
@@ -126,7 +127,7 @@ export default function PaymentStep({
           return (
             <div
               key={id}
-              className={`rounded-lg border transition ${
+              className={`overflow-hidden rounded-lg border transition ${
                 selected
                   ? "border-[#0066FF] bg-[#F7FAFF]"
                   : "border-gray-200 bg-white"
@@ -140,7 +141,7 @@ export default function PaymentStep({
                   setMethod(id);
                   setErrors({});
                 }}
-                className="flex w-full items-center gap-3 px-4 py-3.5 text-left"
+                className="flex w-full items-center gap-3 px-3 py-3.5 text-left sm:px-4"
               >
                 <span
                   className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
@@ -155,22 +156,24 @@ export default function PaymentStep({
                   <span className="block text-sm font-bold text-gray-900">
                     {title}
                   </span>
-                  <span className="mt-0.5 block text-[11px] text-gray-500">
+                  <span className="mt-0.5 block text-[11px] leading-snug text-gray-500">
                     {desc}
                   </span>
                 </span>
                 <Icon
                   size={18}
-                  className={selected ? "text-[#0066FF]" : "text-gray-400"}
+                  className={`shrink-0 ${selected ? "text-[#0066FF]" : "text-gray-400"}`}
                 />
               </button>
 
               {selected && id === "UPI" && (
-                <div className="px-4 pb-4">
+                <div className="px-3 pb-4 sm:px-4">
                   <Field label="UPI ID *" error={errors.upiId}>
                     <input
                       className={inputCls(errors.upiId)}
                       value={upiId}
+                      autoCapitalize="none"
+                      autoCorrect="off"
                       onChange={(e) => {
                         setUpiId(e.target.value);
                         clear("upiId");
@@ -182,7 +185,7 @@ export default function PaymentStep({
               )}
 
               {selected && id === "BANK" && (
-                <div className="grid gap-3 px-4 pb-4 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 px-3 pb-4 sm:grid-cols-2 sm:px-4">
                   <Field label="Bank Name *" error={errors.bankName}>
                     <input
                       className={inputCls(errors.bankName)}
@@ -219,6 +222,7 @@ export default function PaymentStep({
                     <input
                       className={inputCls(errors.ifsc)}
                       maxLength={11}
+                      autoCapitalize="characters"
                       value={ifsc}
                       onChange={(e) => {
                         setIfsc(e.target.value.toUpperCase());
@@ -233,7 +237,7 @@ export default function PaymentStep({
         })}
       </div>
 
-      <p className="mt-3 rounded-lg bg-[#F4F7FF] px-3 py-2 text-[11px] text-gray-600">
+      <p className="mt-3 rounded-lg bg-[#F4F7FF] px-3 py-2 text-[11px] leading-snug text-gray-600">
         UPI and Bank Transfer are processed instantly after device verification.
         Cash is paid on the spot.
       </p>
@@ -241,7 +245,7 @@ export default function PaymentStep({
       <button
         type="button"
         onClick={handleConfirm}
-        className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0066FF] px-6 py-3 text-xs font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9]"
+        className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0066FF] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9]"
       >
         Confirm Payment Method
         <ArrowRight size={14} />

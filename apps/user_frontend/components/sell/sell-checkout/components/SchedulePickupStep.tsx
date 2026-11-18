@@ -119,9 +119,9 @@ export default function SchedulePickupStep({
   };
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex min-w-0 flex-col gap-5">
       {/* Method */}
-      <div className="grid gap-3 sm:grid-cols-1">
+      <div className="grid grid-cols-1 gap-2.5">
         {methods.map(({ id, title, tag, icon: Icon, enabled }) => {
           const selected = method === id;
           return (
@@ -133,7 +133,7 @@ export default function SchedulePickupStep({
                 setMethod(id);
                 setSlot(null);
               }}
-              className={`flex flex-col items-center gap-1.5 rounded-lg border px-4 py-4 text-center transition ${
+              className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition ${
                 selected
                   ? "border-[#0066FF] bg-[#EEF3FF]"
                   : "border-gray-200 bg-white hover:border-gray-300"
@@ -141,17 +141,21 @@ export default function SchedulePickupStep({
             >
               <Icon
                 size={20}
-                className={selected ? "text-[#0066FF]" : "text-gray-500"}
+                className={`shrink-0 ${selected ? "text-[#0066FF]" : "text-gray-500"}`}
               />
-              <span className="text-lg font-bold text-gray-900">{title}</span>
-              {enabled && tag && (
-                <span className="text-[10px] font-bold text-emerald-600">
-                  {tag}
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-gray-900">
+                  {title}
                 </span>
-              )}
-              {!enabled && (
-                <span className="text-[10px] text-gray-500">
-                  Not available for your pincode
+                {!enabled && (
+                  <span className="block text-[11px] text-gray-500">
+                    Not available for your pincode
+                  </span>
+                )}
+              </span>
+              {enabled && tag && (
+                <span className="shrink-0 rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+                  {tag}
                 </span>
               )}
             </button>
@@ -162,7 +166,7 @@ export default function SchedulePickupStep({
       {method && (
         <>
           {/* Date */}
-          <div>
+          <div className="min-w-0">
             {todayHasSlot && (
               <span className="mb-2 inline-block rounded bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
                 Fast Pickup Today
@@ -171,7 +175,7 @@ export default function SchedulePickupStep({
             <p className="mb-2 text-xs font-semibold text-gray-700">
               Select Date
             </p>
-            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:grid sm:grid-cols-7 sm:overflow-visible">
+            <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:grid sm:grid-cols-7 sm:overflow-visible [&::-webkit-scrollbar]:hidden">
               {dates.map((d, i) => {
                 const hasSlot = i !== 0 || todayHasSlot;
                 const selected = date === d.iso;
@@ -181,14 +185,14 @@ export default function SchedulePickupStep({
                     type="button"
                     disabled={!hasSlot}
                     onClick={() => pickDate(d.iso)}
-                    className={`flex min-w-[64px] shrink-0 flex-col items-center rounded-lg border px-2 py-2 transition sm:min-w-0 ${
+                    className={`flex min-w-[68px] shrink-0 snap-start flex-col items-center rounded-lg border px-2 py-2.5 transition sm:min-w-0 ${
                       selected
                         ? "border-[#0066FF] bg-[#FFF9E6]"
                         : "border-gray-200 bg-white hover:border-gray-300"
                     } ${!hasSlot ? "cursor-not-allowed opacity-40" : ""}`}
                   >
                     <span className="text-[10px] text-gray-500">{d.day}</span>
-                    <span className="text-[11px] font-bold text-gray-900">
+                    <span className="whitespace-nowrap text-[11px] font-bold text-gray-900">
                       {d.label}
                     </span>
                   </button>
@@ -202,7 +206,7 @@ export default function SchedulePickupStep({
             <p className="mb-2 text-xs font-semibold text-gray-700">
               Select Time Slot
             </p>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-2 gap-2">
               {SLOTS.map((s) => {
                 const open = slotOpen(isToday, s.start);
                 const selected = slot === s.label;
@@ -212,7 +216,7 @@ export default function SchedulePickupStep({
                     type="button"
                     disabled={!open}
                     onClick={() => setSlot(s.label)}
-                    className={`rounded-lg border px-3 py-2.5 text-xs font-semibold transition ${
+                    className={`rounded-lg border px-2 py-3 text-center text-[11px] font-semibold leading-tight transition sm:text-xs ${
                       selected
                         ? "border-[#0066FF] bg-[#EEF3FF] text-[#0066FF]"
                         : "border-gray-200 bg-white text-gray-700 hover:border-gray-300"
@@ -231,7 +235,7 @@ export default function SchedulePickupStep({
         type="button"
         disabled={!method || !date || !slot}
         onClick={handleConfirm}
-        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0066FF] px-6 py-3 text-xs font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9] disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex w-full items-center justify-center gap-1.5 rounded-lg bg-[#0066FF] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9] disabled:cursor-not-allowed disabled:opacity-50"
       >
         Confirm Pickup
         <ArrowRight size={14} />
