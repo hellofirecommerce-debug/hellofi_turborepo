@@ -17,6 +17,9 @@ const descLines = (d?: string) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+// ascending priority; missing priority keeps the original order
+const byPriority = (a: any, b: any) => (a?.priority ?? 0) - (b?.priority ?? 0);
+
 const isAnswered = (answers: Record<string, string[]>, id: string) =>
   (answers[id] || []).length > 0;
 
@@ -34,8 +37,14 @@ export function DynamicConditionModal({
   onSelect,
   onClose,
 }: Props) {
-  const isComplete = isPopupComplete(popupConditions, answers);
-  const missing = popupConditions.filter(
+  // questions and their options sorted by priority (ascending)
+  const sortedPopups = [...popupConditions].sort(byPriority).map((p) => ({
+    ...p,
+    options: [...(p.options || [])].sort(byPriority),
+  }));
+
+  const isComplete = isPopupComplete(sortedPopups, answers);
+  const missing = sortedPopups.filter(
     (p) => p.isRequired && !isAnswered(answers, p.id),
   ).length;
 
@@ -215,7 +224,7 @@ export function DynamicConditionModal({
         {/* BODY */}
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 p-4 sm:p-6">
-            {popupConditions.map((popup) => {
+            {sortedPopups.map((popup) => {
               const answered = isAnswered(answers, popup.id);
               const needs = popup.isRequired && !answered;
               return (
@@ -223,7 +232,7 @@ export function DynamicConditionModal({
                   <div
                     className={`border-b pb-2 ${
                       needs ? "border-red-200" : "border-gray-200"
-                    } ${popupConditions.length === 1 && !popup.isRequired ? "lg:hidden" : ""}`}
+                    } ${sortedPopups.length === 1 && !popup.isRequired ? "lg:hidden" : ""}`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <h3 className="text-base font-bold text-gray-900">
