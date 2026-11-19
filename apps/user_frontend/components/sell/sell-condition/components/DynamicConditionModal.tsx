@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Check, Smartphone, X } from "lucide-react";
 
 interface Props {
@@ -23,11 +23,43 @@ const byPriority = (a: any, b: any) => (a?.priority ?? 0) - (b?.priority ?? 0);
 const isAnswered = (answers: Record<string, string[]>, id: string) =>
   (answers[id] || []).length > 0;
 
-// a popup question blocks "Done" only if it is required and unanswered
+// every required question answered, and at least one option picked overall
 export const isPopupComplete = (
   popupConditions: any[],
   answers: Record<string, string[]>,
-) => popupConditions.every((p) => !p.isRequired || isAnswered(answers, p.id));
+) => {
+  const requiredDone = popupConditions.every(
+    (p) => !p.isRequired || isAnswered(answers, p.id),
+  );
+  const anyAnswered = popupConditions.some((p) => isAnswered(answers, p.id));
+  return requiredDone && anyAnswered;
+};
+
+// full URL stays as it is, CDN path gets the CDN prefix
+const imageSrc = (opt: any): string | null => {
+  const raw: string | undefined = opt?.image || opt?.imageUrl || opt?.icon;
+  if (!raw || typeof raw !== "string") return null;
+  if (/^(https?:)?\/\//.test(raw) || raw.startsWith("data:")) return raw;
+  const base = (process.env.NEXT_PUBLIC_CDN_URL || "").replace(/\/+$/, "");
+  return `${base}/${raw.replace(/^\/+/, "")}`;
+};
+
+function OptionImage({ opt }: { opt: any }) {
+  const [failed, setFailed] = useState(false);
+  const src = imageSrc(opt);
+
+  if (!src || failed) {
+    return <Smartphone size={40} className="text-gray-300" strokeWidth={1} />;
+  }
+  return (
+    <img
+      src={src}
+      alt={opt.label}
+      onError={() => setFailed(true)}
+      className="h-full w-full object-contain"
+    />
+  );
+}
 
 export function DynamicConditionModal({
   parentTitle,
@@ -44,9 +76,6 @@ export function DynamicConditionModal({
   }));
 
   const isComplete = isPopupComplete(sortedPopups, answers);
-  const missing = sortedPopups.filter(
-    (p) => p.isRequired && !isAnswered(answers, p.id),
-  ).length;
 
   useEffect(() => {
     const previous = document.body.style.overflow;
@@ -66,7 +95,7 @@ export function DynamicConditionModal({
             key={opt.id}
             type="button"
             onClick={() => onSelect(popup.id, opt.id)}
-            className={`relative flex flex-col self-start overflow-hidden rounded-xl border-2 bg-white text-left transition-all lg:items-stretch lg:self-stretch lg:p-3 ${
+            className={`relative flex flex-col self-stretch overflow-hidden rounded-xl border-2 bg-white text-left transition-all lg:p-3 ${
               active
                 ? "border-[#0066FF] shadow-md shadow-blue-500/10 lg:bg-[#F5F9FF]"
                 : "border-transparent shadow-sm hover:border-[#0066FF]/30 lg:border-gray-100 lg:shadow-none"
@@ -83,20 +112,8 @@ export function DynamicConditionModal({
                 {active && <Check size={12} strokeWidth={3} />}
               </span>
             )}
-            <div className="flex h-28 w-full items-center justify-center bg-[#F8FAFF] p-3 sm:h-40 sm:p-4 lg:h-24 lg:rounded-lg lg:bg-gray-50 lg:p-2">
-              {opt.image ? (
-                <img
-                  src={`${process.env.NEXT_PUBLIC_CDN_URL}/${opt.image}`}
-                  alt={opt.label}
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <Smartphone
-                  size={40}
-                  className="text-gray-300"
-                  strokeWidth={1}
-                />
-              )}
+            <div className="flex h-28 w-full items-center justify-center bg-[#F8FAFF] p-3 sm:h-40 sm:p-4 lg:h-28 lg:rounded-lg lg:bg-gray-50 lg:p-2">
+              <OptionImage opt={opt} />
             </div>
             <div className="flex flex-col gap-1.5 p-3 sm:p-4 lg:px-1 lg:pb-1 lg:pt-3">
               <span className="text-sm font-bold leading-tight text-gray-900 lg:text-center lg:text-base">
@@ -148,52 +165,16 @@ export function DynamicConditionModal({
     </div>
   );
 
-  const renderList = (popup: any) => (
-    <div className="flex flex-col gap-2.5">
-      {popup.options.map((opt: any) => {
-        const active = (answers[popup.id] || []).includes(opt.id);
-        return (
-          <button
-            key={opt.id}
-            type="button"
-            onClick={() => onSelect(popup.id, opt.id)}
-            className={`flex items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition ${
-              active
-                ? "border-[#0066FF] bg-[#0066FF] text-white"
-                : "border-gray-200 bg-white text-gray-800 hover:border-[#0066FF]/40"
-            }`}
-          >
-            <span
-              className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
-                active ? "border-white" : "border-gray-300"
-              }`}
-            >
-              {active && <span className="h-2 w-2 rounded-full bg-white" />}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold">{opt.label}</span>
-              {opt.description && (
-                <span
-                  className={`mt-0.5 block text-xs ${
-                    active ? "text-white/80" : "text-gray-500"
-                  }`}
-                >
-                  {opt.description}
-                </span>
-              )}
-            </span>
-          </button>
-        );
-      })}
-    </div>
-  );
-
   const renderPopup = (popup: any) => {
     const type: string = popup.conditionType || "";
     if (type.startsWith("MULTI_SELECT")) return renderCards(popup, true);
-    if (type === "BOOLEAN") return renderBoolean(popup);
-    const hasImages = popup.options.some((o: any) => o.image);
-    return hasImages ? renderCards(popup, false) : renderList(popup);
+
+    // yes/no without images stays as two buttons
+    const hasImages = popup.options.some((o: any) => imageSrc(o));
+    if (type === "BOOLEAN" && !hasImages) return renderBoolean(popup);
+
+    // RADIO / DROPDOWN (and BOOLEAN with images) -> same image cards
+    return renderCards(popup, false);
   };
 
   return (
@@ -224,57 +205,32 @@ export function DynamicConditionModal({
         {/* BODY */}
         <div className="flex-1 overflow-y-auto">
           <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 p-4 sm:p-6">
-            {sortedPopups.map((popup) => {
-              const answered = isAnswered(answers, popup.id);
-              const needs = popup.isRequired && !answered;
-              return (
-                <div key={popup.id} className="flex flex-col gap-4">
-                  <div
-                    className={`border-b pb-2 ${
-                      needs ? "border-red-200" : "border-gray-200"
-                    } ${sortedPopups.length === 1 && !popup.isRequired ? "lg:hidden" : ""}`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-base font-bold text-gray-900">
-                        {popup.title}
-                      </h3>
-                      <span
-                        className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold ${
-                          popup.isRequired
-                            ? answered
-                              ? "bg-emerald-50 text-emerald-600"
-                              : "bg-red-50 text-red-600"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {popup.isRequired
-                          ? answered
-                            ? "Done"
-                            : "Required"
-                          : "Optional"}
-                      </span>
-                    </div>
-                    {popup.subtitle && (
-                      <p className="mt-1 text-xs text-gray-500">
-                        {popup.subtitle}
-                      </p>
-                    )}
-                  </div>
-                  {renderPopup(popup)}
+            {sortedPopups.map((popup) => (
+              <div key={popup.id} className="flex flex-col gap-4">
+                <div
+                  className={`border-b border-gray-200 pb-2 ${
+                    sortedPopups.length === 1 ? "lg:hidden" : ""
+                  }`}
+                >
+                  <h3 className="text-base font-bold text-gray-900">
+                    {popup.title}
+                  </h3>
+                  {popup.subtitle && (
+                    <p className="mt-1 text-xs text-gray-500">
+                      {popup.subtitle}
+                    </p>
+                  )}
                 </div>
-              );
-            })}
+
+                {renderPopup(popup)}
+              </div>
+            ))}
           </div>
         </div>
 
         {/* FOOTER */}
         <div className="shrink-0 border-t border-gray-100 bg-white p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 lg:pb-4">
-          <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3">
-            <p className="hidden text-xs font-semibold text-red-500 sm:block">
-              {missing > 0
-                ? `${missing} required question${missing > 1 ? "s" : ""} left`
-                : ""}
-            </p>
+          <div className="mx-auto flex w-full max-w-4xl justify-end">
             <button
               type="button"
               onClick={onClose}

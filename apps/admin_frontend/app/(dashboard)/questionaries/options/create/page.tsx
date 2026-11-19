@@ -19,15 +19,6 @@ export default function CreateOptionPage() {
     },
   });
 
-  // 👇 Accept shouldResize and pass it to the mutation
-  const handleSubmit = (
-    data: any,
-    image: File | null,
-    shouldResize: boolean,
-  ) => {
-    create({ variables: { input: data, image, resize: shouldResize } });
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -40,8 +31,8 @@ export default function CreateOptionPage() {
       />
       <OptionForm
         isLoading={loading}
-        onSubmit={(data, image, removeImage) =>
-          create({ variables: { input: data, image, removeImage } })
+        onSubmit={(data, image, _removeImage, resize) =>
+          create({ variables: { input: data, image, resize } })
         }
       />
     </div>

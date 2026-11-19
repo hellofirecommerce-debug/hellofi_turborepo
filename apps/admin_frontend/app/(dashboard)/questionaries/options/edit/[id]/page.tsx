@@ -13,6 +13,7 @@ export default function EditOptionPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading: fetching } = useQuery<any>(GET_OPTION_BY_ID, {
     variables: { id },
+    fetchPolicy: "network-only",
   });
 
   const [update, { loading }] = useMutation(UPDATE_OPTION, {
@@ -43,14 +44,13 @@ export default function EditOptionPage() {
         isEdit
         isLoading={loading}
         initialData={option}
-        onSubmit={(formData, image, removeImage) => {
-          // 👇 Remove conditionId from the destructuring list so it stays in validData
+        onSubmit={(formData, image, removeImage, resize) => {
           const {
             id: _,
             condition,
             popupConditions,
             __typename,
-            ...validData // 👈 conditionId is now inside validData
+            ...validData
           } = formData;
 
           update({
@@ -58,6 +58,7 @@ export default function EditOptionPage() {
               input: { id, ...validData },
               image,
               removeImage,
+              resize,
             },
           });
         }}

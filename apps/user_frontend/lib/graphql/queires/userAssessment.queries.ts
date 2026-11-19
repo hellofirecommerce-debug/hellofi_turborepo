@@ -37,11 +37,16 @@ export const GET_USER_ASSESSMENT_FLOW = gql`
             popupConditions {
               id
               title
+              subtitle
               conditionType
+              icon
+              isRequired
+              priority
               options {
                 id
                 label
                 image
+                priority
               }
             }
           }

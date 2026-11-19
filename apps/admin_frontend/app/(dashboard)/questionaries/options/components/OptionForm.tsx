@@ -10,9 +10,22 @@ const selectClass =
 const ACTIONS = ["NONE", "INCREMENT", "DECREMENT", "REDIRECT"];
 const SCORE_TYPES = ["PER", "RUPPEE", "MUL"];
 
+// stored value can be a full URL or a CDN path
+const toImageUrl = (raw?: string | null): string | null => {
+  if (!raw) return null;
+  if (/^(https?:)?\/\//.test(raw) || raw.startsWith("data:")) return raw;
+  const base = (process.env.NEXT_PUBLIC_CDN_URL || "").replace(/\/+$/, "");
+  return `${base}/${raw.replace(/^\/+/, "")}`;
+};
+
 interface Props {
   initialData?: any;
-  onSubmit: (data: any, image: File | null, removeImage: boolean) => void;
+  onSubmit: (
+    data: any,
+    image: File | null,
+    removeImage: boolean,
+    resize: boolean,
+  ) => void;
   isLoading?: boolean;
   isEdit?: boolean;
 }
@@ -41,9 +54,7 @@ export const OptionForm: React.FC<Props> = ({
   const [removeImage, setRemoveImage] = useState(false);
 
   const [preview, setPreview] = useState<string | null>(
-    initialData?.image
-      ? `${process.env.NEXT_PUBLIC_CDN_URL}/${initialData.image}`
-      : null,
+    toImageUrl(initialData?.image),
   );
 
   const { data: condData } = useQuery<any>(GET_CONDITIONS, {
@@ -66,19 +77,18 @@ export const OptionForm: React.FC<Props> = ({
         description: initialData.description ?? "",
       });
 
-      if (initialData.image) {
-        setPreview(`${process.env.NEXT_PUBLIC_CDN_URL}/${initialData.image}`);
-        setRemoveImage(false);
-      }
+      setPreview(toImageUrl(initialData.image));
+      setImage(null);
+      setRemoveImage(false);
     }
   }, [initialData]);
 
   const handleSubmit = () => {
     if (!form.label.trim()) return;
-    if (!form.conditionId) return; // Require condition ID always
+    if (!form.conditionId) return;
 
     const payload: any = {
-      conditionId: form.conditionId, // 👈 Always send conditionId
+      conditionId: form.conditionId,
       label: form.label,
       action: form.action,
       score: form.score,
@@ -90,7 +100,8 @@ export const OptionForm: React.FC<Props> = ({
       description: form.description || undefined,
     };
 
-    onSubmit(payload, image, removeImage);
+    // a newly picked file replaces the old one, so no separate remove needed
+    onSubmit(payload, image, image ? false : removeImage, shouldResize);
   };
 
   return (
@@ -108,11 +119,22 @@ export const OptionForm: React.FC<Props> = ({
           onRemove={() => {
             setImage(null);
             setPreview(null);
-            setRemoveImage(true);
+            // only matters when an image is already saved on the server
+            setRemoveImage(!!initialData?.image);
           }}
           label="Click to upload icon/image"
           hint="PNG, SVG, WEBP · 128×128px recommended"
         />
+
+        {isEdit && initialData?.image && (
+          <p className="text-[11px] text-gray-500">
+            {removeImage
+              ? "Current image will be removed when you save. Upload a new one to replace it."
+              : image
+                ? "New image will replace the current one when you save."
+                : "Current image is shown above. Remove it, or upload a new one to replace it."}
+          </p>
+        )}
 
         <div className="flex items-center gap-3 mt-2">
           <input
@@ -131,7 +153,6 @@ export const OptionForm: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* 👇 CONDITION DROPDOWN IS NOW ALWAYS VISIBLE */}
       <div className="flex flex-col gap-1.5">
         <Label>
           Condition <span className="text-red-500">*</span>
@@ -161,6 +182,17 @@ export const OptionForm: React.FC<Props> = ({
             placeholder="e.g. Yes"
             value={form.label}
             onChange={(e) => setForm((p) => ({ ...p, label: e.target.value }))}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <Label>Description</Label>
+          <Input
+            placeholder="Shown under the label"
+            value={form.description}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, description: e.target.value }))
+            }
           />
         </div>
 

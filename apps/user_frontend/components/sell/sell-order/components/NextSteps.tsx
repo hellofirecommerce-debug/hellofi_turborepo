@@ -22,7 +22,8 @@ interface Props {
 
 export function NextSteps({ onAccept, onSaveLater }: Props) {
   return (
-    <section>
+    // pb-28 on mobile so the fixed bar never covers the content
+    <section className="pb-4 lg:pb-0">
       <div className="rounded-xl border border-gray-200 bg-white p-5 lg:border-0 lg:bg-transparent lg:p-0">
         <h3 className="text-sm font-bold text-gray-900">Next Steps</h3>
 
@@ -41,22 +42,17 @@ export function NextSteps({ onAccept, onSaveLater }: Props) {
         </ol>
       </div>
 
-      <button
-        type="button"
-        onClick={onAccept}
-        className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-[#0066FF] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9] active:scale-[0.99]"
-      >
-        Accept Offer &amp; Schedule Pickup
-        <ArrowRight size={16} />
-      </button>
-
-      <button
-        type="button"
-        onClick={onSaveLater}
-        className="mt-4 block w-full text-center text-xs text-gray-500 hover:text-gray-700"
-      >
-        Save offer for later
-      </button>
+      {/* fixed to the bottom on mobile/tablet, normal flow on lg+ */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] lg:static lg:z-auto lg:mt-5 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+        <button
+          type="button"
+          onClick={onAccept}
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#0066FF] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9] active:scale-[0.99]"
+        >
+          Accept Offer &amp; Schedule Pickup
+          <ArrowRight size={16} />
+        </button>
+      </div>
     </section>
   );
 }

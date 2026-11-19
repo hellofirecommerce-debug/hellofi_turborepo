@@ -256,7 +256,8 @@ export function CheckoutPage({ orderNo }: Props) {
           />
         </div>
 
-        <div className="order-2 flex min-w-0 flex-col gap-3 lg:order-1">
+        {/* pb-28 on mobile so the fixed Continue bar never covers content */}
+        <div className="order-2 flex min-w-0 flex-col gap-3 pb-28 lg:order-1 lg:pb-0">
           {/* 1. Address */}
           <StepCard
             index={1}
@@ -341,14 +342,17 @@ export function CheckoutPage({ orderNo }: Props) {
             </p>
           )}
 
-          <button
-            type="button"
-            disabled={!canPlace}
-            onClick={handlePlaceOrder}
-            className="mt-1 rounded-lg bg-[#0066FF] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9] disabled:cursor-not-allowed disabled:opacity-50 sm:w-fit"
-          >
-            {placing || redirecting ? "Placing order..." : "Continue"}
-          </button>
+          {/* fixed to the bottom on mobile/tablet, normal flow on lg+ */}
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-4px_16px_rgba(0,0,0,0.08)] lg:static lg:z-auto lg:mt-1 lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
+            <button
+              type="button"
+              disabled={!canPlace}
+              onClick={handlePlaceOrder}
+              className="w-full rounded-lg bg-[#0066FF] px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-500/30 transition hover:bg-[#0057D9] disabled:cursor-not-allowed disabled:opacity-50 lg:w-fit"
+            >
+              {placing || redirecting ? "Placing order..." : "Continue"}
+            </button>
+          </div>
         </div>
       </div>
     </>,

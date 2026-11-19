@@ -5,7 +5,7 @@ class UserAssessmentService {
   async getAssessmentFlow(
     categorySlug: string,
     brandSlug: string,
-    productSlug: string,
+    _productSlug: string,
   ) {
     try {
       // 1. Find the Brand and Category by their SEO slugs
@@ -16,29 +16,12 @@ class UserAssessmentService {
       const category = await prisma.category.findUnique({
         where: { seoName: categorySlug },
       });
-      console.log("This is the category slug:", categorySlug);
 
       if (!brand || !category) {
         return throwNotFoundError("Brand or Category not found");
       }
 
-      // 2. Find the Product (variant) using the slug
-      // Note: Adjust the matching logic based on how your productSlug is constructed.
-      // Usually, the slug matches the productSeoName + ram + storage.
-      const product = await prisma.sellingProduct.findFirst({
-        where: {
-          categoryId: category.id,
-          brandId: brand.id,
-          // Example: If slug is "apple-iphone-17-8-gb-256-gb"
-          // You might need to split the slug or use a contains query.
-          // For simplicity, we assume productSeoName is the base.
-          productSeoName: { contains: "iphone-17" }, // Replace with actual matching logic
-        },
-      });
-
-      // If product isn't strictly needed for the assessment flow, you can skip it.
-
-      // 3. Find the Assessment for this Category
+      // 2. Find the Assessment for this Category
       const assessment = await prisma.assessment.findFirst({
         where: { categoryId: category.id, isActive: true },
         include: {
@@ -54,6 +37,7 @@ class UserAssessmentService {
                     orderBy: { priority: "asc" },
                     include: {
                       popupConditions: {
+                        orderBy: { priority: "asc" },
                         include: {
                           options: { orderBy: { priority: "asc" } },
                         },
@@ -71,32 +55,25 @@ class UserAssessmentService {
         return throwNotFoundError("Assessment not found for this category");
       }
 
-      // 4. Filter Conditions based on Brand Visibility
+      // 3. Filter Conditions based on Brand Visibility
       const filteredSteps = assessment.steps.map((step) => {
         const filteredConditions = step.conditions.filter((condition) => {
-          // If strategy is ALL, include it
           if (condition.brandVisibilityStrategy === "ALL") return true;
 
-          // Check if the current brand is in the visibility list
           const isBrandInList = condition.brandVisibility.some(
             (bv) => bv.brandId === brand.id,
           );
 
-          // If strategy is INCLUDE, only show if brand is in the list
           if (condition.brandVisibilityStrategy === "INCLUDE") {
             return isBrandInList;
           }
-
-          // If strategy is EXCLUDE, hide if brand is in the list
           if (condition.brandVisibilityStrategy === "EXCLUDE") {
             return !isBrandInList;
           }
-
           return true;
         });
 
-        // 👇 5. Strip out all scores from the conditions and options
-        // 👇 5. Strip out all scores from the conditions and options
+        // 4. Strip out all scores from the conditions and options
         const cleanConditions = filteredConditions.map((condition) => ({
           id: condition.id,
           title: condition.title,
@@ -114,7 +91,6 @@ class UserAssessmentService {
             isRedirect: opt.isRedirect,
             redirectTo: opt.redirectTo,
             priority: opt.priority,
-            // 👇 Strip popup condition scores too
             popupConditions: opt.popupConditions.map((popup) => ({
               id: popup.id,
               title: popup.title,
@@ -122,6 +98,7 @@ class UserAssessmentService {
               conditionType: popup.conditionType,
               icon: popup.icon,
               isRequired: popup.isRequired,
+              priority: popup.priority,
               options: popup.options.map((subOpt) => ({
                 id: subOpt.id,
                 label: subOpt.label,
