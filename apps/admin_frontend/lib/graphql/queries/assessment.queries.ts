@@ -9,6 +9,7 @@ export const GET_ASSESSMENTS = gql`
         description
         totalSteps
         isActive
+        categoryId
         category {
           id
           name

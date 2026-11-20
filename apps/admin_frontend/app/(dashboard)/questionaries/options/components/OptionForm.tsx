@@ -7,7 +7,7 @@ import {
   GET_ASSESSMENTS,
   GET_STEPS,
 } from "../../../../../lib/graphql/queries/assessment.queries";
-import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../../lib/graphql/queries/brand.queries";
+import { BrandPicker } from "../../../../../components/ui/BrandPicker";
 
 const selectClass =
   "w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-[3px] focus:border-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]/25";
@@ -99,16 +99,6 @@ export const OptionForm: React.FC<Props> = ({
   );
   const conditions = stepId ? (condData?.getConditions?.items ?? []) : [];
 
-  // brands depend on the category of the chosen assessment
-  const categoryId = assessments.find((a: any) => a.id === assessmentId)
-    ?.category?.id;
-
-  const { data: brandData, loading: brandsLoading } = useQuery<any>(
-    GET_BRANDS_BY_CATEGORY_ID,
-    { variables: { categoryId }, skip: !categoryId },
-  );
-  const availableBrands = brandData?.getBrandsByCategoryId ?? [];
-
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -149,10 +139,7 @@ export const OptionForm: React.FC<Props> = ({
 
     const brandVisibility =
       form.brandVisibilityStrategy !== "ALL"
-        ? selectedBrandIds.map((id) => {
-            const brand = availableBrands.find((b: any) => b.id === id);
-            return { brandId: id, brandName: brand?.name };
-          })
+        ? selectedBrandIds.map((id) => ({ brandId: id }))
         : [];
 
     const payload: any = {
@@ -401,42 +388,12 @@ export const OptionForm: React.FC<Props> = ({
         </div>
       </div>
 
-      {form.brandVisibilityStrategy !== "ALL" && (
-        <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
-          <Label>
-            Select Brands to{" "}
-            {form.brandVisibilityStrategy === "INCLUDE" ? "Include" : "Exclude"}
-          </Label>
-          {!assessmentId ? (
-            <p className="text-sm text-gray-500">
-              Please select an assessment first.
-            </p>
-          ) : brandsLoading ? (
-            <p className="text-sm text-gray-500">Loading brands...</p>
-          ) : availableBrands.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No brands found for this category.
-            </p>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-48 overflow-y-auto p-1">
-              {availableBrands.map((brand: any) => (
-                <label
-                  key={brand.id}
-                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:bg-white p-2 rounded-md transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedBrandIds.includes(brand.id)}
-                    onChange={() => toggleBrand(brand.id)}
-                    className="w-4 h-4 rounded border-gray-300 text-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]"
-                  />
-                  {brand.name}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      <BrandPicker
+        assessmentId={assessmentId}
+        strategy={form.brandVisibilityStrategy}
+        selectedIds={selectedBrandIds}
+        onToggle={toggleBrand}
+      />
 
       <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
         <div className="flex items-center gap-3">
