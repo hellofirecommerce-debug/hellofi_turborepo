@@ -8,5 +8,7 @@ export interface Step {
   subtitle?: string;
   description?: string;
   priority: number;
+  brandVisibilityStrategy?: string;
+  brandVisibility?: { id?: string; brandId?: string; brandName?: string }[];
   assessment?: { id: string; name: string };
 }

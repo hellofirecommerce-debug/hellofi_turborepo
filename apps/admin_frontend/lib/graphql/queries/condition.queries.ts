@@ -49,6 +49,8 @@ export const GET_CONDITION_BY_ID = gql`
       description
       finalConditionName
       image
+      icon
+      isRequired
       priority
       applicableFromDate
       brandVisibilityStrategy

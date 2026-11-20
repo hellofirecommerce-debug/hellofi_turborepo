@@ -1,35 +1,41 @@
 "use client";
 import React, { useState } from "react";
-import { useQuery, useMutation } from "@apollo/client/react"; // 👈 Import useMutation
+import { useQuery, useMutation } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { Button, ConfirmDialog } from "@repo/ui"; // 👈 Import ConfirmDialog
-import { toast } from "sonner"; // 👈 Import toast
+import { Button, ConfirmDialog } from "@repo/ui";
+import { toast } from "sonner";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { CascadeFilter } from "../../../../components/ui/CascadeFilter";
+import { Pagination } from "../../../../components/table/Pagination";
 import { ConditionTable } from "./components/ConditionTable";
 import { ConditionSkeleton } from "./components/ConditionSkeleton";
 import { GET_CONDITIONS } from "../../../../lib/graphql/queries/condition.queries";
-import { DELETE_CONDITION } from "../../../../lib/graphql/mutations/condition.mutations"; // 👈 Import mutation
+import { DELETE_CONDITION } from "../../../../lib/graphql/mutations/condition.mutations";
 
 export default function ConditionsPage() {
   const router = useRouter();
-  const [filter, setFilter] = useState<any>({ page: 1, pageSize: 20 });
-  const [deleteId, setDeleteId] = useState<string | null>(null); // 👈 State for delete dialog
+  const [filter, setFilter] = useState<any>({ page: 1, pageSize: 10 });
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data, loading, refetch } = useQuery<any>(GET_CONDITIONS, {
     variables: { filter },
     fetchPolicy: "cache-and-network",
   });
 
-  // 👇 Setup mutation
   const [deleteCondition, { loading: deleting }] = useMutation(
     DELETE_CONDITION,
     {
       onCompleted() {
         toast.success("Condition deleted successfully");
         setDeleteId(null);
-        refetch(); // Refresh the list
+
+        // deleted the last row of a page -> go back one page
+        if (conditions.length === 1 && filter.page > 1) {
+          setFilter((p: any) => ({ ...p, page: p.page - 1 }));
+        } else {
+          refetch();
+        }
       },
       onError(err) {
         toast.error(err.message);
@@ -84,15 +90,26 @@ export default function ConditionsPage() {
           <ConditionTable
             data={conditions}
             onEdit={(id) => router.push(`/questionaries/conditions/edit/${id}`)}
-            onDelete={(id) => setDeleteId(id)} // 👈 Pass delete handler
-            onManageOptions={
-              (id) => router.push(`/questionaries/options?conditionId=${id}`) // 👈 Navigate to options with filter
+            onDelete={(id) => setDeleteId(id)}
+            onManageOptions={(id) =>
+              router.push(`/questionaries/options?conditionId=${id}`)
+            }
+          />
+        )}
+
+        {total > 0 && (
+          <Pagination
+            currentPage={filter.page}
+            totalItems={total}
+            pageSize={filter.pageSize}
+            onPageChange={(page) => setFilter((p: any) => ({ ...p, page }))}
+            onPageSizeChange={(pageSize) =>
+              setFilter((p: any) => ({ ...p, pageSize, page: 1 }))
             }
           />
         )}
       </div>
 
-      {/* 👇 Add Confirm Dialog */}
       <ConfirmDialog
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}

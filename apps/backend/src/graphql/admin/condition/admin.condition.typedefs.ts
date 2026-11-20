@@ -13,9 +13,12 @@ export const typeDefs = `#graphql
     ALL
   }
 
+  # shared by steps, conditions and options
   type BrandVisibility {
     id: ID!
-    conditionId: String!
+    stepId: String
+    conditionId: String
+    optionId: String
     strategy: BrandVisibilityStrategy!
     brandId: String
     brandName: String
@@ -36,7 +39,7 @@ export const typeDefs = `#graphql
     applicableFromDate: String
     brandVisibilityStrategy: BrandVisibilityStrategy!
 
-    # 👇 POPUP LOGIC
+    # POPUP LOGIC
     parentOptionId: String
     parentOption: SellingOption
 

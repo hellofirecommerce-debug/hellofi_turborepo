@@ -5,6 +5,7 @@ import {
   throwInputError,
 } from "../../lib/utils/error";
 import { validateOrThrow } from "../../lib/utils/validateOrThrow";
+import { syncBrandVisibility } from "../../lib/utils/brandVisibility";
 import {
   createAssessmentSchema,
   updateAssessmentSchema,
@@ -16,7 +17,14 @@ const assessmentInclude = {
   category: true,
   steps: {
     orderBy: { stepNumber: "asc" as const },
+    include: { brandVisibility: true },
   },
+};
+
+const stepInclude = {
+  assessment: true,
+  brandVisibility: true,
+  conditions: true,
 };
 
 class AdminAssessmentService {
@@ -52,14 +60,14 @@ class AdminAssessmentService {
           steps: {
             orderBy: { stepNumber: "asc" },
             include: {
+              brandVisibility: true,
               conditions: {
-                where: { parentOptionId: null }, // 👈 Only get top-level conditions, not popups
+                where: { parentOptionId: null },
                 orderBy: { priority: "asc" },
                 include: {
                   options: {
                     orderBy: { priority: "asc" },
                     include: {
-                      // 👇 Include the popup condition and its options
                       popupConditions: {
                         include: {
                           options: { orderBy: { priority: "asc" } },
@@ -88,14 +96,14 @@ class AdminAssessmentService {
           steps: {
             orderBy: { stepNumber: "asc" },
             include: {
+              brandVisibility: true,
               conditions: {
-                where: { parentOptionId: null }, // 👈 Only get top-level conditions
+                where: { parentOptionId: null },
                 orderBy: { priority: "asc" },
                 include: {
                   options: {
                     orderBy: { priority: "asc" },
                     include: {
-                      // 👇 Include the popup condition and its options
                       popupConditions: {
                         include: {
                           options: { orderBy: { priority: "asc" } },
@@ -181,7 +189,7 @@ class AdminAssessmentService {
         prisma.assessmentStep.findMany({
           where,
           orderBy: [{ assessmentId: "asc" }, { stepNumber: "asc" }],
-          include: { assessment: true },
+          include: { assessment: true, brandVisibility: true },
         }),
         prisma.assessmentStep.count({ where }),
       ]);
@@ -197,14 +205,14 @@ class AdminAssessmentService {
         where: { id },
         include: {
           assessment: true,
+          brandVisibility: true,
           conditions: {
-            where: { parentOptionId: null }, // 👈 Only get top-level conditions
+            where: { parentOptionId: null },
             orderBy: { priority: "asc" },
             include: {
               options: {
                 orderBy: { priority: "asc" },
                 include: {
-                  // 👇 Include the popup condition
                   popupConditions: {
                     include: {
                       options: { orderBy: { priority: "asc" } },
@@ -226,23 +234,38 @@ class AdminAssessmentService {
   async createStep(input: any) {
     try {
       const validated = validateOrThrow(createAssessmentStepSchema, input);
+      const { brandVisibility, ...stepData } = validated;
 
       const assessment = await prisma.assessment.findUnique({
         where: { id: validated.assessmentId },
       });
       if (!assessment) return throwNotFoundError("Assessment not found");
 
-      const step = await prisma.assessmentStep.create({
-        data: validated,
-        include: { conditions: true },
+      const strategy = stepData.brandVisibilityStrategy ?? "ALL";
+
+      const stepId = await prisma.$transaction(async (tx) => {
+        const created = await tx.assessmentStep.create({ data: stepData });
+
+        await syncBrandVisibility(
+          tx,
+          { stepId: created.id },
+          strategy,
+          brandVisibility ?? [],
+          true,
+        );
+
+        await tx.assessment.update({
+          where: { id: validated.assessmentId },
+          data: { totalSteps: { increment: 1 } },
+        });
+
+        return created.id;
       });
 
-      await prisma.assessment.update({
-        where: { id: validated.assessmentId },
-        data: { totalSteps: { increment: 1 } },
+      return await prisma.assessmentStep.findUnique({
+        where: { id: stepId },
+        include: stepInclude,
       });
-
-      return step;
     } catch (error) {
       handleServiceError(error);
     }
@@ -251,15 +274,29 @@ class AdminAssessmentService {
   async updateStep(input: any) {
     try {
       const validated = validateOrThrow(updateAssessmentStepSchema, input);
-      const { id, ...data } = validated;
+      const { id, brandVisibility, ...data } = validated;
 
       const step = await prisma.assessmentStep.findUnique({ where: { id } });
       if (!step) return throwNotFoundError("Step not found");
 
-      return await prisma.assessmentStep.update({
+      const strategy =
+        data.brandVisibilityStrategy ?? step.brandVisibilityStrategy;
+
+      await prisma.$transaction(async (tx) => {
+        await tx.assessmentStep.update({ where: { id }, data });
+
+        await syncBrandVisibility(
+          tx,
+          { stepId: id },
+          strategy,
+          brandVisibility,
+          data.brandVisibilityStrategy !== undefined,
+        );
+      });
+
+      return await prisma.assessmentStep.findUnique({
         where: { id },
-        data,
-        include: { conditions: true },
+        include: stepInclude,
       });
     } catch (error) {
       handleServiceError(error);

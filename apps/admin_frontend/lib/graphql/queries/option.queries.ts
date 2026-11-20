@@ -12,6 +12,7 @@ export const GET_OPTIONS = gql`
         priority
         isRedirect
         redirectTo
+        brandVisibilityStrategy
         condition {
           id
           title
@@ -28,7 +29,6 @@ export const GET_OPTIONS = gql`
             }
           }
         }
-        # 👇 CHANGE TO PLURAL
         popupConditions {
           id
           title
@@ -57,11 +57,25 @@ export const GET_OPTION_BY_ID = gql`
       priority
       title
       description
+      brandVisibilityStrategy
+      brandVisibility {
+        id
+        brandId
+        brandName
+        strategy
+      }
       condition {
         id
         title
+        step {
+          id
+          stepName
+          assessment {
+            id
+            name
+          }
+        }
       }
-      # 👇 CHANGE TO PLURAL
       popupConditions {
         id
         title

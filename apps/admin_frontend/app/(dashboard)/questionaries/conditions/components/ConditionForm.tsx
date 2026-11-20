@@ -2,7 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Input, Label, Button, ImageUpload } from "@repo/ui";
-import { GET_STEPS } from "../../../../../lib/graphql/queries/assessment.queries";
+import {
+  GET_ASSESSMENTS,
+  GET_STEPS,
+} from "../../../../../lib/graphql/queries/assessment.queries";
 import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../../lib/graphql/queries/brand.queries";
 import { GET_OPTIONS } from "../../../../../lib/graphql/queries/option.queries";
 
@@ -47,6 +50,10 @@ export const ConditionForm: React.FC<Props> = ({
   isLoading,
   isEdit,
 }) => {
+  const [assessmentId, setAssessmentId] = useState<string>(
+    initialData?.step?.assessment?.id ?? "",
+  );
+
   const [form, setForm] = useState({
     stepId: initialData?.stepId ?? "",
     parentOptionId: initialData?.parentOptionId ?? "",
@@ -70,11 +77,21 @@ export const ConditionForm: React.FC<Props> = ({
       : null,
   );
 
-  const { data: stepData } = useQuery<any>(GET_STEPS);
-  const steps = stepData?.getSteps?.items ?? [];
+  // 1. assessments
+  const { data: assessmentData } = useQuery<any>(GET_ASSESSMENTS);
+  const assessments = assessmentData?.getAssessments?.items ?? [];
 
+  // 2. steps of the selected assessment only
+  const { data: stepData, loading: stepsLoading } = useQuery<any>(GET_STEPS, {
+    variables: { assessmentId },
+    skip: !assessmentId,
+  });
+  const steps = assessmentId ? (stepData?.getSteps?.items ?? []) : [];
+
+  const currentAssessment = assessments.find((a: any) => a.id === assessmentId);
   const currentStep = steps.find((s: any) => s.id === form.stepId);
-  const categoryId = currentStep?.assessment?.categoryId;
+  const categoryId =
+    currentStep?.assessment?.categoryId ?? currentAssessment?.category?.id;
 
   const { data: brandData, loading: brandsLoading } = useQuery<any>(
     GET_BRANDS_BY_CATEGORY_ID,
@@ -90,6 +107,7 @@ export const ConditionForm: React.FC<Props> = ({
 
   useEffect(() => {
     if (initialData) {
+      setAssessmentId(initialData.step?.assessment?.id ?? "");
       setForm({
         stepId: initialData.stepId ?? "",
         parentOptionId: initialData.parentOptionId ?? "",
@@ -179,6 +197,30 @@ export const ConditionForm: React.FC<Props> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <Label>
+            Assessment <span className="text-red-500">*</span>
+          </Label>
+          <select
+            value={assessmentId}
+            onChange={(e) => {
+              setAssessmentId(e.target.value);
+              setForm((p) => ({ ...p, stepId: "", parentOptionId: "" }));
+              setSelectedBrandIds([]);
+            }}
+            disabled={isEdit}
+            className={`${selectClass} ${isEdit ? "opacity-60 bg-gray-50" : ""}`}
+          >
+            <option value="">Select assessment</option>
+            {assessments.map((a: any) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+                {a.category?.name ? ` — ${a.category.name}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label>
             Step <span className="text-red-500">*</span>
           </Label>
           <select
@@ -191,19 +233,28 @@ export const ConditionForm: React.FC<Props> = ({
               }));
               setSelectedBrandIds([]);
             }}
-            disabled={isEdit}
-            className={`${selectClass} ${isEdit ? "opacity-60 bg-gray-50" : ""}`}
+            disabled={isEdit || !assessmentId}
+            className={`${selectClass} ${
+              isEdit || !assessmentId ? "opacity-60 bg-gray-50" : ""
+            }`}
           >
-            <option value="">Select step</option>
+            <option value="">
+              {!assessmentId
+                ? "Select assessment first"
+                : stepsLoading
+                  ? "Loading steps..."
+                  : "Select step"}
+            </option>
             {steps.map((s: any) => (
               <option key={s.id} value={s.id}>
-                {s.stepName} — {s.assessment?.name}
+                {s.stepNumber ? `${s.stepNumber}. ` : ""}
+                {s.stepName}
               </option>
             ))}
           </select>
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
           <Label>Parent Option (Make this a Popup)</Label>
           <select
             value={form.parentOptionId}

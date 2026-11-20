@@ -13,7 +13,7 @@ export function AccessoriesDropdownCard({
   selectedId,
   onSelect,
 }: Props) {
-  const Icon = iconFor(condition.title, ShieldCheck);
+  const Icon = iconFor(condition, ShieldCheck);
 
   return (
     <div className="flex flex-col items-center rounded-xl border border-blue-100 bg-white p-4 text-center">

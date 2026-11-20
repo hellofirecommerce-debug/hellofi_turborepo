@@ -3,31 +3,30 @@ import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
-import { Button, ConfirmDialog } from "@repo/ui"; // 👈 Import ConfirmDialog
-import { toast } from "sonner"; // 👈 Import toast
+import { Button, ConfirmDialog } from "@repo/ui";
+import { toast } from "sonner";
 import { PageHeader } from "../../../../components/ui/PageHeader";
 import { CascadeFilter } from "../../../../components/ui/CascadeFilter";
 import { OptionTable } from "./components/OptionTable";
 import { OptionSkeleton } from "./components/OptionSkeleton";
 import { GET_OPTIONS } from "../../../../lib/graphql/queries/option.queries";
-import { DELETE_OPTION } from "../../../../lib/graphql/mutations/option.mutations"; // 👈 Import mutation
+import { DELETE_OPTION } from "../../../../lib/graphql/mutations/option.mutations";
 
 export default function OptionsPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<any>({ page: 1, pageSize: 20 });
-  const [deleteId, setDeleteId] = useState<string | null>(null); // 👈 State for dialog
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const { data, loading, refetch } = useQuery<any>(GET_OPTIONS, {
     variables: { filter },
     fetchPolicy: "cache-and-network",
   });
 
-  // 👇 Setup delete mutation
   const [deleteOption, { loading: deleting }] = useMutation(DELETE_OPTION, {
     onCompleted() {
       toast.success("Option deleted successfully");
       setDeleteId(null);
-      refetch(); // Refresh the list
+      refetch();
     },
     onError(err) {
       toast.error(err.message);
@@ -68,7 +67,11 @@ export default function OptionsPage() {
             size="md"
             className="gap-2"
             disabled={!filter.conditionId}
-            onClick={() => router.push("/questionaries/options/create")}
+            onClick={() =>
+              router.push(
+                `/questionaries/options/create?conditionId=${filter.conditionId}`,
+              )
+            }
           >
             <Plus size={15} />
             Add Option
@@ -88,12 +91,11 @@ export default function OptionsPage() {
               setFilter((p: any) => ({ ...p, pageSize, page: 1 }))
             }
             onEdit={(id) => router.push(`/questionaries/options/edit/${id}`)}
-            onDelete={(id) => setDeleteId(id)} // 👈 Pass delete handler
+            onDelete={(id) => setDeleteId(id)}
           />
         )}
       </div>
 
-      {/* 👇 Add Confirm Dialog */}
       <ConfirmDialog
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}

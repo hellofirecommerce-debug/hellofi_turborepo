@@ -16,7 +16,7 @@ export function AccessoriesBooleanCard({
   selectedId,
   onSelect,
 }: Props) {
-  const Icon = iconFor(condition.title, Box);
+  const Icon = iconFor(condition, Box);
   const yes = find(condition, "yes");
   const no = find(condition, "no");
   const isActive = !!yes && selectedId === yes.id;
@@ -25,7 +25,6 @@ export function AccessoriesBooleanCard({
     <button
       type="button"
       onClick={() => {
-        // click toggles Yes <-> No
         if (isActive && no) onSelect(condition.id, no, false);
         else if (yes) onSelect(condition.id, yes, false);
       }}

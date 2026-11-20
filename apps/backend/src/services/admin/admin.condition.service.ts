@@ -22,7 +22,7 @@ const conditionInclude = {
   options: {
     orderBy: { priority: "asc" as const },
     include: {
-      popupConditions: true, // 👈 Try adding this explicitly
+      popupConditions: true,
     },
   },
   brandVisibility: true,
@@ -39,8 +39,8 @@ class AdminConditionService {
     pageSize?: number;
   }) {
     try {
-      const page = filter?.page ?? 1;
-      const pageSize = filter?.pageSize ?? 20;
+      const page = Math.max(1, filter?.page ?? 1);
+      const pageSize = Math.min(50, Math.max(1, filter?.pageSize ?? 10));
       const skip = (page - 1) * pageSize;
 
       const where: any = {};
@@ -64,7 +64,8 @@ class AdminConditionService {
         prisma.sellingCondition.findMany({
           where,
           include: conditionInclude,
-          orderBy: { priority: "asc" },
+          // tie-breakers keep the order stable across pages
+          orderBy: [{ priority: "asc" }, { createdAt: "asc" }, { id: "asc" }],
           skip,
           take: pageSize,
         }),
@@ -76,7 +77,7 @@ class AdminConditionService {
         total,
         page,
         pageSize,
-        totalPages: Math.ceil(total / pageSize),
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
       };
     } catch (error) {
       handleServiceError(error);

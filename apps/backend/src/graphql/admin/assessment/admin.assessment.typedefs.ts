@@ -33,6 +33,8 @@ export const typeDefs = `#graphql
     description: String
     finalStepTitle: String
     priority: Int!
+    brandVisibilityStrategy: BrandVisibilityStrategy!
+    brandVisibility: [BrandVisibility!]!
     assessment: Assessment
     conditions: [SellingCondition!]!
     createdAt: String!
@@ -61,6 +63,8 @@ export const typeDefs = `#graphql
     description: String
     finalStepTitle: String
     priority: Int
+    brandVisibilityStrategy: BrandVisibilityStrategy
+    brandVisibility: [BrandVisibilityInput!]
   }
 
   input UpdateAssessmentStepInput {
@@ -73,6 +77,8 @@ export const typeDefs = `#graphql
     description: String
     finalStepTitle: String
     priority: Int
+    brandVisibilityStrategy: BrandVisibilityStrategy
+    brandVisibility: [BrandVisibilityInput!]
   }
 
   type AssessmentListResponse {

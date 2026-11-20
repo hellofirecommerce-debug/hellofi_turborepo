@@ -14,6 +14,7 @@ export default function EditConditionPage() {
 
   const { data, loading: fetching } = useQuery<any>(GET_CONDITION_BY_ID, {
     variables: { id },
+    fetchPolicy: "network-only",
   });
 
   const [update, { loading }] = useMutation(UPDATE_CONDITION, {
@@ -31,6 +32,9 @@ export default function EditConditionPage() {
   if (fetching) return <div className="p-8">Loading...</div>;
   if (!condition) return <div className="p-8">Not found</div>;
 
+  // temporary: remove after checking
+  console.log("EDIT isRequired/icon:", condition.isRequired, condition.icon);
+
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -42,11 +46,11 @@ export default function EditConditionPage() {
         ]}
       />
       <ConditionForm
+        key={condition.id}
         isEdit
         isLoading={loading}
         initialData={condition}
         onSubmit={(formData, image) => {
-          // 👇 formData comes from ConditionForm already cleaned
           update({
             variables: {
               input: { id: condition.id, ...formData },

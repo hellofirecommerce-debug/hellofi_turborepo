@@ -13,6 +13,7 @@ export default function EditStepPage() {
   const { id } = useParams<{ id: string }>();
   const { data, loading: fetching } = useQuery<any>(GET_STEP_BY_ID, {
     variables: { id },
+    fetchPolicy: "network-only",
   });
 
   const [update, { loading }] = useMutation(UPDATE_ASSESSMENT_STEP, {
@@ -35,17 +36,18 @@ export default function EditStepPage() {
       <PageHeader
         title={`Edit ${step.stepName}`}
         breadcrumbs={[
-          { label: "Questionaries" }, // 👈 Fixed breadcrumb
+          { label: "Questionaries" },
           { label: "Steps", href: "/questionaries/steps" },
           { label: "Edit" },
         ]}
       />
       <StepForm
+        key={step.id}
         isEdit
         isLoading={loading}
         initialData={step}
         onSubmit={(formData) => {
-          // 👇 ONLY pick the fields allowed in UpdateAssessmentStepInput
+          // only the fields allowed in UpdateAssessmentStepInput
           update({
             variables: {
               input: {
@@ -53,10 +55,12 @@ export default function EditStepPage() {
                 stepName: formData.stepName,
                 stepCategory: formData.stepCategory,
                 stepNumber: formData.stepNumber,
-                title: formData.title || undefined,
-                subtitle: formData.subtitle || undefined,
-                description: formData.description || undefined,
+                title: formData.title,
+                subtitle: formData.subtitle,
+                description: formData.description,
                 priority: formData.priority,
+                brandVisibilityStrategy: formData.brandVisibilityStrategy,
+                brandVisibility: formData.brandVisibility,
               },
             },
           });

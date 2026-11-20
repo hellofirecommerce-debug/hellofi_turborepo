@@ -26,10 +26,12 @@ export const typeDefs = `#graphql
     description: String
     isSelected: Boolean!
     image: String
-    
-    # 👇 POPUP LOGIC
+    brandVisibilityStrategy: BrandVisibilityStrategy!
+    brandVisibility: [BrandVisibility!]!
+
+    # POPUP LOGIC
     popupConditions: [SellingCondition!]!
-    
+
     condition: SellingCondition
     brandScores: [OptionBrandScore!]!
     seriesScores: [OptionSeriesScore!]!
@@ -80,11 +82,13 @@ export const typeDefs = `#graphql
     title: String
     description: String
     image: String
+    brandVisibilityStrategy: BrandVisibilityStrategy
+    brandVisibility: [BrandVisibilityInput!]
   }
 
   input UpdateOptionInput {
     id: ID!
-    conditionId: String # 👈 ADD THIS LINE
+    conditionId: String
     label: String
     action: OptionAction
     score: Int
@@ -94,7 +98,9 @@ export const typeDefs = `#graphql
     priority: Int
     title: String
     description: String
-    image: String 
+    image: String
+    brandVisibilityStrategy: BrandVisibilityStrategy
+    brandVisibility: [BrandVisibilityInput!]
   }
 
   input OptionFilterInput {

@@ -3,6 +3,11 @@ import React, { useEffect, useState } from "react";
 import { useQuery } from "@apollo/client/react";
 import { Input, Label, Button, ImageUpload } from "@repo/ui";
 import { GET_CONDITIONS } from "../../../../../lib/graphql/queries/condition.queries";
+import {
+  GET_ASSESSMENTS,
+  GET_STEPS,
+} from "../../../../../lib/graphql/queries/assessment.queries";
+import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../../lib/graphql/queries/brand.queries";
 
 const selectClass =
   "w-full h-9 px-3 text-sm border border-gray-300 rounded-md bg-white text-gray-900 focus:outline-none focus:ring-[3px] focus:border-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]/25";
@@ -17,6 +22,9 @@ const toImageUrl = (raw?: string | null): string | null => {
   const base = (process.env.NEXT_PUBLIC_CDN_URL || "").replace(/\/+$/, "");
   return `${base}/${raw.replace(/^\/+/, "")}`;
 };
+
+const idsFrom = (list?: { brandId?: string | null }[]): string[] =>
+  (list ?? []).map((bv) => bv.brandId).filter(Boolean) as string[];
 
 interface Props {
   initialData?: any;
@@ -47,7 +55,20 @@ export const OptionForm: React.FC<Props> = ({
     priority: initialData?.priority ?? 0,
     title: initialData?.title ?? "",
     description: initialData?.description ?? "",
+    brandVisibilityStrategy: initialData?.brandVisibilityStrategy ?? "ALL",
   });
+
+  const [selectedBrandIds, setSelectedBrandIds] = useState<string[]>(
+    idsFrom(initialData?.brandVisibility),
+  );
+
+  // UI-only filters, never sent to the backend
+  const [assessmentId, setAssessmentId] = useState<string>(
+    initialData?.condition?.step?.assessment?.id ?? "",
+  );
+  const [stepId, setStepId] = useState<string>(
+    initialData?.condition?.step?.id ?? "",
+  );
 
   const [shouldResize, setShouldResize] = useState(true);
   const [image, setImage] = useState<File | null>(null);
@@ -57,10 +78,36 @@ export const OptionForm: React.FC<Props> = ({
     toImageUrl(initialData?.image),
   );
 
-  const { data: condData } = useQuery<any>(GET_CONDITIONS, {
-    variables: { filter: { pageSize: 500 } },
+  // 1. assessments
+  const { data: assessmentData } = useQuery<any>(GET_ASSESSMENTS);
+  const assessments = assessmentData?.getAssessments?.items ?? [];
+
+  // 2. steps of the chosen assessment
+  const { data: stepData, loading: stepsLoading } = useQuery<any>(GET_STEPS, {
+    variables: { assessmentId },
+    skip: !assessmentId,
   });
-  const conditions = condData?.getConditions?.items ?? [];
+  const steps = assessmentId ? (stepData?.getSteps?.items ?? []) : [];
+
+  // 3. conditions of the chosen step
+  const { data: condData, loading: condLoading } = useQuery<any>(
+    GET_CONDITIONS,
+    {
+      variables: { filter: { stepId, pageSize: 500 } },
+      skip: !stepId,
+    },
+  );
+  const conditions = stepId ? (condData?.getConditions?.items ?? []) : [];
+
+  // brands depend on the category of the chosen assessment
+  const categoryId = assessments.find((a: any) => a.id === assessmentId)
+    ?.category?.id;
+
+  const { data: brandData, loading: brandsLoading } = useQuery<any>(
+    GET_BRANDS_BY_CATEGORY_ID,
+    { variables: { categoryId }, skip: !categoryId },
+  );
+  const availableBrands = brandData?.getBrandsByCategoryId ?? [];
 
   useEffect(() => {
     if (initialData) {
@@ -75,7 +122,12 @@ export const OptionForm: React.FC<Props> = ({
         priority: initialData.priority ?? 0,
         title: initialData.title ?? "",
         description: initialData.description ?? "",
+        brandVisibilityStrategy: initialData.brandVisibilityStrategy ?? "ALL",
       });
+
+      setSelectedBrandIds(idsFrom(initialData.brandVisibility));
+      setAssessmentId(initialData.condition?.step?.assessment?.id ?? "");
+      setStepId(initialData.condition?.step?.id ?? "");
 
       setPreview(toImageUrl(initialData.image));
       setImage(null);
@@ -83,9 +135,25 @@ export const OptionForm: React.FC<Props> = ({
     }
   }, [initialData]);
 
+  const toggleBrand = (brandId: string) => {
+    setSelectedBrandIds((prev) =>
+      prev.includes(brandId)
+        ? prev.filter((id) => id !== brandId)
+        : [...prev, brandId],
+    );
+  };
+
   const handleSubmit = () => {
     if (!form.label.trim()) return;
     if (!form.conditionId) return;
+
+    const brandVisibility =
+      form.brandVisibilityStrategy !== "ALL"
+        ? selectedBrandIds.map((id) => {
+            const brand = availableBrands.find((b: any) => b.id === id);
+            return { brandId: id, brandName: brand?.name };
+          })
+        : [];
 
     const payload: any = {
       conditionId: form.conditionId,
@@ -98,6 +166,8 @@ export const OptionForm: React.FC<Props> = ({
       priority: form.priority,
       title: form.title || undefined,
       description: form.description || undefined,
+      brandVisibilityStrategy: form.brandVisibilityStrategy,
+      brandVisibility,
     };
 
     // a newly picked file replaces the old one, so no separate remove needed
@@ -153,24 +223,86 @@ export const OptionForm: React.FC<Props> = ({
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <Label>
-          Condition <span className="text-red-500">*</span>
-        </Label>
-        <select
-          value={form.conditionId}
-          onChange={(e) =>
-            setForm((p) => ({ ...p, conditionId: e.target.value }))
-          }
-          className={selectClass}
-        >
-          <option value="">Select condition</option>
-          {conditions.map((c: any) => (
-            <option key={c.id} value={c.id}>
-              {c.title} — {c.step?.stepName}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <Label>
+            Assessment <span className="text-red-500">*</span>
+          </Label>
+          <select
+            value={assessmentId}
+            onChange={(e) => {
+              setAssessmentId(e.target.value);
+              setStepId("");
+              setForm((p) => ({ ...p, conditionId: "" }));
+              setSelectedBrandIds([]);
+            }}
+            className={selectClass}
+          >
+            <option value="">Select assessment</option>
+            {assessments.map((a: any) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+                {a.category?.name ? ` — ${a.category.name}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label>
+            Step <span className="text-red-500">*</span>
+          </Label>
+          <select
+            value={stepId}
+            onChange={(e) => {
+              setStepId(e.target.value);
+              setForm((p) => ({ ...p, conditionId: "" }));
+            }}
+            disabled={!assessmentId}
+            className={`${selectClass} ${!assessmentId ? "opacity-60 bg-gray-50" : ""}`}
+          >
+            <option value="">
+              {!assessmentId
+                ? "Select assessment first"
+                : stepsLoading
+                  ? "Loading steps..."
+                  : "Select step"}
             </option>
-          ))}
-        </select>
+            {steps.map((s: any) => (
+              <option key={s.id} value={s.id}>
+                {s.stepNumber ? `${s.stepNumber}. ` : ""}
+                {s.stepName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label>
+            Condition <span className="text-red-500">*</span>
+          </Label>
+          <select
+            value={form.conditionId}
+            onChange={(e) =>
+              setForm((p) => ({ ...p, conditionId: e.target.value }))
+            }
+            disabled={!stepId}
+            className={`${selectClass} ${!stepId ? "opacity-60 bg-gray-50" : ""}`}
+          >
+            <option value="">
+              {!stepId
+                ? "Select step first"
+                : condLoading
+                  ? "Loading conditions..."
+                  : "Select condition"}
+            </option>
+            {conditions.map((c: any) => (
+              <option key={c.id} value={c.id}>
+                {c.title}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -249,7 +381,62 @@ export const OptionForm: React.FC<Props> = ({
             }
           />
         </div>
+
+        <div className="flex flex-col gap-1.5 sm:col-span-2">
+          <Label>Brand Visibility</Label>
+          <select
+            value={form.brandVisibilityStrategy}
+            onChange={(e) =>
+              setForm((p) => ({
+                ...p,
+                brandVisibilityStrategy: e.target.value,
+              }))
+            }
+            className={selectClass}
+          >
+            <option value="ALL">All Brands</option>
+            <option value="INCLUDE">Show only for specific brands</option>
+            <option value="EXCLUDE">Hide for specific brands</option>
+          </select>
+        </div>
       </div>
+
+      {form.brandVisibilityStrategy !== "ALL" && (
+        <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+          <Label>
+            Select Brands to{" "}
+            {form.brandVisibilityStrategy === "INCLUDE" ? "Include" : "Exclude"}
+          </Label>
+          {!assessmentId ? (
+            <p className="text-sm text-gray-500">
+              Please select an assessment first.
+            </p>
+          ) : brandsLoading ? (
+            <p className="text-sm text-gray-500">Loading brands...</p>
+          ) : availableBrands.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No brands found for this category.
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 max-h-48 overflow-y-auto p-1">
+              {availableBrands.map((brand: any) => (
+                <label
+                  key={brand.id}
+                  className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:bg-white p-2 rounded-md transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedBrandIds.includes(brand.id)}
+                    onChange={() => toggleBrand(brand.id)}
+                    className="w-4 h-4 rounded border-gray-300 text-[rgb(33,76,123)] focus:ring-[rgb(33,76,123)]"
+                  />
+                  {brand.name}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
         <div className="flex items-center gap-3">

@@ -2,6 +2,7 @@
 import React from "react";
 import { useMutation } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { PageHeader } from "../../../../../components/ui/PageHeader";
 import { StepForm } from "../components/StepForm";
 import { CREATE_ASSESSMENT_STEP } from "../../../../../lib/graphql/mutations/assessment.mutations";
@@ -10,10 +11,11 @@ export default function CreateStepPage() {
   const router = useRouter();
   const [create, { loading }] = useMutation(CREATE_ASSESSMENT_STEP, {
     onCompleted() {
+      toast.success("Step created");
       router.push("/questionaries/steps");
     },
     onError(err) {
-      console.error("This is the error while createing step:", err);
+      toast.error(err.message);
     },
   });
 
@@ -22,8 +24,8 @@ export default function CreateStepPage() {
       <PageHeader
         title="Add Step"
         breadcrumbs={[
-          { label: "Selling" },
-          { label: "Steps", href: "/selling/steps" },
+          { label: "Questionaries" },
+          { label: "Steps", href: "/questionaries/steps" },
           { label: "Add" },
         ]}
       />

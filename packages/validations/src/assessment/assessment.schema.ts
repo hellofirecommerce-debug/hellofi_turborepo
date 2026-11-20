@@ -10,6 +10,13 @@ export const stepCategoryEnum = z.enum([
   "PRICING",
 ]);
 
+// local (not exported) so it can't clash with the condition validations
+const brandVisibilityStrategySchema = z.enum(["ALL", "INCLUDE", "EXCLUDE"]);
+const brandVisibilityItemSchema = z.object({
+  brandId: z.string().optional(),
+  brandName: z.string().optional(),
+});
+
 // ─── Assessment ───
 export const createAssessmentSchema = z.object({
   categoryId: z.string().min(1, "Category is required"),
@@ -32,6 +39,8 @@ export const createAssessmentStepSchema = z.object({
   description: z.string().optional(),
   finalStepTitle: z.string().optional(),
   priority: z.number().int().default(0),
+  brandVisibilityStrategy: brandVisibilityStrategySchema.optional(),
+  brandVisibility: z.array(brandVisibilityItemSchema).optional(),
 });
 
 export const updateAssessmentStepSchema = createAssessmentStepSchema

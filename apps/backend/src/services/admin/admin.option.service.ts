@@ -7,12 +7,14 @@ import {
 import { validateOrThrow } from "../../lib/utils/validateOrThrow";
 import { validateImage } from "../../lib/utils/validateImage";
 import { generateImageKey } from "../../lib/utils/imageKey";
+import { syncBrandVisibility } from "../../lib/utils/brandVisibility";
 import S3Service from "../common/s3.service";
 import ImageService from "../common/image.service";
 import {
   createOptionSchema,
   updateOptionSchema,
   optionFilterSchema,
+  OptionFilterInput,
 } from "@repo/validations";
 
 const optionInclude = {
@@ -32,6 +34,7 @@ const optionInclude = {
       options: true,
     },
   },
+  brandVisibility: true,
   brandScores: true,
   seriesScores: true,
   productScores: true,
@@ -50,19 +53,17 @@ class AdminOptionService {
 
       validateImage(imageData.buffer, imageData.fileName);
 
-      // Delete old image from S3 if it exists
       if (existing.image) {
         await S3Service.deleteImage(existing.image);
       }
 
-      // Generate the key and upload the raw file directly
       const key = generateImageKey("option-images", optionId);
       const fullKey = `images/selling/${key}`;
 
       const imageUrl = await S3Service.uploadRawFile(
         imageData.buffer,
         fullKey,
-        imageData.mimetype, // Use the original mimetype
+        imageData.mimetype,
       );
 
       return await prisma.sellingOption.update({
@@ -74,6 +75,7 @@ class AdminOptionService {
       handleServiceError(error);
     }
   }
+
   async getOptions(rawFilter?: any) {
     try {
       const filter = validateOrThrow(optionFilterSchema, rawFilter ?? {});
@@ -109,7 +111,11 @@ class AdminOptionService {
         prisma.sellingOption.findMany({
           where,
           include: optionInclude,
-          orderBy: { [sortBy]: sortOrder },
+          orderBy: [
+            { [sortBy]: sortOrder },
+            { createdAt: "asc" },
+            { id: "asc" },
+          ],
           skip,
           take: filter.pageSize,
         }),
@@ -144,18 +150,31 @@ class AdminOptionService {
   async createOption(
     input: any,
     imageData: { buffer: Buffer; fileName: string; mimetype: string } | null,
-    resize: boolean = true, // 👈 Default to true
+    resize: boolean = true,
   ) {
     try {
       const validated = validateOrThrow(createOptionSchema, input);
+      const { brandVisibility, ...optionData } = validated;
 
       const condition = await prisma.sellingCondition.findUnique({
         where: { id: validated.conditionId },
       });
       if (!condition) return throwInputError("Condition not found");
 
-      const option = await prisma.sellingOption.create({
-        data: validated,
+      const strategy = optionData.brandVisibilityStrategy ?? "ALL";
+
+      const option = await prisma.$transaction(async (tx) => {
+        const created = await tx.sellingOption.create({ data: optionData });
+
+        await syncBrandVisibility(
+          tx,
+          { optionId: created.id },
+          strategy,
+          brandVisibility ?? [],
+          true,
+        );
+
+        return created;
       });
 
       if (imageData) {
@@ -167,14 +186,12 @@ class AdminOptionService {
         let imageUrl = "";
 
         if (resize) {
-          // Compress to 128x128
           const compressed = await ImageService.compress(imageData.buffer, {
             width: 304,
             height: 304,
           });
           imageUrl = await S3Service.uploadImage(compressed, fullKey);
         } else {
-          // Upload raw file (no resize)
           imageUrl = await S3Service.uploadRawFile(
             imageData.buffer,
             fullKey,
@@ -202,24 +219,22 @@ class AdminOptionService {
     input: any,
     imageData: { buffer: Buffer; fileName: string; mimetype: string } | null,
     resize: boolean = true,
-    removeImage: boolean = false, // 👈 Add this
+    removeImage: boolean = false,
   ) {
     try {
       const validated = validateOrThrow(updateOptionSchema, input);
-      const { id, ...data } = validated;
+      const { id, brandVisibility, ...data } = validated;
 
       const existing = await prisma.sellingOption.findUnique({ where: { id } });
       if (!existing) return throwNotFoundError("Option not found");
 
       let imageUrl = existing.image;
 
-      // 👇 Handle image removal
       if (removeImage && existing.image) {
         await S3Service.deleteImage(existing.image);
         imageUrl = null;
       }
 
-      // 👇 Handle image upload
       if (imageData) {
         validateImage(imageData.buffer, imageData.fileName);
         if (existing.image) {
@@ -244,9 +259,26 @@ class AdminOptionService {
         }
       }
 
-      return await prisma.sellingOption.update({
+      const strategy =
+        data.brandVisibilityStrategy ?? existing.brandVisibilityStrategy;
+
+      await prisma.$transaction(async (tx) => {
+        await tx.sellingOption.update({
+          where: { id },
+          data: { ...data, image: imageUrl },
+        });
+
+        await syncBrandVisibility(
+          tx,
+          { optionId: id },
+          strategy,
+          brandVisibility,
+          data.brandVisibilityStrategy !== undefined,
+        );
+      });
+
+      return await prisma.sellingOption.findUnique({
         where: { id },
-        data: { ...data, image: imageUrl },
         include: optionInclude,
       });
     } catch (error) {
@@ -261,7 +293,6 @@ class AdminOptionService {
       });
       if (!existing) return throwNotFoundError("Option not found");
 
-      // Delete image from S3 if it exists
       if (existing.image) {
         await S3Service.deleteImage(existing.image);
       }

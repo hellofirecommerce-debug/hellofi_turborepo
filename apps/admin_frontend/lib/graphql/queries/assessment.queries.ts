@@ -49,6 +49,7 @@ export const GET_STEPS = gql`
         stepName
         stepCategory
         stepNumber
+        brandVisibilityStrategy
         assessment {
           id
           name
@@ -73,6 +74,13 @@ export const GET_STEP_BY_ID = gql`
       description
       finalStepTitle
       priority
+      brandVisibilityStrategy
+      brandVisibility {
+        id
+        brandId
+        brandName
+        strategy
+      }
     }
   }
 `;

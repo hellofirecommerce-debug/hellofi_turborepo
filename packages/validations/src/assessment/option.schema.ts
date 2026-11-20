@@ -9,6 +9,13 @@ export const optionActionEnum = z.enum([
 
 export const scoreTypeEnum = z.enum(["PER", "RUPPEE", "MUL"]);
 
+// local (not exported) so it can't clash with the condition validations
+const brandVisibilityStrategySchema = z.enum(["ALL", "INCLUDE", "EXCLUDE"]);
+const brandVisibilityItemSchema = z.object({
+  brandId: z.string().optional(),
+  brandName: z.string().optional(),
+});
+
 export const createOptionSchema = z.object({
   conditionId: z.string().min(1, "Condition is required"),
   label: z.string().min(1, "Label is required"),
@@ -21,6 +28,8 @@ export const createOptionSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
   image: z.string().optional(),
+  brandVisibilityStrategy: brandVisibilityStrategySchema.optional(),
+  brandVisibility: z.array(brandVisibilityItemSchema).optional(),
 });
 
 export const updateOptionSchema = createOptionSchema
