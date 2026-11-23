@@ -218,8 +218,8 @@ class AdminInventoryService {
           }
         : {};
 
+      // no isActive condition -> active AND inactive products are returned
       const where = {
-        isActive: true,
         ...searchCondition,
         ...(filter?.status && { status: filter.status as any }),
         ...(filter?.brandId && { brandId: filter.brandId }),
@@ -231,7 +231,7 @@ class AdminInventoryService {
         prisma.inventoryProduct.findMany({
           where,
           include: inventoryInclude,
-          orderBy: { [sortBy]: sortOrder },
+          orderBy: [{ [sortBy]: sortOrder }, { id: "asc" }] as any,
           skip,
           take: pageSize,
         }),
