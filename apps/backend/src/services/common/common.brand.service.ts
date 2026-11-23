@@ -5,7 +5,26 @@ import RedisService from "./redis.service";
 
 const CACHE_TTL = 60 * 60; // 1 hour
 
+const categoryKey = (categoryId: string) => `brands:category:${categoryId}`;
+
 class CommonBrandService {
+  // call this after ANY brand / brandCategory create, update or delete
+  async clearCache() {
+    await RedisService.del("brands:all");
+    await RedisService.delByPattern("brands:category:*");
+  }
+
+  // one place that builds the list, ordered by BrandCategory.priority
+  private async fetchBrandsForCategory(categoryId: string) {
+    const brandCategories = await prisma.brandCategory.findMany({
+      where: { categoryId, status: "ACTIVE" },
+      orderBy: [{ priority: "asc" }, { brand: { name: "asc" } }],
+      include: { brand: true },
+    });
+
+    return brandCategories.map((bc) => bc.brand);
+  }
+
   async getBrands() {
     try {
       const cacheKey = "brands:all";
@@ -52,7 +71,7 @@ class CommonBrandService {
       const category =
         await CommonCategoryService.getCategoryByseoName(categorySeoName);
 
-      const cacheKey = `brands:category:${category!.id}`;
+      const cacheKey = categoryKey(category!.id);
 
       const cached = await RedisService.get<any[]>(cacheKey);
       if (cached) {
@@ -60,20 +79,7 @@ class CommonBrandService {
         return cached;
       }
 
-      const brandCategories = await prisma.brandCategory.findMany({
-        where: {
-          categoryId: category!.id,
-          status: "ACTIVE",
-        },
-        orderBy: {
-          priority: "asc",
-        },
-        include: {
-          brand: true,
-        },
-      });
-
-      const brands = brandCategories.map((bc) => bc.brand);
+      const brands = await this.fetchBrandsForCategory(category!.id);
 
       if (!brands || brands.length === 0) {
         throwNotFoundError("No brands found for this category");
@@ -90,7 +96,7 @@ class CommonBrandService {
 
   async getBrandsByCateoryId(categoryId: string) {
     try {
-      const cacheKey = `brands:category:${categoryId}`;
+      const cacheKey = categoryKey(categoryId);
 
       const cached = await RedisService.get<any[]>(cacheKey);
       if (cached) {
@@ -98,21 +104,7 @@ class CommonBrandService {
         return cached;
       }
 
-      const brands = await prisma.brand.findMany({
-        where: {
-          brandCategories: {
-            some: {
-              categoryId,
-              status: "ACTIVE",
-            },
-          },
-        },
-        orderBy: {
-          brandCategories: {
-            _count: "asc",
-          },
-        },
-      });
+      const brands = await this.fetchBrandsForCategory(categoryId);
 
       if (!brands || brands.length === 0) {
         throwNotFoundError("No brands found for this category");
