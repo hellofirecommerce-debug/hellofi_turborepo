@@ -218,8 +218,9 @@ class AdminInventoryService {
           }
         : {};
 
-      // no isActive condition -> active AND inactive products are returned
+      // only active products are shown
       const where = {
+        isActive: true,
         ...searchCondition,
         ...(filter?.status && { status: filter.status as any }),
         ...(filter?.brandId && { brandId: filter.brandId }),
