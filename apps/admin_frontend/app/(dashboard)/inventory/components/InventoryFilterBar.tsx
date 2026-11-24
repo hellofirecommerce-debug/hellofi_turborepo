@@ -321,6 +321,7 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = ({
               <option value="NOT_LISTED">Not Listed</option>
               <option value="LISTED">Listed</option>
               <option value="SOLD">Sold</option>
+              <option value="OUT_FOR_LISTING">Out For Listing</option>
             </select>
           </div>
 
