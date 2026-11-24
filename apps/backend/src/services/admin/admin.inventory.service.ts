@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import prisma from "@repo/db";
 import {
   handleServiceError,
@@ -5,6 +6,11 @@ import {
   throwInputError,
 } from "../../lib/utils/error";
 import { validateOrThrow } from "../../lib/utils/validateOrThrow";
+import {
+  UploadedFile,
+  uploadOriginalBill,
+  deleteOriginalBillQuietly,
+} from "../../lib/utils/originalBill";
 import {
   createInventoryProductSchema,
   updateInventoryProductSchema,
@@ -559,7 +565,7 @@ class AdminInventoryService {
 
       const where = {
         isActive: true,
-        status: { in: ["NOT_LISTED", "LISTED"] as any },
+        status: { in: ["NOT_LISTED", "OUT_FOR_LISTING", "LISTED"] as any },
         invoiceItem: null,
         ...searchCondition,
         ...(filter?.brandId && { brandId: filter.brandId }),
@@ -589,7 +595,12 @@ class AdminInventoryService {
     }
   }
 
-  async createInventoryProduct(input: CreateInventoryProductInput) {
+  async createInventoryProduct(
+    input: CreateInventoryProductInput,
+    originalBill?: UploadedFile | null,
+  ) {
+    let uploadedKey: string | null = null;
+
     try {
       const validated = validateOrThrow(createInventoryProductSchema, input);
 
@@ -607,8 +618,17 @@ class AdminInventoryService {
 
       const orderId = this.generateOrderId(validated.imeiOrSerial);
 
+      // id is created up front so the S3 key can contain it
+      const id = randomUUID();
+
+      // upload the original file first (no compression); only the key is stored
+      if (originalBill) {
+        uploadedKey = await uploadOriginalBill(id, originalBill);
+      }
+
       return await prisma.inventoryProduct.create({
         data: {
+          id,
           ...validated,
           orderId,
           purchaseDate: new Date(validated.purchaseDate),
@@ -617,15 +637,26 @@ class AdminInventoryService {
           warrantyPurchaseDate: validated.warrantyPurchaseDate
             ? new Date(validated.warrantyPurchaseDate)
             : null,
+          originalBill: uploadedKey,
+          // a bill was uploaded, so the product has its original bill
+          ...(uploadedKey && { hasOriginalBill: true }),
         },
         include: inventoryInclude,
       });
     } catch (error) {
+      // DB failed after the upload -> do not leave an orphan file in S3
+      await deleteOriginalBillQuietly(uploadedKey);
       handleServiceError(error);
     }
   }
 
-  async updateInventoryProduct(input: UpdateInventoryProductInput) {
+  async updateInventoryProduct(
+    input: UpdateInventoryProductInput,
+    originalBill?: UploadedFile | null,
+    removeOriginalBill: boolean = false,
+  ) {
+    let newKey: string | null = null;
+
     try {
       const validated = validateOrThrow(updateInventoryProductSchema, input);
       const { id, ...updateData } = validated;
@@ -659,7 +690,17 @@ class AdminInventoryService {
         extraUpdate = { grossProfit };
       }
 
-      return await prisma.inventoryProduct.update({
+      // ── original bill: keep / replace / remove ──
+      let originalBillKey: string | null = product.originalBill;
+
+      if (originalBill) {
+        newKey = await uploadOriginalBill(id, originalBill);
+        originalBillKey = newKey;
+      } else if (removeOriginalBill) {
+        originalBillKey = null;
+      }
+
+      const updated = await prisma.inventoryProduct.update({
         where: { id },
         data: {
           ...updateData,
@@ -667,11 +708,23 @@ class AdminInventoryService {
           warrantyPurchaseDate: updateData.warrantyPurchaseDate
             ? new Date(updateData.warrantyPurchaseDate)
             : null,
+          originalBill: originalBillKey,
+          // a bill was uploaded, so the product has its original bill
+          ...(newKey && { hasOriginalBill: true }),
           ...extraUpdate,
         },
         include: inventoryInclude,
       });
+
+      // old file is deleted only after the DB update succeeded
+      if (product.originalBill && product.originalBill !== originalBillKey) {
+        await deleteOriginalBillQuietly(product.originalBill);
+      }
+
+      return updated;
     } catch (error) {
+      // DB failed after a new upload -> remove the new file
+      await deleteOriginalBillQuietly(newKey);
       handleServiceError(error);
     }
   }
@@ -747,6 +800,7 @@ class AdminInventoryService {
         }
       }
 
+      // soft delete: the original bill stays in S3 so the record is complete
       await prisma.inventoryProduct.update({
         where: { id },
         data: { isActive: false },

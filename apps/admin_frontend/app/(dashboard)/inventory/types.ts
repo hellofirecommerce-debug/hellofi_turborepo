@@ -38,6 +38,7 @@ export interface InventoryProduct {
   hasBox: boolean;
   hasCharger: boolean;
   hasOriginalBill: boolean;
+  originalBill?: string | null;
 
   // ── Warranty ──
   warrantyType: "ABOVE_1_YEAR" | "BELOW_1_YEAR";

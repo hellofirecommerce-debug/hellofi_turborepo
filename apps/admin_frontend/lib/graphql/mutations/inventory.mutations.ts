@@ -1,24 +1,37 @@
 import { gql } from "@apollo/client";
 
 export const CREATE_INVENTORY_PRODUCT = gql`
-  mutation CreateInventoryProduct($input: CreateInventoryProductInput!) {
-    createInventoryProduct(input: $input) {
+  mutation CreateInventoryProduct(
+    $input: CreateInventoryProductInput!
+    $originalBill: Upload
+  ) {
+    createInventoryProduct(input: $input, originalBill: $originalBill) {
       id
       orderId
       productName
       status
+      originalBill
       createdAt
     }
   }
 `;
 
 export const UPDATE_INVENTORY_PRODUCT = gql`
-  mutation UpdateInventoryProduct($input: UpdateInventoryProductInput!) {
-    updateInventoryProduct(input: $input) {
+  mutation UpdateInventoryProduct(
+    $input: UpdateInventoryProductInput!
+    $originalBill: Upload
+    $removeOriginalBill: Boolean
+  ) {
+    updateInventoryProduct(
+      input: $input
+      originalBill: $originalBill
+      removeOriginalBill: $removeOriginalBill
+    ) {
       id
       orderId
       productName
       status
+      originalBill
       updatedAt
     }
   }

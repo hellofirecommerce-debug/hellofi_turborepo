@@ -9,6 +9,8 @@ import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../lib/graphql/queries/brand
 
 import { GET_CATEGORIES } from "../../../../lib/graphql/queries/category.queries";
 import { InventoryProduct } from "../types";
+import { FileUpload } from "@repo/ui";
+import { fileUrl, fileNameFromKey } from "../../../../lib/utils/fileUrl";
 
 import {
   CreateInventoryProductInput,
@@ -56,6 +58,8 @@ interface InventoryFormProps {
   editData?: InventoryProduct | null;
   onSubmit: (
     data: CreateInventoryProductInput | UpdateInventoryProductInput,
+    originalBill: File | null,
+    removeOriginalBill: boolean,
   ) => void;
   isLoading?: boolean;
 }
@@ -111,11 +115,16 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
 }) => {
   const [form, setForm] = useState<InventoryFormData>(initialForm);
 
+  // ── original bill ──
+  const [billFile, setBillFile] = useState<File | null>(null);
+  const [removeBill, setRemoveBill] = useState(false);
+  const savedBillKey = editData?.originalBill ?? null;
+
   const { data: brandsData } = useQuery<{
     getBrandsByCategoryId: Brand[];
   }>(GET_BRANDS_BY_CATEGORY_ID, {
     variables: { categoryId: form.categoryId },
-    skip: !form.categoryId, // ← don't fetch until category is selected
+    skip: !form.categoryId,
   });
 
   const [searchProductNames] = useLazyQuery<{
@@ -177,6 +186,8 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         ram: editData.ram ?? "",
         storage: editData.storage ?? "",
       });
+      setBillFile(null);
+      setRemoveBill(false);
     }
   }, [editData]);
 
@@ -188,6 +199,22 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
     setForm((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const handleBillSelected = (file: File) => {
+    setBillFile(file);
+    setRemoveBill(false);
+    setForm((prev) => ({ ...prev, hasOriginalBill: true }));
+  };
+
+  const handleBillRemoveNew = () => {
+    setBillFile(null);
+  };
+
+  const handleBillRemoveSaved = () => {
+    setRemoveBill(true);
+    setBillFile(null);
+    setForm((prev) => ({ ...prev, hasOriginalBill: false }));
+  };
+
   const isEdit = !!editData;
 
   const handleSubmit = () => {
@@ -196,9 +223,9 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         ...form,
         id: editData.id,
       };
-      onSubmit(updateData);
+      onSubmit(updateData, billFile, removeBill);
     } else {
-      onSubmit(form);
+      onSubmit(form, billFile, false);
     }
   };
 
@@ -220,7 +247,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               value={form.categoryId}
               onChange={(e) => {
                 handleChange("categoryId", e.target.value);
-                handleChange("brandId", ""); // ← reset brand when category changes
+                handleChange("brandId", "");
               }}
               className={selectClass}
             >
@@ -244,7 +271,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Select brand"
               value={form.brandId}
               onChange={(e) => handleChange("brandId", e.target.value)}
-              disabled={!form.categoryId} // ← disable until category selected
+              disabled={!form.categoryId}
               className={`${selectClass} ${!form.categoryId ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <option value="" disabled>
@@ -348,6 +375,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               className={selectClass}
             >
               <option value="NOT_LISTED">Not Listed</option>
+              <option value="OUT_FOR_LISTING">Out for Listing</option>
               <option value="LISTED">Listed</option>
               <option value="SOLD">Sold</option>
             </select>
@@ -502,6 +530,30 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* E - Original Bill file */}
+          <div className="flex flex-col gap-2">
+            <Label>
+              E) Upload Original Bill
+              <span className="text-xs text-gray-400 ml-2 font-normal">
+                optional
+              </span>
+            </Label>
+            <FileUpload
+              file={billFile}
+              existingUrl={removeBill ? null : fileUrl(savedBillKey)}
+              existingName={fileNameFromKey(savedBillKey)}
+              onFileChange={handleBillSelected}
+              onRemove={handleBillRemoveNew}
+              onRemoveExisting={handleBillRemoveSaved}
+              label="Click to upload original bill"
+            />
+            {removeBill && savedBillKey && !billFile && (
+              <p className="text-xs text-red-500">
+                The saved bill will be removed when you click Update Product.
+              </p>
+            )}
           </div>
         </div>
       </div>

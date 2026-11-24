@@ -34,6 +34,7 @@ enum UserStatus {
 }
 
 enum InventoryStatus {
+  OUT_FOR_LISTING
   NOT_LISTED
   LISTED
   SOLD
@@ -348,6 +349,7 @@ model InventoryProduct {
   hasBox          Boolean @default(false)
   hasCharger      Boolean @default(false)
   hasOriginalBill Boolean @default(false)
+  originalBill    String?
 
   warrantyType         String    @default("ABOVE_1_YEAR")
   warrantyPurchaseDate DateTime?

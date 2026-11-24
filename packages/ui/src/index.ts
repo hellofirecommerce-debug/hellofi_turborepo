@@ -21,3 +21,5 @@ export { DateInput } from "./components/date-input";
 export { MotionProvider } from "./components/MotionProvider";
 export { Reveal, RevealGroup, RevealItem } from "./components/Reveal";
 export { MotionCard } from "./components/MotionCard";
+
+export { FileUpload } from "./components/FileUpload";

@@ -1,6 +1,7 @@
 export const typeDefs = `#graphql
   enum InventoryStatus {
     NOT_LISTED
+    OUT_FOR_LISTING
     LISTED
     SOLD
   }
@@ -52,6 +53,7 @@ export const typeDefs = `#graphql
     hasBox: Boolean!
     hasCharger: Boolean!
     hasOriginalBill: Boolean!
+    originalBill: String
     warrantyType: String!
     warrantyPurchaseDate: DateTime
     createdAt: String!

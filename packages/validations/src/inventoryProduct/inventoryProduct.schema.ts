@@ -1,6 +1,11 @@
 import * as z from "zod";
 
-export const inventoryStatusEnum = z.enum(["NOT_LISTED", "LISTED", "SOLD"]);
+export const inventoryStatusEnum = z.enum([
+  "NOT_LISTED",
+  "OUT_FOR_LISTING",
+  "LISTED",
+  "SOLD",
+]);
 
 export const paymentModeEnum = z.enum([
   "CASH",
