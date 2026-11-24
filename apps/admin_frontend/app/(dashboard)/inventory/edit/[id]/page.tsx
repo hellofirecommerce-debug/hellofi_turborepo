@@ -2,7 +2,7 @@
 import React from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { toast } from "sonner";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import { PageHeader } from "../../../../../components/ui/PageHeader";
 import { InventoryForm } from "../../components/InventoryForm";
 import { GET_INVENTORY_PRODUCT_BY_ID } from "../../../../../lib/graphql/queries/inventory.queries";
@@ -16,7 +16,6 @@ import {
 import { useNavigate } from "../../../../../lib/hooks/useNavigate";
 
 export default function EditInventoryPage() {
-  const router = useRouter();
   const { navigate } = useNavigate();
   const params = useParams();
   const id = params.id as string;
@@ -26,6 +25,7 @@ export default function EditInventoryPage() {
   }>(GET_INVENTORY_PRODUCT_BY_ID, {
     variables: { id },
     skip: !id,
+    fetchPolicy: "network-only",
   });
 
   const [updateInventoryProduct, { loading: updating }] = useMutation(
@@ -40,6 +40,8 @@ export default function EditInventoryPage() {
 
   const handleSubmit = async (
     formData: CreateInventoryProductInput | UpdateInventoryProductInput,
+    originalBill: File | null,
+    removeOriginalBill: boolean,
   ) => {
     const input = formData as UpdateInventoryProductInput;
     await updateInventoryProduct({
@@ -73,6 +75,8 @@ export default function EditInventoryPage() {
               ? input.warrantyPurchaseDate || undefined
               : undefined,
         },
+        originalBill: originalBill ?? undefined,
+        removeOriginalBill,
       },
     });
   };
