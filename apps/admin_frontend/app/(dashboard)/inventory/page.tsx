@@ -1,10 +1,9 @@
 "use client";
 import React, { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
-import { Plus } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";
 import { Button, ConfirmDialog } from "@repo/ui";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 import { PageHeader } from "../../../components/ui/PageHeader";
 import { InventoryTable } from "./components/InventoryTable";
 import { InventorySkeleton } from "./components/InventorySkeleton";
@@ -18,15 +17,17 @@ import {
 import { GET_INVENTORY_PRODUCTS } from "../../../lib/graphql/queries/inventory.queries";
 import {
   DELETE_INVENTORY_PRODUCT,
+  DELETE_INVENTORY_PRODUCTS,
   MARK_AS_SOLD,
 } from "../../../lib/graphql/mutations/inventory.mutations";
 import { useNavigate } from "../../../lib/hooks/useNavigate";
 
 export default function InventoryPage() {
   const { navigate } = useNavigate();
-  const router = useRouter();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [soldProduct, setSoldProduct] = useState<InventoryProduct | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [filter, setFilter] = useState<InventoryFilter>({
     page: 1,
     pageSize: 10,
@@ -52,6 +53,31 @@ export default function InventoryPage() {
     },
   );
 
+  const [deleteProducts, { loading: bulkDeleting }] = useMutation<{
+    deleteInventoryProducts: {
+      deletedCount: number;
+      skippedCount: number;
+      message: string;
+      skipped: { id: string; orderId: string | null; reason: string }[];
+    };
+  }>(DELETE_INVENTORY_PRODUCTS, {
+    onCompleted(result) {
+      const res = result.deleteInventoryProducts;
+      if (res.deletedCount > 0) {
+        toast.success(`${res.deletedCount} product(s) deleted`);
+      }
+      if (res.skippedCount > 0) {
+        const first = res.skipped[0];
+        toast.error(
+          `${res.skippedCount} skipped${first ? ` — ${first.orderId ?? first.id}: ${first.reason}` : ""}`,
+        );
+      }
+      setBulkDeleteOpen(false);
+      setSelectedIds([]);
+      refetch();
+    },
+  });
+
   const [markAsSold, { loading: marking }] = useMutation(MARK_AS_SOLD, {
     onCompleted() {
       toast.success("Product marked as sold");
@@ -68,7 +94,11 @@ export default function InventoryPage() {
     order: (filter.sortOrder ?? "desc") as "asc" | "desc",
   };
 
+  // selection is cleared whenever the visible list changes
+  const clearSelection = () => setSelectedIds([]);
+
   const handleSort = (field: string) => {
+    clearSelection();
     setFilter((prev) => ({
       ...prev,
       sortBy: field,
@@ -79,15 +109,29 @@ export default function InventoryPage() {
   };
 
   const handleFilterChange = (key: keyof InventoryFilter, value: any) => {
+    clearSelection();
     setFilter((prev) => ({ ...prev, [key]: value, page: 1 }));
   };
 
   const handlePageChange = (page: number) => {
+    clearSelection();
     setFilter((prev) => ({ ...prev, page }));
   };
 
   const handlePageSizeChange = (pageSize: number) => {
+    clearSelection();
     setFilter((prev) => ({ ...prev, pageSize, page: 1 }));
+  };
+
+  const handleToggleSelect = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  };
+
+  // select / unselect every product on the current page
+  const handleToggleAll = (checked: boolean) => {
+    setSelectedIds(checked ? products.map((p) => p.id) : []);
   };
 
   const handleMarkAsSold = async (formData: any) => {
@@ -145,16 +189,47 @@ export default function InventoryPage() {
           <InventoryFilterBar
             filter={filter}
             onChange={handleFilterChange}
-            onReset={() =>
+            onReset={() => {
+              clearSelection();
               setFilter({
                 page: 1,
                 pageSize: 10,
                 sortBy: "createdAt",
                 sortOrder: "desc",
-              })
-            }
+              });
+            }}
           />
         </div>
+
+        {/* Bulk action bar — visible only when something is selected */}
+        {selectedIds.length > 0 && (
+          <div className="flex items-center justify-between gap-3 px-5 py-3 bg-blue-50 border-b border-blue-100">
+            <p className="text-sm font-medium text-[rgb(33,76,123)]">
+              {selectedIds.length} selected
+            </p>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="md"
+                className="gap-1.5"
+                onClick={clearSelection}
+                disabled={bulkDeleting}
+              >
+                <X size={14} />
+                Clear
+              </Button>
+              <Button
+                size="md"
+                className="gap-1.5 bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => setBulkDeleteOpen(true)}
+                disabled={bulkDeleting}
+              >
+                <Trash2 size={14} />
+                Delete selected
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Table */}
         {loading && products.length === 0 ? (
@@ -173,10 +248,14 @@ export default function InventoryPage() {
             onMarkAsSold={(product) => setSoldProduct(product)}
             sortConfig={sortConfig}
             onSort={handleSort}
+            selectedIds={selectedIds}
+            onToggleSelect={handleToggleSelect}
+            onToggleAll={handleToggleAll}
           />
         )}
       </div>
 
+      {/* single delete */}
       <ConfirmDialog
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}
@@ -188,6 +267,20 @@ export default function InventoryPage() {
         description="Are you sure you want to delete this product? This action cannot be undone."
         confirmLabel="Delete"
         isLoading={deleting}
+      />
+
+      {/* bulk delete */}
+      <ConfirmDialog
+        isOpen={bulkDeleteOpen}
+        onClose={() => setBulkDeleteOpen(false)}
+        onConfirm={async () => {
+          if (selectedIds.length === 0) return;
+          await deleteProducts({ variables: { ids: selectedIds } });
+        }}
+        title="Delete Selected Products"
+        description={`Are you sure you want to delete ${selectedIds.length} selected product(s)? Products linked to an active invoice will be skipped.`}
+        confirmLabel={`Delete ${selectedIds.length}`}
+        isLoading={bulkDeleting}
       />
 
       <MarkAsSoldModal

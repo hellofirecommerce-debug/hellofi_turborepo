@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import S3Service from "../../services/common/s3.service";
 import { throwInputError } from "./error";
 
@@ -7,6 +8,8 @@ export type UploadedFile = {
   mimetype: string;
 };
 
+export const MAX_ORIGINAL_BILLS = 10;
+
 const ALLOWED_TYPES = new Set([
   "application/pdf",
   "image/jpeg",
@@ -14,7 +17,7 @@ const ALLOWED_TYPES = new Set([
   "image/webp",
 ]);
 
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_BYTES = 10 * 1024 * 1024; // 10 MB per file
 
 const safeName = (name: string) =>
   name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80);
@@ -24,7 +27,7 @@ export function validateOriginalBill(file: UploadedFile) {
     throwInputError("Original bill must be a PDF, JPG, PNG or WEBP file");
   }
   if (file.buffer.length > MAX_BYTES) {
-    throwInputError("Original bill must be 10 MB or smaller");
+    throwInputError("Each original bill must be 10 MB or smaller");
   }
   if (file.buffer.length === 0) {
     throwInputError("Original bill file is empty");
@@ -38,7 +41,7 @@ export async function uploadOriginalBill(
 ): Promise<string> {
   validateOriginalBill(file);
 
-  const key = `documents/inventory-original-bills/${inventoryId}/${Date.now()}-${safeName(file.fileName)}`;
+  const key = `documents/inventory-original-bills/${inventoryId}/${Date.now()}-${randomUUID().slice(0, 8)}-${safeName(file.fileName)}`;
 
   return S3Service.uploadRawFile(file.buffer, key, file.mimetype);
 }

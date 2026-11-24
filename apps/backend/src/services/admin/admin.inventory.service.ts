@@ -8,6 +8,7 @@ import {
 import { validateOrThrow } from "../../lib/utils/validateOrThrow";
 import {
   UploadedFile,
+  MAX_ORIGINAL_BILLS,
   uploadOriginalBill,
   deleteOriginalBillQuietly,
 } from "../../lib/utils/originalBill";
@@ -25,6 +26,7 @@ interface InventoryStatus {}
 const inventoryInclude = {
   brand: true,
   category: true,
+  originalBills: { orderBy: { createdAt: "asc" as const } },
   invoiceItem: {
     select: {
       id: true,
@@ -88,6 +90,35 @@ class AdminInventoryService {
   private calculateTat(purchaseDate: Date, sellingDate: Date): number {
     const diff = sellingDate.getTime() - purchaseDate.getTime();
     return Math.floor(diff / (1000 * 60 * 60 * 24));
+  }
+
+  // uploads every file and returns the rows to insert; on failure the
+  // files already uploaded are removed again
+  private async uploadBills(inventoryId: string, files: UploadedFile[]) {
+    const uploaded: {
+      fileKey: string;
+      fileName: string;
+      mimeType: string;
+      size: number;
+    }[] = [];
+
+    try {
+      for (const file of files) {
+        const fileKey = await uploadOriginalBill(inventoryId, file);
+        uploaded.push({
+          fileKey,
+          fileName: file.fileName,
+          mimeType: file.mimetype,
+          size: file.buffer.length,
+        });
+      }
+      return uploaded;
+    } catch (error) {
+      await Promise.all(
+        uploaded.map((u) => deleteOriginalBillQuietly(u.fileKey)),
+      );
+      throw error;
+    }
   }
 
   // ── Fetch full exchange chain by rootInventoryId ──
@@ -597,12 +628,18 @@ class AdminInventoryService {
 
   async createInventoryProduct(
     input: CreateInventoryProductInput,
-    originalBill?: UploadedFile | null,
+    originalBills: UploadedFile[] = [],
   ) {
-    let uploadedKey: string | null = null;
+    let uploaded: Awaited<ReturnType<typeof this.uploadBills>> = [];
 
     try {
       const validated = validateOrThrow(createInventoryProductSchema, input);
+
+      if (originalBills.length > MAX_ORIGINAL_BILLS) {
+        return throwInputError(
+          `You can upload at most ${MAX_ORIGINAL_BILLS} original bills`,
+        );
+      }
 
       const existing = await prisma.inventoryProduct.findFirst({
         where: { imeiOrSerial: validated.imeiOrSerial, isActive: true },
@@ -618,13 +655,11 @@ class AdminInventoryService {
 
       const orderId = this.generateOrderId(validated.imeiOrSerial);
 
-      // id is created up front so the S3 key can contain it
+      // id is created up front so the S3 keys can contain it
       const id = randomUUID();
 
-      // upload the original file first (no compression); only the key is stored
-      if (originalBill) {
-        uploadedKey = await uploadOriginalBill(id, originalBill);
-      }
+      // upload the original files first (no compression); only keys are stored
+      uploaded = await this.uploadBills(id, originalBills);
 
       return await prisma.inventoryProduct.create({
         data: {
@@ -637,25 +672,27 @@ class AdminInventoryService {
           warrantyPurchaseDate: validated.warrantyPurchaseDate
             ? new Date(validated.warrantyPurchaseDate)
             : null,
-          originalBill: uploadedKey,
-          // a bill was uploaded, so the product has its original bill
-          ...(uploadedKey && { hasOriginalBill: true }),
+          // bills were uploaded, so the product has its original bill
+          ...(uploaded.length > 0 && { hasOriginalBill: true }),
+          originalBills: { create: uploaded },
         },
         include: inventoryInclude,
       });
     } catch (error) {
-      // DB failed after the upload -> do not leave an orphan file in S3
-      await deleteOriginalBillQuietly(uploadedKey);
+      // DB failed after the upload -> do not leave orphan files in S3
+      await Promise.all(
+        uploaded.map((u) => deleteOriginalBillQuietly(u.fileKey)),
+      );
       handleServiceError(error);
     }
   }
 
   async updateInventoryProduct(
     input: UpdateInventoryProductInput,
-    originalBill?: UploadedFile | null,
-    removeOriginalBill: boolean = false,
+    newBills: UploadedFile[] = [],
+    removeBillIds: string[] = [],
   ) {
-    let newKey: string | null = null;
+    let uploaded: Awaited<ReturnType<typeof this.uploadBills>> = [];
 
     try {
       const validated = validateOrThrow(updateInventoryProductSchema, input);
@@ -663,6 +700,7 @@ class AdminInventoryService {
 
       const product = await prisma.inventoryProduct.findUnique({
         where: { id },
+        include: { originalBills: true },
       });
       if (!product) return throwNotFoundError("Inventory product not found");
 
@@ -690,15 +728,19 @@ class AdminInventoryService {
         extraUpdate = { grossProfit };
       }
 
-      // ── original bill: keep / replace / remove ──
-      let originalBillKey: string | null = product.originalBill;
+      // ── original bills: only ids that really belong to this product ──
+      const toRemove = product.originalBills.filter((b) =>
+        removeBillIds.includes(b.id),
+      );
+      const remaining = product.originalBills.length - toRemove.length;
 
-      if (originalBill) {
-        newKey = await uploadOriginalBill(id, originalBill);
-        originalBillKey = newKey;
-      } else if (removeOriginalBill) {
-        originalBillKey = null;
+      if (remaining + newBills.length > MAX_ORIGINAL_BILLS) {
+        return throwInputError(
+          `You can keep at most ${MAX_ORIGINAL_BILLS} original bills per product`,
+        );
       }
+
+      uploaded = await this.uploadBills(id, newBills);
 
       const updated = await prisma.inventoryProduct.update({
         where: { id },
@@ -708,23 +750,29 @@ class AdminInventoryService {
           warrantyPurchaseDate: updateData.warrantyPurchaseDate
             ? new Date(updateData.warrantyPurchaseDate)
             : null,
-          originalBill: originalBillKey,
-          // a bill was uploaded, so the product has its original bill
-          ...(newKey && { hasOriginalBill: true }),
+          ...(uploaded.length > 0 && { hasOriginalBill: true }),
+          originalBills: {
+            ...(toRemove.length > 0 && {
+              deleteMany: { id: { in: toRemove.map((b) => b.id) } },
+            }),
+            ...(uploaded.length > 0 && { create: uploaded }),
+          },
           ...extraUpdate,
         },
         include: inventoryInclude,
       });
 
-      // old file is deleted only after the DB update succeeded
-      if (product.originalBill && product.originalBill !== originalBillKey) {
-        await deleteOriginalBillQuietly(product.originalBill);
-      }
+      // removed files are deleted from S3 only after the DB update succeeded
+      await Promise.all(
+        toRemove.map((b) => deleteOriginalBillQuietly(b.fileKey)),
+      );
 
       return updated;
     } catch (error) {
-      // DB failed after a new upload -> remove the new file
-      await deleteOriginalBillQuietly(newKey);
+      // DB failed after new uploads -> remove the new files
+      await Promise.all(
+        uploaded.map((u) => deleteOriginalBillQuietly(u.fileKey)),
+      );
       handleServiceError(error);
     }
   }
@@ -800,13 +848,95 @@ class AdminInventoryService {
         }
       }
 
-      // soft delete: the original bill stays in S3 so the record is complete
+      // soft delete: the original bills stay in S3 so the record is complete
       await prisma.inventoryProduct.update({
         where: { id },
         data: { isActive: false },
       });
 
       return { message: "Inventory product deleted successfully", id };
+    } catch (error) {
+      handleServiceError(error);
+    }
+  }
+
+  // ── Bulk soft delete ──
+  async deleteInventoryProducts(ids: string[]) {
+    try {
+      const uniqueIds = Array.from(new Set(ids));
+
+      if (uniqueIds.length === 0) {
+        return throwInputError("Select at least one product");
+      }
+      if (uniqueIds.length > 200) {
+        return throwInputError("You can delete at most 200 products at once");
+      }
+
+      const products = await prisma.inventoryProduct.findMany({
+        where: { id: { in: uniqueIds } },
+        select: {
+          id: true,
+          orderId: true,
+          isActive: true,
+          invoiceItem: {
+            select: {
+              invoice: { select: { invoiceNumber: true, status: true } },
+            },
+          },
+        },
+      });
+
+      const skipped: { id: string; orderId: string | null; reason: string }[] =
+        [];
+      const deletable: string[] = [];
+
+      const foundIds = new Set(products.map((p) => p.id));
+      for (const id of uniqueIds) {
+        if (!foundIds.has(id)) {
+          skipped.push({ id, orderId: null, reason: "Product not found" });
+        }
+      }
+
+      for (const p of products) {
+        if (!p.isActive) {
+          skipped.push({
+            id: p.id,
+            orderId: p.orderId,
+            reason: "Already deleted",
+          });
+          continue;
+        }
+
+        const inv = p.invoiceItem?.invoice;
+        if (inv && inv.status !== "CANCELLED") {
+          skipped.push({
+            id: p.id,
+            orderId: p.orderId,
+            reason: `Linked to invoice ${inv.invoiceNumber}. Cancel the invoice first.`,
+          });
+          continue;
+        }
+
+        deletable.push(p.id);
+      }
+
+      if (deletable.length > 0) {
+        // soft delete: original bills stay in S3 so records stay complete
+        await prisma.inventoryProduct.updateMany({
+          where: { id: { in: deletable } },
+          data: { isActive: false },
+        });
+      }
+
+      return {
+        deletedCount: deletable.length,
+        skippedCount: skipped.length,
+        skipped,
+        message:
+          skipped.length === 0
+            ? `${deletable.length} product(s) deleted successfully`
+            : `${deletable.length} deleted, ${skipped.length} skipped`,
+      };
     } catch (error) {
       handleServiceError(error);
     }

@@ -47,7 +47,13 @@ export const GET_INVENTORY_PRODUCTS = gql`
         hasBox
         hasCharger
         hasOriginalBill
-        originalBill
+        originalBills {
+          id
+          fileKey
+          fileName
+          mimeType
+          size
+        }
 
         # Warranty
         warrantyType
@@ -116,7 +122,13 @@ export const GET_INVENTORY_PRODUCT_BY_ID = gql`
       hasBox
       hasCharger
       hasOriginalBill
-      originalBill
+      originalBills {
+        id
+        fileKey
+        fileName
+        mimeType
+        size
+      }
       warrantyType
       warrantyPurchaseDate
       createdAt

@@ -3,14 +3,17 @@ import { gql } from "@apollo/client";
 export const CREATE_INVENTORY_PRODUCT = gql`
   mutation CreateInventoryProduct(
     $input: CreateInventoryProductInput!
-    $originalBill: Upload
+    $originalBills: [Upload!]
   ) {
-    createInventoryProduct(input: $input, originalBill: $originalBill) {
+    createInventoryProduct(input: $input, originalBills: $originalBills) {
       id
       orderId
       productName
       status
-      originalBill
+      originalBills {
+        id
+        fileName
+      }
       createdAt
     }
   }
@@ -19,19 +22,22 @@ export const CREATE_INVENTORY_PRODUCT = gql`
 export const UPDATE_INVENTORY_PRODUCT = gql`
   mutation UpdateInventoryProduct(
     $input: UpdateInventoryProductInput!
-    $originalBill: Upload
-    $removeOriginalBill: Boolean
+    $originalBills: [Upload!]
+    $removeOriginalBillIds: [ID!]
   ) {
     updateInventoryProduct(
       input: $input
-      originalBill: $originalBill
-      removeOriginalBill: $removeOriginalBill
+      originalBills: $originalBills
+      removeOriginalBillIds: $removeOriginalBillIds
     ) {
       id
       orderId
       productName
       status
-      originalBill
+      originalBills {
+        id
+        fileName
+      }
       updatedAt
     }
   }
@@ -54,6 +60,21 @@ export const DELETE_INVENTORY_PRODUCT = gql`
     deleteInventoryProduct(id: $id) {
       id
       message
+    }
+  }
+`;
+
+export const DELETE_INVENTORY_PRODUCTS = gql`
+  mutation DeleteInventoryProducts($ids: [ID!]!) {
+    deleteInventoryProducts(ids: $ids) {
+      deletedCount
+      skippedCount
+      message
+      skipped {
+        id
+        orderId
+        reason
+      }
     }
   }
 `;

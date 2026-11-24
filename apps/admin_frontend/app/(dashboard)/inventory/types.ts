@@ -38,7 +38,15 @@ export interface InventoryProduct {
   hasBox: boolean;
   hasCharger: boolean;
   hasOriginalBill: boolean;
-  originalBill?: string | null;
+  originalBills?:
+    | {
+        id: string;
+        fileKey: string;
+        fileName: string;
+        mimeType: string;
+        size: number;
+      }[]
+    | null;
 
   // ── Warranty ──
   warrantyType: "ABOVE_1_YEAR" | "BELOW_1_YEAR";

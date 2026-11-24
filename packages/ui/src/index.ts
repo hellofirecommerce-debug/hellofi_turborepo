@@ -22,4 +22,4 @@ export { MotionProvider } from "./components/MotionProvider";
 export { Reveal, RevealGroup, RevealItem } from "./components/Reveal";
 export { MotionCard } from "./components/MotionCard";
 
-export { FileUpload } from "./components/FileUpload";
+export { FilesUpload } from "./components/FileUpload";

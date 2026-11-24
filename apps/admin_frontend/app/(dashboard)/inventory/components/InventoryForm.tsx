@@ -9,8 +9,8 @@ import { GET_BRANDS_BY_CATEGORY_ID } from "../../../../lib/graphql/queries/brand
 
 import { GET_CATEGORIES } from "../../../../lib/graphql/queries/category.queries";
 import { InventoryProduct } from "../types";
-import { FileUpload } from "@repo/ui";
-import { fileUrl, fileNameFromKey } from "../../../../lib/utils/fileUrl";
+import { FilesUpload } from "@repo/ui";
+import { fileUrl } from "../../../../lib/utils/fileUrl";
 
 import {
   CreateInventoryProductInput,
@@ -58,8 +58,8 @@ interface InventoryFormProps {
   editData?: InventoryProduct | null;
   onSubmit: (
     data: CreateInventoryProductInput | UpdateInventoryProductInput,
-    originalBill: File | null,
-    removeOriginalBill: boolean,
+    originalBills: File[],
+    removeOriginalBillIds: string[],
   ) => void;
   isLoading?: boolean;
 }
@@ -115,10 +115,12 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
 }) => {
   const [form, setForm] = useState<InventoryFormData>(initialForm);
 
-  // ── original bill ──
-  const [billFile, setBillFile] = useState<File | null>(null);
-  const [removeBill, setRemoveBill] = useState(false);
-  const savedBillKey = editData?.originalBill ?? null;
+  // ── original bills ──
+  const [billFiles, setBillFiles] = useState<File[]>([]);
+  const [removedBillIds, setRemovedBillIds] = useState<string[]>([]);
+  const existingBills = (editData?.originalBills ?? [])
+    .filter((b) => !removedBillIds.includes(b.id))
+    .map((b) => ({ id: b.id, name: b.fileName, url: fileUrl(b.fileKey) }));
 
   const { data: brandsData } = useQuery<{
     getBrandsByCategoryId: Brand[];
@@ -186,8 +188,8 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         ram: editData.ram ?? "",
         storage: editData.storage ?? "",
       });
-      setBillFile(null);
-      setRemoveBill(false);
+      setBillFiles([]);
+      setRemovedBillIds([]);
     }
   }, [editData]);
 
@@ -199,20 +201,24 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
     setForm((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleBillSelected = (file: File) => {
-    setBillFile(file);
-    setRemoveBill(false);
+  const handleBillsAdded = (added: File[]) => {
+    setBillFiles((prev) => [...prev, ...added]);
     setForm((prev) => ({ ...prev, hasOriginalBill: true }));
   };
 
-  const handleBillRemoveNew = () => {
-    setBillFile(null);
+  const handleBillRemoveNew = (index: number) => {
+    const next = billFiles.filter((_, i) => i !== index);
+    setBillFiles(next);
+    if (next.length === 0 && existingBills.length === 0) {
+      setForm((prev) => ({ ...prev, hasOriginalBill: false }));
+    }
   };
 
-  const handleBillRemoveSaved = () => {
-    setRemoveBill(true);
-    setBillFile(null);
-    setForm((prev) => ({ ...prev, hasOriginalBill: false }));
+  const handleBillRemoveSaved = (id: string) => {
+    setRemovedBillIds((prev) => [...prev, id]);
+    if (billFiles.length === 0 && existingBills.length <= 1) {
+      setForm((prev) => ({ ...prev, hasOriginalBill: false }));
+    }
   };
 
   const isEdit = !!editData;
@@ -223,9 +229,9 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         ...form,
         id: editData.id,
       };
-      onSubmit(updateData, billFile, removeBill);
+      onSubmit(updateData, billFiles, removedBillIds);
     } else {
-      onSubmit(form, billFile, false);
+      onSubmit(form, billFiles, []);
     }
   };
 
@@ -532,26 +538,26 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
             </div>
           </div>
 
-          {/* E - Original Bill file */}
+          {/* E - Original Bill files */}
           <div className="flex flex-col gap-2">
             <Label>
-              E) Upload Original Bill
+              E) Upload Original Bills
               <span className="text-xs text-gray-400 ml-2 font-normal">
-                optional
+                optional · multiple allowed
               </span>
             </Label>
-            <FileUpload
-              file={billFile}
-              existingUrl={removeBill ? null : fileUrl(savedBillKey)}
-              existingName={fileNameFromKey(savedBillKey)}
-              onFileChange={handleBillSelected}
-              onRemove={handleBillRemoveNew}
+            <FilesUpload
+              files={billFiles}
+              existing={existingBills}
+              onAdd={handleBillsAdded}
+              onRemoveNew={handleBillRemoveNew}
               onRemoveExisting={handleBillRemoveSaved}
-              label="Click to upload original bill"
+              label="Click to upload original bills"
             />
-            {removeBill && savedBillKey && !billFile && (
+            {removedBillIds.length > 0 && (
               <p className="text-xs text-red-500">
-                The saved bill will be removed when you click Update Product.
+                {removedBillIds.length} saved bill(s) will be removed when you
+                click Update Product.
               </p>
             )}
           </div>

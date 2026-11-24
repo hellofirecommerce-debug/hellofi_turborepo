@@ -346,10 +346,10 @@ model InventoryProduct {
   bodyCondition   String  @default("NO")
   deviceIssues    String?
 
-  hasBox          Boolean @default(false)
-  hasCharger      Boolean @default(false)
-  hasOriginalBill Boolean @default(false)
-  originalBill    String?
+  hasBox          Boolean                 @default(false)
+  hasCharger      Boolean                 @default(false)
+  hasOriginalBill Boolean                 @default(false)
+  originalBills   InventoryOriginalBill[]
 
   warrantyType         String    @default("ABOVE_1_YEAR")
   warrantyPurchaseDate DateTime?
@@ -396,6 +396,21 @@ model InventoryProduct {
   @@index([rootInventoryId])
   @@index([sourceInvoiceId])
   @@map("inventory_products")
+}
+
+model InventoryOriginalBill {
+  id          String   @id @default(uuid())
+  inventoryId String
+  fileKey     String // S3 key
+  fileName    String
+  mimeType    String
+  size        Int
+  createdAt   DateTime @default(now())
+
+  inventory InventoryProduct @relation(fields: [inventoryId], references: [id], onDelete: Cascade)
+
+  @@index([inventoryId])
+  @@map("inventory_original_bills")
 }
 
 model InvoiceCompanySettings {

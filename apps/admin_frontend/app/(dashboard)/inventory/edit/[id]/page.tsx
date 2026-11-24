@@ -40,8 +40,8 @@ export default function EditInventoryPage() {
 
   const handleSubmit = async (
     formData: CreateInventoryProductInput | UpdateInventoryProductInput,
-    originalBill: File | null,
-    removeOriginalBill: boolean,
+    originalBills: File[],
+    removeOriginalBillIds: string[],
   ) => {
     const input = formData as UpdateInventoryProductInput;
     await updateInventoryProduct({
@@ -75,8 +75,10 @@ export default function EditInventoryPage() {
               ? input.warrantyPurchaseDate || undefined
               : undefined,
         },
-        originalBill: originalBill ?? undefined,
-        removeOriginalBill,
+        originalBills: originalBills.length ? originalBills : undefined,
+        removeOriginalBillIds: removeOriginalBillIds.length
+          ? removeOriginalBillIds
+          : undefined,
       },
     });
   };

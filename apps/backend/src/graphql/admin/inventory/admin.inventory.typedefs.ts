@@ -15,6 +15,15 @@ export const typeDefs = `#graphql
     RAZORPAY
   }
 
+  type OriginalBill {
+    id: ID!
+    fileKey: String!
+    fileName: String!
+    mimeType: String!
+    size: Int!
+    createdAt: DateTime!
+  }
+
   type InventoryProduct {
     id: ID!
     imeiOrSerial: String!
@@ -53,7 +62,7 @@ export const typeDefs = `#graphql
     hasBox: Boolean!
     hasCharger: Boolean!
     hasOriginalBill: Boolean!
-    originalBill: String
+    originalBills: [OriginalBill!]
     warrantyType: String!
     warrantyPurchaseDate: DateTime
     createdAt: String!
@@ -74,6 +83,19 @@ export const typeDefs = `#graphql
     pageSize: Int
     sortBy: String
     sortOrder: String
+  }
+
+  type BulkDeleteSkipped {
+    id: ID!
+    orderId: String
+    reason: String!
+  }
+
+  type BulkDeleteInventoryResponse {
+    deletedCount: Int!
+    skippedCount: Int!
+    skipped: [BulkDeleteSkipped!]!
+    message: String!
   }
 
   type InventoryProductsResponse {

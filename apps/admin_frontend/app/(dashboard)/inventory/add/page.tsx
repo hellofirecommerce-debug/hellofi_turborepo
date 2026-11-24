@@ -19,7 +19,7 @@ export default function AddInventoryPage() {
     },
   );
 
-  const handleSubmit = async (formData: any, originalBill: File | null) => {
+  const handleSubmit = async (formData: any, originalBills: File[]) => {
     await createInventoryProduct({
       variables: {
         input: {
@@ -53,7 +53,7 @@ export default function AddInventoryPage() {
               ? formData.warrantyPurchaseDate || undefined
               : undefined,
         },
-        originalBill: originalBill ?? undefined,
+        originalBills: originalBills.length ? originalBills : undefined,
       },
     });
   };

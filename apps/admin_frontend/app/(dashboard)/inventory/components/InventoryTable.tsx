@@ -24,6 +24,9 @@ interface InventoryTableProps {
   onMarkAsSold: (product: InventoryProduct) => void;
   sortConfig?: SortConfig;
   onSort?: (field: string) => void;
+  selectedIds: string[];
+  onToggleSelect: (id: string) => void;
+  onToggleAll: (checked: boolean) => void;
 }
 
 export const InventoryTable: React.FC<InventoryTableProps> = ({
@@ -39,15 +42,35 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   onMarkAsSold,
   sortConfig,
   onSort,
+  selectedIds,
+  onToggleSelect,
+  onToggleAll,
 }) => {
   const [viewProduct, setViewProduct] = useState<InventoryProduct | null>(null);
+
+  const selectedOnPage = data.filter((p) => selectedIds.includes(p.id)).length;
+  const allSelected = data.length > 0 && selectedOnPage === data.length;
+  const someSelected = selectedOnPage > 0 && !allSelected;
 
   return (
     <div>
       <div className="overflow-x-auto w-full">
-        <div className="min-w-[1400px] min-h-[400px]">
+        <div className="min-w-[1650px] min-h-[400px]">
           <Table>
             <TableHeader>
+              <TableCell isHeader className="min-w-[48px] w-[48px]">
+                <input
+                  type="checkbox"
+                  title="Select all on this page"
+                  checked={allSelected}
+                  ref={(el) => {
+                    if (el) el.indeterminate = someSelected;
+                  }}
+                  onChange={(e) => onToggleAll(e.target.checked)}
+                  disabled={data.length === 0}
+                  className="h-4 w-4 rounded border-gray-300 accent-[rgb(33,76,123)] cursor-pointer"
+                />
+              </TableCell>
               <TableCell isHeader className="min-w-[160px]">
                 Order ID
               </TableCell>
@@ -112,6 +135,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               <TableCell isHeader className="min-w-[100px]">
                 Status
               </TableCell>
+              <TableCell isHeader className="min-w-[200px]">
+                Original Bills
+              </TableCell>
               <TableCell isHeader className="min-w-[130px]">
                 Action
               </TableCell>
@@ -120,7 +146,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               {data.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={14}
+                    colSpan={16}
                     className="text-center py-12 text-gray-400"
                   >
                     No products found
@@ -131,6 +157,8 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   <InventoryTableRow
                     key={product.id}
                     product={product}
+                    selected={selectedIds.includes(product.id)}
+                    onToggleSelect={onToggleSelect}
                     onView={setViewProduct}
                     onEdit={onEdit}
                     onDelete={onDelete}

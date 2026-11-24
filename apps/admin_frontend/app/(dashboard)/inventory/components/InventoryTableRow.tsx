@@ -25,6 +25,8 @@ const statusLabel: Record<string, string> = {
 
 interface InventoryTableRowProps {
   product: InventoryProduct;
+  selected: boolean;
+  onToggleSelect: (id: string) => void;
   onView: (product: InventoryProduct) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
@@ -33,15 +35,26 @@ interface InventoryTableRowProps {
 
 export const InventoryTableRow: React.FC<InventoryTableRowProps> = ({
   product,
+  selected,
+  onToggleSelect,
   onView,
   onEdit,
   onDelete,
   onMarkAsSold,
 }) => {
-  const billUrl = fileUrl(product.originalBill);
+  const bills = product.originalBills ?? [];
 
   return (
     <TableRow key={product.id}>
+      <TableCell>
+        <input
+          type="checkbox"
+          title="Select product"
+          checked={selected}
+          onChange={() => onToggleSelect(product.id)}
+          className="h-4 w-4 rounded border-gray-300 accent-[rgb(33,76,123)] cursor-pointer"
+        />
+      </TableCell>
       <TableCell className="text-xs text-gray-600">{product.orderId}</TableCell>
       <TableCell className="font-medium text-gray-800">
         {product.productName}
@@ -113,6 +126,30 @@ export const InventoryTableRow: React.FC<InventoryTableRowProps> = ({
           {statusLabel[product.status] ?? product.status}
         </Badge>
       </TableCell>
+
+      {/* Original Bills — every bill is shown and opens in a new tab */}
+      <TableCell>
+        {bills.length === 0 ? (
+          <span className="text-gray-400">—</span>
+        ) : (
+          <div className="flex flex-wrap items-center gap-1.5">
+            {bills.map((bill, i) => (
+              <a
+                key={bill.id}
+                href={fileUrl(bill.fileKey) ?? "#"}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={bill.fileName}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-green-200 bg-green-50 text-green-700 text-xs font-medium hover:bg-green-100 hover:border-green-300 transition-colors"
+              >
+                <FileText size={12} />
+                Bill {i + 1}
+              </a>
+            ))}
+          </div>
+        )}
+      </TableCell>
+
       <TableCell>
         <div className="flex items-center gap-1.5">
           <Button
@@ -124,17 +161,6 @@ export const InventoryTableRow: React.FC<InventoryTableRowProps> = ({
           >
             <Eye size={14} />
           </Button>
-          {billUrl && (
-            <a
-              href={billUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="View Original Bill"
-              className="inline-flex items-center justify-center h-8 w-8 rounded-md border border-gray-200 text-gray-500 hover:border-green-400 hover:text-green-600 hover:bg-green-50 transition-colors"
-            >
-              <FileText size={14} />
-            </a>
-          )}
           <Button
             variant="ghost"
             size="icon"
