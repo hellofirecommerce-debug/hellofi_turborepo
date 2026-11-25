@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@apollo/client/react";
 import { Plus, Trash2, X } from "lucide-react";
 import { Button, ConfirmDialog } from "@repo/ui";
@@ -22,24 +22,57 @@ import {
 } from "../../../lib/graphql/mutations/inventory.mutations";
 import { useNavigate } from "../../../lib/hooks/useNavigate";
 
+const FILTER_STORAGE_KEY = "inventory-list-filter";
+
+const DEFAULT_FILTER: InventoryFilter = {
+  page: 1,
+  pageSize: 10,
+  sortBy: "createdAt",
+  sortOrder: "desc",
+};
+
 export default function InventoryPage() {
   const { navigate } = useNavigate();
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [soldProduct, setSoldProduct] = useState<InventoryProduct | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
-  const [filter, setFilter] = useState<InventoryFilter>({
-    page: 1,
-    pageSize: 10,
-    sortBy: "createdAt",
-    sortOrder: "desc",
-  });
+  const [filter, setFilter] = useState<InventoryFilter>(DEFAULT_FILTER);
+  // becomes true once the saved filter (if any) has been loaded
+  const [restored, setRestored] = useState(false);
+
+  // ── restore the saved filter on first load ──
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (saved && typeof saved === "object") {
+          setFilter({ ...DEFAULT_FILTER, ...saved });
+        }
+      }
+    } catch {
+      // storage blocked or invalid JSON: just use the defaults
+    }
+    setRestored(true);
+  }, []);
+
+  // ── save the filter every time it changes ──
+  useEffect(() => {
+    if (!restored) return;
+    try {
+      sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filter));
+    } catch {
+      // ignore
+    }
+  }, [filter, restored]);
 
   const { data, loading, refetch } = useQuery<{
     getInventoryProducts: InventoryProductsResponse;
   }>(GET_INVENTORY_PRODUCTS, {
     variables: { filter },
     fetchPolicy: "cache-and-network",
+    skip: !restored, // do not fetch with default filter before restoring
   });
 
   const [deleteProduct, { loading: deleting }] = useMutation(
@@ -158,6 +191,16 @@ export default function InventoryPage() {
     });
   };
 
+  // wait until the saved filter is loaded so the filter bar opens correctly
+  if (!restored) {
+    return (
+      <div>
+        <PageHeader title="Inventory" breadcrumbs={[{ label: "Inventory" }]} />
+        <InventorySkeleton />
+      </div>
+    );
+  }
+
   return (
     <div>
       <PageHeader title="Inventory" breadcrumbs={[{ label: "Inventory" }]} />
@@ -191,12 +234,7 @@ export default function InventoryPage() {
             onChange={handleFilterChange}
             onReset={() => {
               clearSelection();
-              setFilter({
-                page: 1,
-                pageSize: 10,
-                sortBy: "createdAt",
-                sortOrder: "desc",
-              });
+              setFilter(DEFAULT_FILTER);
             }}
           />
         </div>

@@ -27,7 +27,9 @@ export const InventoryFilterBar: React.FC<InventoryFilterBarProps> = ({
   onChange,
   onReset,
 }) => {
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(
+    !!(filter.status || filter.brandId || filter.categoryId),
+  );
   const [showDatePicker, setShowDatePicker] = useState(false);
   const datePickerRef = useRef<HTMLDivElement>(null);
 
