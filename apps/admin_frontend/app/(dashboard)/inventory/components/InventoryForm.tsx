@@ -267,7 +267,6 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               ))}
             </select>
           </div>
-
           {/* 2 — Brand */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -290,7 +289,6 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               ))}
             </select>
           </div>
-
           {/* 3 — Product Name */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -304,7 +302,6 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Search product name"
             />
           </div>
-
           {/* 4 — IMEI / Serial */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -316,7 +313,6 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               onChange={(e) => handleChange("imeiOrSerial", e.target.value)}
             />
           </div>
-
           {/* 5 — RAM */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -337,7 +333,6 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Select or enter RAM"
             />
           </div>
-
           {/* 6 — Storage */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -358,8 +353,20 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Select or enter Storage"
             />
           </div>
-
           {/* 7 — Purchase Date */}
+          <div className="flex flex-col gap-1.5">
+            <Label>
+              HelloFi Purchase Date <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-400 ml-2 font-normal">
+                Date HelloFi bought this device from the customer
+              </span>
+            </Label>
+            <Input
+              type="date"
+              value={form.purchaseDate}
+              onChange={(e) => handleChange("purchaseDate", e.target.value)}
+            />
+          </div>{" "}
           <div className="flex flex-col gap-1.5">
             <Label>
               Purchase Date <span className="text-red-500">*</span>
@@ -370,7 +377,6 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               onChange={(e) => handleChange("purchaseDate", e.target.value)}
             />
           </div>
-
           {/* 8 — Status */}
           <div className="flex flex-col gap-1.5">
             <Label>Status</Label>
@@ -588,9 +594,11 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
           {form.warrantyType === "BELOW_1_YEAR" && (
             <div className="flex flex-col gap-1.5">
               <Label>
-                Original Purchase Date <span className="text-red-500">*</span>
+                Customer's Original Purchase Date{" "}
+                <span className="text-red-500">*</span>
                 <span className="text-xs text-gray-400 ml-2 font-normal">
-                  When was the device originally purchased?
+                  Date the customer originally bought this device as new (from
+                  the original bill)
                 </span>
               </Label>
               <Input

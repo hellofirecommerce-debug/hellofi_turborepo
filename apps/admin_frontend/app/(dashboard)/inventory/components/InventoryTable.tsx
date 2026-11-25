@@ -100,7 +100,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               <TableCell isHeader className="min-w-[160px]">
                 <SortableHeader
                   field="purchaseDate"
-                  label="Purchase Date"
+                  label="HelloFi Purchase Date"
                   sortConfig={sortConfig}
                   onSort={onSort}
                 />
