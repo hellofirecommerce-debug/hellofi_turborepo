@@ -303,6 +303,13 @@ model BuyingSpecification {
   product BuyingProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+enum InventoryCupboard {
+  CUPBOARD_1
+  CUPBOARD_2
+  CUPBOARD_3
+  CUPBOARD_4
+}
+
 model InventoryProduct {
   id           String @id @default(uuid())
   imeiOrSerial String
@@ -324,7 +331,8 @@ model InventoryProduct {
   customerPhone   String
   customerAddress String
 
-  status InventoryStatus @default(NOT_LISTED)
+  status   InventoryStatus    @default(NOT_LISTED)
+  cupboard InventoryCupboard?
 
   sellingDate  DateTime?
   sellingPrice Decimal?
@@ -384,6 +392,7 @@ model InventoryProduct {
   invoiceItem   InvoiceItem?
   buyingVariant BuyingVariant?
 
+  @@index([cupboard])
   @@index([imeiOrSerial])
   @@index([customerEmail])
   @@index([customerPhone])

@@ -6,6 +6,13 @@ export const typeDefs = `#graphql
     SOLD
   }
 
+  enum InventoryCupboard {
+    CUPBOARD_1
+    CUPBOARD_2
+    CUPBOARD_3
+    CUPBOARD_4
+  } 
+
   enum PaymentMode {
     CASH
     UPI
@@ -42,6 +49,7 @@ export const typeDefs = `#graphql
     customerPhone: String!
     customerAddress: String!
     status: InventoryStatus!
+    cupboard: InventoryCupboard
     sellingDate: DateTime
     sellingPrice: Float
     invoice: String
@@ -121,6 +129,7 @@ export const typeDefs = `#graphql
     customerPhone: String!
     customerAddress: String!
     status: InventoryStatus
+    cupboard: InventoryCupboard
     notes: String
     screenCondition: String
     bodyCondition: String
@@ -148,6 +157,7 @@ export const typeDefs = `#graphql
   customerPhone: String!
   customerAddress: String!
   status: InventoryStatus!
+  cupboard: InventoryCupboard
   notes: String
   # ← add all new fields
   screenCondition: String

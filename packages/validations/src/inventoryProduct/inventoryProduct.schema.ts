@@ -16,6 +16,13 @@ export const paymentModeEnum = z.enum([
   "RAZORPAY",
 ]);
 
+const cupboardEnum = z.enum([
+  "CUPBOARD_1",
+  "CUPBOARD_2",
+  "CUPBOARD_3",
+  "CUPBOARD_4",
+]);
+
 export const createInventoryProductSchema = z.object({
   // Identifiers
   imeiOrSerial: z.string().min(1, "IMEI or serial is required"),
@@ -43,6 +50,7 @@ export const createInventoryProductSchema = z.object({
 
   // Status
   status: inventoryStatusEnum.default("NOT_LISTED"),
+  cupboard: cupboardEnum.nullable().optional(),
 
   // Selling Details — optional at creation
   sellingDate: z.string().optional(),

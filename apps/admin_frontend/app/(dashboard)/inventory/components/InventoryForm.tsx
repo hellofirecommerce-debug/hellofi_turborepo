@@ -170,6 +170,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         customerPhone: editData.customerPhone,
         customerAddress: editData.customerAddress,
         status: editData.status,
+        cupboard: editData.cupboard ?? undefined,
         notes: editData.notes ?? "",
         screenCondition:
           (editData.screenCondition as "MINOR" | "MAJOR" | "NO") ?? "NO",
@@ -267,6 +268,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               ))}
             </select>
           </div>
+
           {/* 2 — Brand */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -289,6 +291,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               ))}
             </select>
           </div>
+
           {/* 3 — Product Name */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -302,6 +305,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Search product name"
             />
           </div>
+
           {/* 4 — IMEI / Serial */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -313,6 +317,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               onChange={(e) => handleChange("imeiOrSerial", e.target.value)}
             />
           </div>
+
           {/* 5 — RAM */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -333,6 +338,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Select or enter RAM"
             />
           </div>
+
           {/* 6 — Storage */}
           <div className="flex flex-col gap-1.5">
             <Label>
@@ -353,7 +359,8 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               title="Select or enter Storage"
             />
           </div>
-          {/* 7 — Purchase Date */}
+
+          {/* 7 — HelloFi Purchase Date */}
           <div className="flex flex-col gap-1.5">
             <Label>
               HelloFi Purchase Date <span className="text-red-500">*</span>
@@ -366,17 +373,8 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               value={form.purchaseDate}
               onChange={(e) => handleChange("purchaseDate", e.target.value)}
             />
-          </div>{" "}
-          <div className="flex flex-col gap-1.5">
-            <Label>
-              Purchase Date <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              type="date"
-              value={form.purchaseDate}
-              onChange={(e) => handleChange("purchaseDate", e.target.value)}
-            />
           </div>
+
           {/* 8 — Status */}
           <div className="flex flex-col gap-1.5">
             <Label>Status</Label>
@@ -390,6 +388,28 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               <option value="OUT_FOR_LISTING">Out for Listing</option>
               <option value="LISTED">Listed</option>
               <option value="SOLD">Sold</option>
+            </select>
+          </div>
+
+          {/* 9 — Cupboard */}
+          <div className="flex flex-col gap-1.5">
+            <Label>
+              Cupboard
+              <span className="text-xs text-gray-400 ml-2 font-normal">
+                Which cupboard this device is kept in
+              </span>
+            </Label>
+            <select
+              title="Select cupboard"
+              value={form.cupboard ?? ""}
+              onChange={(e) => handleChange("cupboard", e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Not assigned</option>
+              <option value="CUPBOARD_1">Cupboard 1</option>
+              <option value="CUPBOARD_2">Cupboard 2</option>
+              <option value="CUPBOARD_3">Cupboard 3</option>
+              <option value="CUPBOARD_4">Cupboard 4</option>
             </select>
           </div>
         </div>

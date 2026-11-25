@@ -37,6 +37,7 @@ export default function AddInventoryPage() {
           customerPhone: formData.customerPhone,
           customerAddress: formData.customerAddress,
           status: formData.status,
+          cupboard: formData.cupboard || undefined,
           notes: formData.notes || undefined,
           // Device Condition
           screenCondition: formData.screenCondition,

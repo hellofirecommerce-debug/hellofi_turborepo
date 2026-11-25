@@ -14,6 +14,7 @@ export interface InventoryProduct {
   customerPhone: string;
   customerAddress: string;
   status: "NOT_LISTED" | "LISTED" | "SOLD";
+  cupboard?: "CUPBOARD_1" | "CUPBOARD_2" | "CUPBOARD_3" | "CUPBOARD_4" | null;
   sellingDate?: string;
   sellingPrice?: number;
   invoice?: string;

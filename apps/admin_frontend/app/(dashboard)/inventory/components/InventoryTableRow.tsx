@@ -65,7 +65,14 @@ export const InventoryTableRow: React.FC<InventoryTableRowProps> = ({
         )}
       </TableCell>
       <TableCell className="font-mono text-xs text-gray-500">
-        {product.imeiOrSerial}
+        <div className="flex flex-col gap-1">
+          <span>{product.imeiOrSerial}</span>
+          {product.cupboard && (
+            <span className="self-start px-1.5 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-indigo-600 font-sans text-[10px] font-medium">
+              {product.cupboard.replace("CUPBOARD_", "Cupboard ")}
+            </span>
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-gray-500">{product.brand?.name}</TableCell>
       <TableCell className="text-gray-500">{product.category?.name}</TableCell>

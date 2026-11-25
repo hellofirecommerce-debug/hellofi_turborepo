@@ -62,6 +62,7 @@ export default function EditInventoryPage() {
           customerPhone: input.customerPhone,
           customerAddress: input.customerAddress,
           status: input.status,
+          cupboard: input.cupboard || null,
           notes: input.notes || undefined,
           screenCondition: input.screenCondition,
           bodyCondition: input.bodyCondition,
