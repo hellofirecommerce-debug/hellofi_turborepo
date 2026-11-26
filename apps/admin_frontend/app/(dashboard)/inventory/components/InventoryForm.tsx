@@ -41,6 +41,7 @@ const initialForm: InventoryFormData = {
   customerPhone: "",
   customerAddress: "",
   status: "NOT_LISTED",
+  productLocation: "",
   notes: "",
   screenCondition: "NO",
   bodyCondition: "NO",
@@ -56,6 +57,7 @@ const initialForm: InventoryFormData = {
 
 interface InventoryFormProps {
   editData?: InventoryProduct | null;
+  cities?: string[];
   onSubmit: (
     data: CreateInventoryProductInput | UpdateInventoryProductInput,
     originalBills: File[],
@@ -110,6 +112,7 @@ const SPEC_CATEGORIES = ["Mobile Phone", "Laptop", "Tablet"];
 
 export const InventoryForm: React.FC<InventoryFormProps> = ({
   editData,
+  cities = [],
   onSubmit,
   isLoading = false,
 }) => {
@@ -152,6 +155,12 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
   const brands = brandsData?.getBrandsByCategoryId ?? [];
   const categories = categoriesData?.getCategories ?? [];
 
+  // cities come from the server page (cached 1 day); keep an old saved value selectable too
+  const cityOptions =
+    form.productLocation && !cities.includes(form.productLocation)
+      ? [form.productLocation, ...cities]
+      : cities;
+
   const selectedCategory = categories.find((c) => c.id === form.categoryId);
   const requiresSpecs = SPEC_CATEGORIES.includes(selectedCategory?.name ?? "");
 
@@ -171,6 +180,7 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         customerAddress: editData.customerAddress,
         status: editData.status,
         cupboard: editData.cupboard ?? undefined,
+        productLocation: editData.productLocation ?? "",
         notes: editData.notes ?? "",
         screenCondition:
           (editData.screenCondition as "MINOR" | "MAJOR" | "NO") ?? "NO",
@@ -388,6 +398,9 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               <option value="OUT_FOR_LISTING">Out for Listing</option>
               <option value="LISTED">Listed</option>
               <option value="SOLD">Sold</option>
+              <option value="ADVANCE_PAID">Advance Paid</option>
+              <option value="UNDER_CLAIM">Under Claim</option>
+              <option value="NEED_TO_REPAIR">Need To Repair</option>
             </select>
           </div>
 
@@ -672,6 +685,54 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
               value={form.customerEmail}
               onChange={(e) => handleChange("customerEmail", e.target.value)}
             />
+          </div>
+
+          {/* 10 — Product Location (city) */}
+          <div className="flex flex-col gap-1.5">
+            <Label>
+              Product Location
+              <span className="text-xs text-gray-400 ml-2 font-normal">
+                City where this product is right now
+              </span>
+            </Label>
+            <select
+              title="Select product location"
+              value={form.productLocation ?? ""}
+              onChange={(e) => handleChange("productLocation", e.target.value)}
+              className={selectClass}
+            >
+              <option value="">Not assigned</option>
+              {cityOptions.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>
+              Purchased Payment Mode
+              <span className="text-xs text-gray-400 ml-2 font-normal">
+                How we paid the customer
+              </span>
+            </Label>
+            <select
+              title="Select payment mode"
+              value={form.purchasePaymentMode ?? ""}
+              onChange={(e) =>
+                handleChange("purchasePaymentMode", e.target.value)
+              }
+              className={selectClass}
+            >
+              <option value="">Not specified</option>
+              <option value="CASH">Cash</option>
+              <option value="UPI">UPI</option>
+              <option value="CREDIT_CARD">Credit Card</option>
+              <option value="DEBIT_CARD">Debit Card</option>
+              <option value="SPLIT_PAYMENT">Split Payment</option>
+              <option value="RAZORPAY">Razorpay</option>
+            </select>
           </div>
 
           <div className="flex flex-col gap-1.5 sm:col-span-2">

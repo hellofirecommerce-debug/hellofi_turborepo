@@ -526,6 +526,48 @@ class UserBuyingProductService {
       handleServiceError(error);
     }
   }
+
+  async getProductBySlug(slug: string) {
+    try {
+      const product = await prisma.buyingProduct.findUnique({
+        where: { slug },
+        include: {
+          brand: true,
+          category: true,
+          variants: {
+            orderBy: [{ price: "asc" }, { id: "asc" }],
+            include: {
+              images: {
+                orderBy: [{ isDefault: "desc" }, { priority: "asc" }],
+              },
+            },
+          },
+          specifications: {
+            orderBy: [{ sortOrder: "asc" }, { key: "asc" }],
+          },
+        },
+      });
+
+      if (
+        !product ||
+        product.category.status !== "ACTIVE" ||
+        product.variants.length === 0
+      ) {
+        return throwNotFoundError("Product not found");
+      }
+
+      // internal inventory link is never sent to the storefront
+      return {
+        ...product,
+        variants: product.variants.map((v) => ({
+          ...v,
+          inventoryProductId: null,
+        })),
+      };
+    } catch (error) {
+      handleServiceError(error);
+    }
+  }
 }
 
 export default new UserBuyingProductService();

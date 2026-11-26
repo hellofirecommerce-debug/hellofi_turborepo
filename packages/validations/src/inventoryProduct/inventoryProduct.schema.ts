@@ -5,6 +5,9 @@ export const inventoryStatusEnum = z.enum([
   "OUT_FOR_LISTING",
   "LISTED",
   "SOLD",
+  "ADVANCE_PAID",
+  "UNDER_CLAIM",
+  "NEED_TO_REPAIR",
 ]);
 
 export const paymentModeEnum = z.enum([
@@ -51,6 +54,7 @@ export const createInventoryProductSchema = z.object({
   // Status
   status: inventoryStatusEnum.default("NOT_LISTED"),
   cupboard: cupboardEnum.nullable().optional(),
+  productLocation: z.string().trim().max(150).nullable().optional(),
 
   // Selling Details — optional at creation
   sellingDate: z.string().optional(),
@@ -84,6 +88,7 @@ export const createInventoryProductSchema = z.object({
   warrantyPurchaseDate: z.string().optional(),
 
   // Payment — optional
+  purchasePaymentMode: paymentModeEnum.nullable().optional(),
   paymentMode: paymentModeEnum.optional(),
   receivedInBank: z.number().min(0).optional(),
   splitPaymentDetails: z.string().optional(),

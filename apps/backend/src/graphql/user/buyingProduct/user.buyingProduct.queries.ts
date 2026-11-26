@@ -5,4 +5,5 @@ getBuyingProductsBySection(
   categorySlug: String
 ): [BuyingProductCard!]!
 getAvailableFilters(categorySlugs: [String!]): AvailableFilters!
+getBuyingProductBySlug(slug: String!): BuyingProduct!
 `;

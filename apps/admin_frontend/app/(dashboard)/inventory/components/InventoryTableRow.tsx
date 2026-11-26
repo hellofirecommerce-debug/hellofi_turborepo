@@ -1,5 +1,12 @@
 "use client";
-import { Pencil, Trash2, BadgeCheck, Eye, FileText } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  BadgeCheck,
+  Eye,
+  FileText,
+  MapPin,
+} from "lucide-react";
 import { Button, Badge } from "@repo/ui";
 import { TableRow } from "../../../../components/table/TableRow";
 import { TableCell } from "../../../../components/table/TableCell";
@@ -13,6 +20,9 @@ const statusVariant: Record<
   LISTED: "success",
   OUT_FOR_LISTING: "default",
   NOT_LISTED: "warning",
+  ADVANCE_PAID: "default",
+  UNDER_CLAIM: "warning",
+  NEED_TO_REPAIR: "error",
   SOLD: "error",
 };
 
@@ -20,7 +30,19 @@ const statusLabel: Record<string, string> = {
   LISTED: "Listed",
   OUT_FOR_LISTING: "Out for Listing",
   NOT_LISTED: "Not Listed",
+  ADVANCE_PAID: "Advance Paid",
+  UNDER_CLAIM: "Under Claim",
+  NEED_TO_REPAIR: "Need to Repair",
   SOLD: "Sold",
+};
+
+const paymentModeLabel: Record<string, string> = {
+  CASH: "Cash",
+  UPI: "UPI",
+  CREDIT_CARD: "Credit Card",
+  DEBIT_CARD: "Debit Card",
+  SPLIT_PAYMENT: "Split Payment",
+  RAZORPAY: "Razorpay",
 };
 
 interface InventoryTableRowProps {
@@ -76,6 +98,22 @@ export const InventoryTableRow: React.FC<InventoryTableRowProps> = ({
       </TableCell>
       <TableCell className="text-gray-500">{product.brand?.name}</TableCell>
       <TableCell className="text-gray-500">{product.category?.name}</TableCell>
+
+      {/* Location */}
+      <TableCell>
+        {product.productLocation ? (
+          <span
+            title={product.productLocation}
+            className="inline-flex items-center gap-1 max-w-[130px] px-2 py-1 rounded-md border border-teal-200 bg-teal-50 text-teal-700 text-xs font-medium"
+          >
+            <MapPin size={12} className="shrink-0" />
+            <span className="truncate">{product.productLocation}</span>
+          </span>
+        ) : (
+          <span className="text-gray-400">—</span>
+        )}
+      </TableCell>
+
       <TableCell className="font-medium text-gray-800">
         ₹{Number(product.costPrice).toLocaleString("en-IN")}
       </TableCell>
@@ -106,6 +144,13 @@ export const InventoryTableRow: React.FC<InventoryTableRowProps> = ({
             {product.customerName}
           </span>
           <span className="text-xs text-gray-400">{product.customerPhone}</span>
+          {product.purchasePaymentMode && (
+            <span className="mt-1 self-start px-1.5 py-0.5 rounded bg-gray-100 border border-gray-200 text-gray-600 text-[10px] font-medium">
+              Paid via{" "}
+              {paymentModeLabel[product.purchasePaymentMode] ??
+                product.purchasePaymentMode}
+            </span>
+          )}
         </div>
       </TableCell>
       <TableCell className="text-gray-500">

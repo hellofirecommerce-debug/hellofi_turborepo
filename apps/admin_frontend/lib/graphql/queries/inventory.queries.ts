@@ -21,6 +21,7 @@ export const GET_INVENTORY_PRODUCTS = gql`
         customerAddress
         status
         cupboard
+        productLocation
 
         # Selling Details
         sellingDate

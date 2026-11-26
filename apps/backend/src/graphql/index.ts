@@ -10,9 +10,12 @@ import { AdminSeries } from "./admin/series";
 import { AdminSellingProduct } from "./admin/sellingProduct";
 import { AdminBuyingProduct } from "./admin/buyingProduct";
 import { AdminVideoReviews } from "./admin/video-review";
+
 import { CommonCategory } from "./common/category";
 import { CommonBrand } from "./common/brand";
 import { CommonBuyingProduct } from "./common/buyingProduct";
+import { CommonServiceablePincode } from "./common/serviceablePincode";
+
 import { GraphQLUpload } from "graphql-upload-ts";
 import { AdminInvoice } from "./admin/invoice";
 import { ApolloServerPluginLandingPageDisabled } from "@apollo/server/plugin/disabled";
@@ -43,6 +46,7 @@ async function createApolloGraphqlServer() {
     # Common
     ${CommonCategory.queries}
     ${CommonBrand.queries}
+    ${CommonServiceablePincode.queries}
 
     # Admin
     ${AdminBanner.queries}
@@ -152,6 +156,7 @@ async function createApolloGraphqlServer() {
 
       ...CommonCategory.resolvers.Query,
       ...CommonBrand.resolvers.Query,
+      ...CommonServiceablePincode.resolvers.Query,
 
       ...UserBuyingProduct.resolvers.Query,
       ...UserBrand.resolvers.Query,

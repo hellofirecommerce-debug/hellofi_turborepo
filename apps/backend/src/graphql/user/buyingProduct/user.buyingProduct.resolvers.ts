@@ -2,6 +2,9 @@ import UserBuyingProductService from "../../../services/user/user.buyingProduct.
 
 export const resolvers = {
   Query: {
+    getBuyingProductBySlug: async (_: any, args: { slug: string }) => {
+      return UserBuyingProductService.getProductBySlug(args.slug);
+    },
     getBuyingProductsBySection: async (
       _parent: unknown,
       args: { section: string; categorySlug?: string },
@@ -19,7 +22,9 @@ export const resolvers = {
       return UserBuyingProductService.getAvailableFilters(args.categorySlugs);
     },
     getFilteredBuyingProducts: async (_: any, args: { filter?: any }) => {
-      return UserBuyingProductService.getFilteredBuyingProducts(args.filter ?? {});
+      return UserBuyingProductService.getFilteredBuyingProducts(
+        args.filter ?? {},
+      );
     },
   },
 };

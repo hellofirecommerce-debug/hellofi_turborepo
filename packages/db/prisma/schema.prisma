@@ -34,9 +34,12 @@ enum UserStatus {
 }
 
 enum InventoryStatus {
-  OUT_FOR_LISTING
   NOT_LISTED
+  OUT_FOR_LISTING
   LISTED
+  ADVANCE_PAID
+  UNDER_CLAIM
+  NEED_TO_REPAIR
   SOLD
 }
 
@@ -331,8 +334,9 @@ model InventoryProduct {
   customerPhone   String
   customerAddress String
 
-  status   InventoryStatus    @default(NOT_LISTED)
-  cupboard InventoryCupboard?
+  status              InventoryStatus    @default(NOT_LISTED)
+  cupboard            InventoryCupboard?
+  purchasePaymentMode PaymentMode?
 
   sellingDate  DateTime?
   sellingPrice Decimal?

@@ -13,8 +13,17 @@ export interface InventoryProduct {
   customerEmail?: string;
   customerPhone: string;
   customerAddress: string;
-  status: "NOT_LISTED" | "LISTED" | "SOLD";
+  status:
+    | "NOT_LISTED"
+    | "LISTED"
+    | "SOLD"
+    | "ADVANCE_PAID"
+    | "UNDER_CLAIM"
+    | "NEED_TO_REPAIR"
+    | "OUT_FOR_LISTING";
   cupboard?: "CUPBOARD_1" | "CUPBOARD_2" | "CUPBOARD_3" | "CUPBOARD_4" | null;
+  purchasePaymentMode?: string | null;
+  productLocation?: string | null;
   sellingDate?: string;
   sellingPrice?: number;
   invoice?: string;

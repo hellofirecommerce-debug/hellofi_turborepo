@@ -55,7 +55,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   return (
     <div>
       <div className="overflow-x-auto w-full">
-        <div className="min-w-[1650px] min-h-[400px]">
+        <div className="min-w-[1800px] min-h-[400px]">
           <Table>
             <TableHeader>
               <TableCell isHeader className="min-w-[48px] w-[48px]">
@@ -85,6 +85,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               </TableCell>
               <TableCell isHeader className="min-w-[140px]">
                 Category
+              </TableCell>
+              <TableCell isHeader className="min-w-[140px]">
+                Location
               </TableCell>
               <TableCell isHeader className="min-w-[130px]">
                 <SortableHeader
@@ -132,7 +135,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
                   onSort={onSort}
                 />
               </TableCell>
-              <TableCell isHeader className="min-w-[100px]">
+              <TableCell isHeader className="min-w-[120px]">
                 Status
               </TableCell>
               <TableCell isHeader className="min-w-[200px]">
@@ -146,7 +149,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
               {data.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={16}
+                    colSpan={17}
                     className="text-center py-12 text-gray-400"
                   >
                     No products found
