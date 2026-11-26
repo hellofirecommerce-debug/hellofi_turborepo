@@ -3,6 +3,7 @@ import {
   GET_BUYING_PRODUCTS_BY_SECTION,
   GET_AVAILABLE_FILTERS,
   GET_FILTERED_BUYING_PRODUCTS,
+  GET_BUYING_PRODUCT_BY_SLUG,
 } from "../graphql/queires/buyingProduct.queries";
 
 import type {
@@ -162,6 +163,39 @@ export async function getFilteredBuyingProductsClient(filter: any) {
   } catch (error) {
     console.error("getFilteredBuyingProductsClient: fetch failed", error);
     return { items: [], nextCursor: null, hasMore: false };
+  }
+}
+
+// ── Single product by slug (the product detail page) ──
+export async function getBuyingProductBySlug(slug: string) {
+  try {
+    const res = await fetch(GRAPHQL_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: GET_BUYING_PRODUCT_BY_SLUG.loc?.source.body,
+        variables: { slug },
+      }),
+      next: { revalidate: 300 },
+    });
+
+    if (!res.ok) {
+      console.error("getBuyingProductBySlug: HTTP error", res.status);
+      return null;
+    }
+
+    const json = await res.json();
+
+    // backend returns an error when the product is not found
+    if (json.errors) {
+      console.error("getBuyingProductBySlug: GraphQL errors", json.errors);
+      return null;
+    }
+
+    return json.data?.getBuyingProductBySlug ?? null;
+  } catch (error) {
+    console.error("getBuyingProductBySlug: fetch failed", error);
+    return null;
   }
 }
 

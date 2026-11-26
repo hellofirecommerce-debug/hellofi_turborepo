@@ -1,7 +1,7 @@
-// app/[slug]/[slug2]/page.tsx
 import { notFound } from "next/navigation";
 import { ProductListingPage } from "../../../components/product-listing/pages/ProductListingPage";
 import { ModelSelectionPage } from "../../../components/sell/sell-model-selection/ModelSelectionPage";
+import { BuyingProductPage } from "../../../components/buy/product-details/pages/BuyingProductPage";
 
 const BUY_MAP: Record<
   string,
@@ -71,12 +71,19 @@ export default async function DynamicSecondLevelRoute({
   const { slug, slug2 } = await params;
   const resolvedSearchParams = await searchParams;
 
-  // ── Buy flow: /buy-used-<category>/<something> → product listing ──
+  // ── Buy flow: /buy-used-<category>/<something> ──
   if (slug.startsWith("buy-used-")) {
     const key = slug.replace("buy-used-", "");
     const info = BUY_MAP[key];
     if (!info) notFound();
 
+    // /buy-used-mobile-phones/old-apple-iphone-17e-preowned → product page
+    if (slug2.startsWith("old-")) {
+      const productSlug = slug2.replace(/^old-/, ""); // apple-iphone-17e-preowned
+      return <BuyingProductPage productSlug={productSlug} />;
+    }
+
+    // otherwise (brand etc.) → product listing
     return (
       <ProductListingPage
         categorySlug={info.category ?? undefined}

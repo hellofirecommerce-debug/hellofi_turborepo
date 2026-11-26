@@ -87,3 +87,70 @@ export const GET_FILTERED_BUYING_PRODUCTS = gql`
     }
   }
 `;
+
+export const GET_BUYING_PRODUCT_BY_SLUG = gql`
+  query GetBuyingProductBySlug($slug: String!) {
+    getBuyingProductBySlug(slug: $slug) {
+      id
+      productName
+      productSubtitle
+      slug
+      manualBrand
+      featuredSection
+      defaultVariantId
+      brand {
+        id
+        name
+        image
+      }
+      category {
+        id
+        name
+        seoName
+      }
+      variants {
+        id
+        sku
+        variantSubtitle
+        liveLink
+        color
+        colorCode
+        storage
+        ram
+        price
+        mrp
+        emiBasePrice
+        availableQuantity
+        inStock
+        productSpec
+        condition
+        availability
+        screenSize
+        os
+        processor
+        batteryCapacity
+        warrantyType
+        warrantyDescription
+        whatsInTheBox
+        whatsExtra
+        images {
+          id
+          xs
+          sm
+          md
+          lg
+          alt
+          priority
+          isDefault
+        }
+      }
+      specificationGroups {
+        group
+        items {
+          key
+          value
+        }
+      }
+    }
+  }
+`;

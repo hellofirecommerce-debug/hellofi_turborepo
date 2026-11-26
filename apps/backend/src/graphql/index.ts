@@ -192,13 +192,18 @@ async function createApolloGraphqlServer() {
     },
   };
 
+  // production + staging → no introspection, no sandbox page
+  const isLocked = ["production", "staging"].includes(
+    process.env.NODE_ENV ?? "",
+  );
+
   const graphqlServer = new ApolloServer({
     typeDefs: allTypeDefs,
     resolvers: allResolvers,
-    // ── Disable sandbox in production ──
-    introspection: process.env.NODE_ENV !== "production",
+    // ── Disable introspection in production and staging ──
+    introspection: !isLocked,
     plugins: [
-      process.env.NODE_ENV === "production"
+      isLocked
         ? ApolloServerPluginLandingPageDisabled()
         : ApolloServerPluginLandingPageLocalDefault({ embed: true }),
     ],
