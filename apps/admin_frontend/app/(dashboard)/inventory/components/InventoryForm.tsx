@@ -181,6 +181,9 @@ export const InventoryForm: React.FC<InventoryFormProps> = ({
         status: editData.status,
         cupboard: editData.cupboard ?? undefined,
         productLocation: editData.productLocation ?? "",
+        purchasePaymentMode:
+          (editData.purchasePaymentMode as CreateInventoryProductInput["purchasePaymentMode"]) ??
+          undefined,
         notes: editData.notes ?? "",
         screenCondition:
           (editData.screenCondition as "MINOR" | "MAJOR" | "NO") ?? "NO",
