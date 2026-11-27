@@ -634,6 +634,7 @@ class AdminInventoryService {
 
     try {
       const validated = validateOrThrow(createInventoryProductSchema, input);
+      const { brandId, categoryId, ...rest } = validated;
 
       if (originalBills.length > MAX_ORIGINAL_BILLS) {
         return throwInputError(
@@ -664,7 +665,7 @@ class AdminInventoryService {
       return await prisma.inventoryProduct.create({
         data: {
           id,
-          ...validated,
+          ...rest,
           orderId,
           purchaseDate: new Date(validated.purchaseDate),
           costPrice: validated.costPrice,
@@ -672,9 +673,14 @@ class AdminInventoryService {
           warrantyPurchaseDate: validated.warrantyPurchaseDate
             ? new Date(validated.warrantyPurchaseDate)
             : null,
+          // relations are connected, not set as raw ids
+          category: { connect: { id: categoryId } },
+          ...(brandId && { brand: { connect: { id: brandId } } }),
           // bills were uploaded, so the product has its original bill
-          ...(uploaded.length > 0 && { hasOriginalBill: true }),
-          originalBills: { create: uploaded },
+          ...(uploaded.length > 0 && {
+            hasOriginalBill: true,
+            originalBills: { create: uploaded },
+          }),
         },
         include: inventoryInclude,
       });
@@ -696,7 +702,7 @@ class AdminInventoryService {
 
     try {
       const validated = validateOrThrow(updateInventoryProductSchema, input);
-      const { id, ...updateData } = validated;
+      const { id, brandId, categoryId, ...updateData } = validated;
 
       const product = await prisma.inventoryProduct.findUnique({
         where: { id },
@@ -742,6 +748,15 @@ class AdminInventoryService {
 
       uploaded = await this.uploadBills(id, newBills);
 
+      // only send the nested write when there is something to change
+      const billsOp = {
+        ...(toRemove.length > 0 && {
+          deleteMany: { id: { in: toRemove.map((b) => b.id) } },
+        }),
+        ...(uploaded.length > 0 && { create: uploaded }),
+      };
+      const hasBillsOp = Object.keys(billsOp).length > 0;
+
       const updated = await prisma.inventoryProduct.update({
         where: { id },
         data: {
@@ -750,13 +765,15 @@ class AdminInventoryService {
           warrantyPurchaseDate: updateData.warrantyPurchaseDate
             ? new Date(updateData.warrantyPurchaseDate)
             : null,
+          // relations are connected, not set as raw ids
+          category: { connect: { id: categoryId } },
+          ...(brandId !== undefined && {
+            brand: brandId
+              ? { connect: { id: brandId } }
+              : { disconnect: true },
+          }),
           ...(uploaded.length > 0 && { hasOriginalBill: true }),
-          originalBills: {
-            ...(toRemove.length > 0 && {
-              deleteMany: { id: { in: toRemove.map((b) => b.id) } },
-            }),
-            ...(uploaded.length > 0 && { create: uploaded }),
-          },
+          ...(hasBillsOp && { originalBills: billsOp }),
           ...extraUpdate,
         },
         include: inventoryInclude,

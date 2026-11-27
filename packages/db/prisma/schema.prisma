@@ -337,6 +337,7 @@ model InventoryProduct {
   status              InventoryStatus    @default(NOT_LISTED)
   cupboard            InventoryCupboard?
   purchasePaymentMode PaymentMode?
+  productLocation     String?
 
   sellingDate  DateTime?
   sellingPrice Decimal?
