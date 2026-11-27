@@ -19,6 +19,7 @@ export const GET_INVENTORY_PRODUCTS = gql`
         customerEmail
         customerPhone
         customerAddress
+        purchasePaymentMode
         status
         cupboard
         productLocation
@@ -103,10 +104,14 @@ export const GET_INVENTORY_PRODUCT_BY_ID = gql`
       customerEmail
       customerPhone
       customerAddress
+      purchasePaymentMode
       status
+      cupboard
+      productLocation
       sellingDate
       sellingPrice
       invoice
+      sellingOtherCharges
       sellingCustomerName
       sellingCustomerEmail
       sellingCustomerPhone
